@@ -69,4 +69,4 @@ class FakeRepository(RepositoryABC):
 
     def write(self, url_or_path, x):
         """Write data x to repository at key url_or_path"""
-        self.storage[url_or_path]
+        self.storage[url_or_path] = x
