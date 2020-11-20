@@ -1,4 +1,4 @@
 click
 numpy
-skdownscale
+scikit-downscale
 xarray
