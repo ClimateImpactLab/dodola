@@ -3,19 +3,37 @@
 These are abstractions to isolate most of the data layer.
 """
 
-from abc import ABC
+import abc
 
 
-class RepositoryABC(ABC):
+class RepositoryABC(abc.ABC):
     """ABC for a basic Repository pattern"""
 
+    @abc.abstractmethod
     def read(self, url_or_path):
-        """Read data from url_or_path"""
-        pass
+        """Read xr.Dataset from storage
 
+        Parameters
+        ----------
+        url_or_path : str
+            Location (e.g. URL or path) of data to read from storage.
+
+        Returns
+        -------
+        xr.Dataset
+        """
+
+    @abc.abstractmethod
     def write(self, url_or_path, x):
-        """Write data x to url_or_path"""
-        pass
+        """Write xr.Dataset, x, to storage
+
+        Parameters
+        ----------
+        url_or_path : str
+            Location (e.g. URL or path) of data to read from storage.
+        x : xr.Dataset
+            Data to store in repository.
+        """
 
 
 class AzureRepository(RepositoryABC):
@@ -39,11 +57,9 @@ class GcsRepository(RepositoryABC):
     """
 
     def read(self, url_or_path):
-        """Read data from url_or_path"""
         raise NotImplementedError
 
     def write(self, url_or_path, x):
-        """Write data x to url_or_path"""
         raise NotImplementedError
 
 
