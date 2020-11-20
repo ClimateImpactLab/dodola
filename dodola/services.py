@@ -13,10 +13,10 @@ def bias_correct(x, x_train, y_train, out, storage):
     x : str
         Storage URL to input data to bias correct.
     x_train : str
-        Storage URL to input biased data to use for training bias-correction 
+        Storage URL to input biased data to use for training bias-correction
         model.
     y_train : str
-        Storage URL to input 'true' data or observations to use for training 
+        Storage URL to input 'true' data or observations to use for training
         bias-correction model.
     out : str
         Storage URL to write bias-corrected output to.
