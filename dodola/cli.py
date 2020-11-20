@@ -5,6 +5,7 @@ import click
 import dodola.services as services
 from dodola.repository import GcsRepository
 
+
 # Main entry point
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 def dodola_cli():
