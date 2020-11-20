@@ -1,4 +1,5 @@
 click
+cftime
 numpy
 scikit-downscale
 xarray
