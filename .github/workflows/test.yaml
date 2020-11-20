@@ -19,7 +19,7 @@ jobs:
       shell: bash -l {0}
       run: |
         python -m pip install --upgrade pip
-        pip install pytest twine flake8 black
+        pip install pytest twine wheel flake8 black
         pip install -r requirements.txt
     - name: Test code quality
       shell: bash -l {0}
