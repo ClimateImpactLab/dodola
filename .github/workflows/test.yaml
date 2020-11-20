@@ -4,27 +4,28 @@ on: [push]
 
 jobs:
   test:
+
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
     steps:
     - uses: actions/checkout@v2
-    - uses: goanpeca/setup-miniconda@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
-        auto-update-conda: true
         python-version: ${{ matrix.python-version }}
-        channels: conda-forge
     - name: Install dependencies
       shell: bash -l {0}
       run: |
         # We really should be using an environment.yaml file for this spec
-        python -m pip install -r requirements.txt
-        python -m pip install pytest twine flake8 black  # Testing stuff
+        python -m pip install --upgrade pip
+        pip install pytest twine flake8 black
+        pip install -r requirements.txt
     - name: Test code quality
       shell: bash -l {0}
       run: |
-        flake8
+        flake8 --count --show-source --statistics
         black -v --check dodola/*
     - name: Build package, install
       shell: bash -l {0}
