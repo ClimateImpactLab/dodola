@@ -24,6 +24,6 @@ See more help with::
 Installation
 ------------
 
-You shouldn't! This will likely run a Docker container on cloud infrastructure in a production environment. But, to install with ``pip``::
+You shouldn't! This will likely run within a Docker container in a production environment on cloud infrastructure. But, to install with ``pip``::
 
     pip install git+https://github.com/ClimateImpactLab/dodola
