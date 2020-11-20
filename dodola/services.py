@@ -36,12 +36,10 @@ def bias_correct(x, x_train, y_train, out, storage):
 
 
 def generate_weights(x, out, repo):
-    """This is just an example. Please replace or delete.
-    """
+    """This is just an example. Please replace or delete."""
     raise NotImplementedError
 
 
 def disaggregate(x, weights, out, repo):
-    """This is just an example. Please replace or delete.
-    """
+    """This is just an example. Please replace or delete."""
     raise NotImplementedError

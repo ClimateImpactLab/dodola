@@ -7,17 +7,14 @@ from abc import ABC
 
 
 class RepositoryABC(ABC):
-    """ABC for a basic Repository pattern
-    """
+    """ABC for a basic Repository pattern"""
 
     def read(self, url_or_path):
-        """Read data from url_or_path
-        """
+        """Read data from url_or_path"""
         pass
 
     def write(self, url_or_path, x):
-        """Write data x to url_or_path
-        """
+        """Write data x to url_or_path"""
         pass
 
 
@@ -42,13 +39,11 @@ class GcsRepository(RepositoryABC):
     """
 
     def read(self, url_or_path):
-        """Read data from url_or_path
-        """
+        """Read data from url_or_path"""
         raise NotImplementedError
 
     def write(self, url_or_path, x):
-        """Write data x to url_or_path
-        """
+        """Write data x to url_or_path"""
         raise NotImplementedError
 
 
@@ -69,11 +64,9 @@ class FakeRepository(RepositoryABC):
             self.storage = dict(storage)
 
     def read(self, url_or_path):
-        """Read url_or_path key from repository
-        """
+        """Read url_or_path key from repository"""
         return self.storage[url_or_path]
 
     def write(self, url_or_path, x):
-        """Write data x to repository at key url_or_path
-        """
+        """Write data x to repository at key url_or_path"""
         self.storage[url_or_path]

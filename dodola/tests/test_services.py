@@ -8,8 +8,7 @@ from dodola.repository import FakeRepository
 
 
 def _datafactory(x, start_time="1950-01-01"):
-    """Populate xr.Dataset with synthetic data for testing
-    """
+    """Populate xr.Dataset with synthetic data for testing"""
     start_time = str(start_time)
     if x.ndim != 1:
         raise ValueError("'x' needs dim of one")
@@ -28,8 +27,7 @@ def _datafactory(x, start_time="1950-01-01"):
 
 
 def test_bias_correct_basic_call():
-    """Simple integration test of bias_correct service
-    """
+    """Simple integration test of bias_correct service"""
     # Setup input data.
     n_years = 5
     n = n_years * 365  # need daily data...
