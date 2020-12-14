@@ -1,7 +1,7 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 
-from dodola.core import climatenerdlogic
+from dodola.core import bias_correct_bcsd
 from dodola.repository import GcsRepository
 
 
@@ -28,7 +28,7 @@ def bias_correct(x, x_train, y_train, out, storage):
     gcm_predict_ds = storage.read(x)
 
     # This is all made up demo. Just get the output dataset the user expects.
-    bias_corrected_ds = climatenerdlogic(
+    bias_corrected_ds = bias_correct_bcsd(
         gcm_training_ds, obs_training_ds, gcm_predict_ds
     )
 
