@@ -1,6 +1,10 @@
 name: Test Python Package
 
-on: [push]
+on:
+  push:
+    branches: "*"
+  pull_request:
+    branches: "main"
 
 jobs:
   test:
