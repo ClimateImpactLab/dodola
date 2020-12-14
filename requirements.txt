@@ -1,5 +1,5 @@
 click
 cftime
 numpy
-git+https://github.com/dgergel/xsd.git@pointwisedownscaler_interimfix
+pip install git+https://github.com/dgergel/xsd.git@pointwisedownscaler_interimfix
 xarray
