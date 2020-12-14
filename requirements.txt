@@ -1,5 +1,5 @@
 click
 cftime
 numpy
-scikit-downscale
+git+git://github.com/dgergel/xsd.git@pointwisedownscaler_interimfix
 xarray
