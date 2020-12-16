@@ -37,7 +37,6 @@ setup(
     zip_safe=False,
     python_requires=">=3.7",
     install_requires=requirements,
-    setup_requires=["setuptools_scm"],
     entry_points="""
     [console_scripts]
     dodola=dodola.cli:dodola_cli
