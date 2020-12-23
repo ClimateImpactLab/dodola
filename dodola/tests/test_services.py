@@ -3,6 +3,7 @@
 
 import numpy as np
 import xarray as xr
+import pandas as pd
 from dodola.services import bias_correct
 from dodola.repository import FakeRepository
 
@@ -13,30 +14,32 @@ def _datafactory(x, start_time="1950-01-01"):
     if x.ndim != 1:
         raise ValueError("'x' needs dim of one")
 
+    time = pd.date_range(start=start_time, freq="D", periods=len(x))
+
     out = xr.Dataset(
-        {"fakevariable": (["lon", "lat", "time"], x[np.newaxis, np.newaxis, :])},
+        {"fakevariable": (["time", "lon", "lat"], x[np.newaxis, np.newaxis, :])},
         coords={
+            "index": time,
+            "time": time,
             "lon": (["lon"], [1.0]),
             "lat": (["lat"], [1.0]),
-            "time": xr.cftime_range(
-                start=start_time, freq="D", periods=len(x), calendar="noleap"
-            ),
         },
     )
-    return out
+    return out["fakevariable"]
 
 
 def test_bias_correct_basic_call():
     """Simple integration test of bias_correct service"""
     # Setup input data.
-    n_years = 5
+    n_years = 10
     n = n_years * 365  # need daily data...
 
     # Our "biased model".
-    model_bias = 10
-    x_train = _datafactory(np.arange(0, n) + model_bias)
+    model_bias = 2
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    x_train = _datafactory(ts + model_bias)
     # True "observations".
-    y_train = _datafactory(np.arange(0, n))
+    y_train = _datafactory(ts)
     # Yes, we're testing and training on the same data...
     x_test = x_train.copy(deep=True)
 
@@ -63,6 +66,14 @@ def test_bias_correct_basic_call():
         storage=fakestorage,
     )
 
-    # Our testing model forecast is identical to our training model data so model
-    # forecast should equal obsvations we tuned to.
-    xr.testing.assert_equal(fakestorage.storage[output_key], y_train)
+    # We can't just test for removal of bias here since quantile mapping
+    # and adding in trend are both components of bias correction,
+    # so testing head and tail values instead
+    head_vals = np.array([-0.08129293, -0.07613746, -0.0709855, -0.0658377, -0.0606947])
+    tail_vals = np.array([0.0520793, 0.06581804, 0.07096781, 0.07612168, 0.08127902])
+    np.testing.assert_almost_equal(
+        fakestorage.storage[output_key].squeeze(drop=True).values[:5], head_vals
+    )
+    np.testing.assert_almost_equal(
+        fakestorage.storage[output_key].squeeze(drop=True).values[-5:], tail_vals
+    )
