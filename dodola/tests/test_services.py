@@ -17,7 +17,7 @@ def _datafactory(x, start_time="1950-01-01"):
     time = pd.date_range(start=start_time, freq="D", periods=len(x))
 
     out = xr.Dataset(
-        {"fakevariable": (["time", "lon", "lat"], x[np.newaxis, np.newaxis, :])},
+        {"fakevariable": (["time", "lon", "lat"], x[:, np.newaxis, np.newaxis])},
         coords={
             "index": time,
             "time": time,
