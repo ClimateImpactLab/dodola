@@ -37,7 +37,7 @@ def test_bias_correct_basic_call():
     # Our "biased model".
     model_bias = 2
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
-    x_train = _datafactory(ts + model_bias)
+    x_train = _datafactory((ts + model_bias))
     # True "observations".
     y_train = _datafactory(ts)
     # Yes, we're testing and training on the same data...
