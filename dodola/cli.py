@@ -22,4 +22,12 @@ def dodola_cli():
 def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable):
     """Bias-correct GCM (x) to 'out' based on model (xtrain), obs (ytrain)"""
     storage = GcsRepository()
-    services.bias_correct(x, xtrain, ytrain, out, storage, train_variable=trainvariable, out_variable=outvariable)
+    services.bias_correct(
+        x,
+        xtrain,
+        ytrain,
+        out,
+        storage,
+        train_variable=trainvariable,
+        out_variable=outvariable,
+    )
