@@ -11,7 +11,9 @@ from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 # Assume data input here is generally clean and valid.
 
 
-def bias_correct_bcsd(gcm_training_ds, obs_training_ds, gcm_predict_ds):
+def bias_correct_bcsd(
+    gcm_training_ds, obs_training_ds, gcm_predict_ds, train_variable, out_variable
+):
 
     """Bias correct input model data using BCSD method,
        using either monthly or +/- 15 day time grouping.
@@ -26,15 +28,20 @@ def bias_correct_bcsd(gcm_training_ds, obs_training_ds, gcm_predict_ds):
         future model data to be bias corrected
     predicted : Dataset
         bias corrected future model data
+    train_variable : str
+        variable name used in training data
+    out_variable : str
+        variable name used in downscaled output
     """
 
     # note that time_grouper='daily_nasa-nex' is what runs the
     # NASA-NEX version of daily BCSD
     # TO-DO: switch to NASA-NEX version once tests pass
     model = PointWiseDownscaler(BcsdTemperature(return_anoms=False))
-    model.fit(gcm_training_ds, obs_training_ds)
-    predicted = model.predict(gcm_predict_ds).load()
-    return predicted
+    model.fit(gcm_training_ds[train_variable], obs_training_ds[train_variable])
+    predicted = model.predict(gcm_predict_ds[train_variable]).load()
+    ds_predicted = predicted.to_dataset(name=out_variable)
+    return ds_predicted
 
 
 def morenerdymathstuff(*args):

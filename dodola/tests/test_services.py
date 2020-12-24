@@ -25,7 +25,7 @@ def _datafactory(x, start_time="1950-01-01"):
             "lat": (["lat"], [1.0]),
         },
     )
-    return out["fakevariable"]
+    return out
 
 
 def test_bias_correct_basic_call():
@@ -61,8 +61,10 @@ def test_bias_correct_basic_call():
     bias_correct(
         forecast_model_key,
         x_train=training_model_key,
+        train_variable="fakevariable",
         y_train=training_obs_key,
         out=output_key,
+        out_variable="fakevariable",
         storage=fakestorage,
     )
 
@@ -72,8 +74,10 @@ def test_bias_correct_basic_call():
     head_vals = np.array([-0.08129293, -0.07613746, -0.0709855, -0.0658377, -0.0606947])
     tail_vals = np.array([0.0520793, 0.06581804, 0.07096781, 0.07612168, 0.08127902])
     np.testing.assert_almost_equal(
-        fakestorage.storage[output_key].squeeze(drop=True).values[:5], head_vals
+        fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[:5],
+        head_vals,
     )
     np.testing.assert_almost_equal(
-        fakestorage.storage[output_key].squeeze(drop=True).values[-5:], tail_vals
+        fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[-5:],
+        tail_vals,
     )
