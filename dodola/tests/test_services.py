@@ -3,7 +3,6 @@
 
 import numpy as np
 import xarray as xr
-import pandas as pd
 from dodola.services import bias_correct
 from dodola.repository import FakeRepository
 
@@ -14,7 +13,9 @@ def _datafactory(x, start_time="1950-01-01"):
     if x.ndim != 1:
         raise ValueError("'x' needs dim of one")
 
-    time = pd.date_range(start=start_time, freq="D", periods=len(x))
+    time = xr.cftime_range(
+        start=start_time, freq="D", periods=len(x), calendar="standard"
+    )
 
     out = xr.Dataset(
         {"fakevariable": (["time", "lon", "lat"], x[:, np.newaxis, np.newaxis])},

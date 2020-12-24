@@ -3,8 +3,6 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
-import numpy as np
-import xarray as xr
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 
 # Break this down into a submodule(s) if needed.
@@ -26,12 +24,12 @@ def bias_correct_bcsd(
         observation data for building quantile map
     gcm_predict_ds : Dataset
         future model data to be bias corrected
-    predicted : Dataset
-        bias corrected future model data
     train_variable : str
         variable name used in training data
     out_variable : str
         variable name used in downscaled output
+    ds_predicted : Dataset
+        bias corrected future model data
     """
 
     # note that time_grouper='daily_nasa-nex' is what runs the
@@ -42,8 +40,3 @@ def bias_correct_bcsd(
     predicted = model.predict(gcm_predict_ds[train_variable]).load()
     ds_predicted = predicted.to_dataset(name=out_variable)
     return ds_predicted
-
-
-def morenerdymathstuff(*args):
-    # TO-DO: implement additional bias correction functionality
-    return None
