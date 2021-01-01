@@ -2,5 +2,5 @@ click
 cftime
 numpy
 pytest
-scikit-downscale
+git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
 xarray
