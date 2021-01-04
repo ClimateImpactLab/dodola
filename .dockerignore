@@ -1,0 +1,12 @@
+deploy
+.git*
+.github
+__pycache__
+*.egg-info
+.eggs
+*pytest_cache*
+.coverage
+*.py[cxo]
+.ipynb_checkpoints
+__pytest__
+.xprocess
