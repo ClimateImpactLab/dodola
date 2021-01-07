@@ -1,9 +1,6 @@
 from setuptools import setup, find_packages
 
 
-with open("requirements.txt") as f:
-    requirements = f.read().strip().split("\n")
-
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
@@ -36,7 +33,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     python_requires=">=3.7",
-    # install_requires=requirements,
     entry_points="""
     [console_scripts]
     dodola=dodola.cli:dodola_cli

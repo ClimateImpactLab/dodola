@@ -1,6 +1,0 @@
-click
-cftime
-numpy
-pytest
-git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
-xarray
