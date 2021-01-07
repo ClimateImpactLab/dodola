@@ -22,18 +22,16 @@ jobs:
         flake8 --count --show-source --statistics
         black -v --check dodola/*
 
-  container-test:
+  container-tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Docker login
-      uses: azure/docker-login@v1
     - name: Build container
       run: |
         docker build . -t dodola:dev
-    - name: Test container package
+    - name: Test package
       run: |
         docker run dodola:dev pytest -v --pyargs dodola
-    - name: Test container CLI
+    - name: Test CLI
       run: |
         docker run dodola:dev dodola --help
