@@ -1,4 +1,4 @@
-name: Build, Test, Push Container
+name: Build, Push Container
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     - "main"
 
 jobs:
-  buildcontainer:
+  buildpush:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
