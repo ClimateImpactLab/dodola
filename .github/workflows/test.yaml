@@ -18,7 +18,6 @@ jobs:
       run: |
         pip install flake8 black
     - name: Test code quality
-      shell: bash -l {0}
       run: |
         flake8 --count --show-source --statistics
         black -v --check dodola/*
