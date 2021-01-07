@@ -9,4 +9,4 @@ RUN conda env update -n base -f /opt/dodola/environment.yaml \
     && conda clean --all
 
 COPY . /opt/dodola
-RUN bash -c "pip install /opt/dodola"
+RUN bash -c "pip install -e /opt/dodola"
