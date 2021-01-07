@@ -4,9 +4,9 @@ ENV PATH /opt/conda/bin:$PATH
 
 # Copy only app requirements to cache dependencies
 RUN mkdir /opt/dodola
-COPY requirements.txt /opt/dodola/requirements.txt
-RUN bash -c "conda install -c conda-forge --file /opt/dodola/requirements.txt \
-    && conda clean --all"
+COPY environment.yaml /opt/dodola/environment.yaml
+RUN conda env update -n base -f /opt/dodola/environment.yaml \
+    && conda clean --all
 
 COPY . /opt/dodola
-RUN bash -c "pip install /opt/dodola"
+RUN bash -c "pip install -e /opt/dodola"
