@@ -1,0 +1,14 @@
+name: base
+channels:
+- conda-forge
+dependencies:
+- click
+- cftime
+- numpy
+- pip
+- pytest
+- python=3.8
+- xarray
+- bottleneck
+- pip:
+  - git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
