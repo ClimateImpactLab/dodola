@@ -11,5 +11,6 @@ dependencies:
 - python=3.8
 - xarray
 - bottleneck
+- zarr
 - pip:
   - git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
