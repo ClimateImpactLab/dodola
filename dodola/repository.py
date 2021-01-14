@@ -56,7 +56,14 @@ class AzureZarr(RepositoryABC):
     tenant_id : str or None, optional
     """
 
-    def __init__(self, account_name=None, account_key=None, client_id=None, client_secret=None, tenant_id=None):
+    def __init__(
+        self,
+        account_name=None,
+        account_key=None,
+        client_id=None,
+        client_secret=None,
+        tenant_id=None,
+    ):
         self.fs = AzureBlobFileSystem(
             account_name=account_name,
             account_key=account_key,
