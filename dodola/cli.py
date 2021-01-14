@@ -13,28 +13,15 @@ def dodola_cli():
 
 
 @dodola_cli.command(help="Bias-correct GCM on observations")
-@click.argument(
-    "x",
-    required=True,
-    help="URL of Zarr store to extract independent variable or GCM data for training.",
-)
-@click.argument(
-    "xtrain",
-    required=True,
-    help="URL of Zarr store to extract independent variable or obs for training.",
-)
-@click.argument(
-    "trainvariable", required=True, help="Variable to extract for training."
-)
+@click.argument("x", required=True)
+@click.argument("xtrain", required=True)
+@click.argument("trainvariable", required=True)
 @click.argument(
     "ytrain",
     required=True,
-    help="URL of Zarr store to extract dependant variable for training.",
 )
-@click.argument("out", required=True, help="URL of store to write output Zarr data to.")
-@click.argument(
-    "outvariable", required=True, help="Variable name to assign output in output file."
-)
+@click.argument("out", required=True)
+@click.argument("outvariable", required=True)
 @click.option(
     "--azstorageaccount",
     default=None,
