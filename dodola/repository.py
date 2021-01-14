@@ -101,19 +101,6 @@ class AzureZarr(RepositoryABC):
         x.to_zarr(self.fs.get_mapper(url_or_path), mode="w", compute=True)
 
 
-class GcsRepository(RepositoryABC):
-    """Google Cloud Storage bucket-based repository.
-
-    Prob will use ``gcsfs``.
-    """
-
-    def read(self, url_or_path):
-        raise NotImplementedError
-
-    def write(self, url_or_path, x):
-        raise NotImplementedError
-
-
 class FakeRepository(RepositoryABC):
     """Simple in-memory repository for testing
 
