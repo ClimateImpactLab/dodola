@@ -13,17 +13,58 @@ def dodola_cli():
 
 
 @dodola_cli.command(help="Bias-correct GCM on observations")
-@click.argument("x", required=True)
-@click.argument("xtrain", required=True)
-@click.argument("trainvariable", required=True)
-@click.argument("ytrain", required=True)
-@click.argument("out", required=True)
-@click.argument("outvariable", required=True)
-@click.option("--azstorageaccount", default=None, envvar="AZURE_STORAGE_ACCOUNT")
-@click.option("--azstoragekey", default=None, envvar="AZURE_STORAGE_KEY")
-@click.option("--azclientid", default=None, envvar="AZURE_CLIENT_ID")
-@click.option("--azclientsecret", default=None, envvar="AZURE_CLIENT_SECRET")
-@click.option("--aztenantid", default=None, envvar="AZURE_TENANT_ID")
+@click.argument(
+    "x",
+    required=True,
+    help="URL of Zarr store to extract independent variable or GCM data for training.",
+)
+@click.argument(
+    "xtrain",
+    required=True,
+    help="URL of Zarr store to extract independent variable or obs for training.",
+)
+@click.argument(
+    "trainvariable", required=True, help="Variable to extract for training."
+)
+@click.argument(
+    "ytrain",
+    required=True,
+    help="URL of Zarr store to extract dependant variable for training.",
+)
+@click.argument("out", required=True, help="URL of store to write output Zarr data to.")
+@click.argument(
+    "outvariable", required=True, help="Variable name to assign output in output file."
+)
+@click.option(
+    "--azstorageaccount",
+    default=None,
+    envvar="AZURE_STORAGE_ACCOUNT",
+    help="Key-based Azure storage credential",
+)
+@click.option(
+    "--azstoragekey",
+    default=None,
+    envvar="AZURE_STORAGE_KEY",
+    help="Key-based Azure storage credential",
+)
+@click.option(
+    "--azclientid",
+    default=None,
+    envvar="AZURE_CLIENT_ID",
+    help="Service Principal-based Azure storage credential",
+)
+@click.option(
+    "--azclientsecret",
+    default=None,
+    envvar="AZURE_CLIENT_SECRET",
+    help="Service Principal-based Azure storage credential",
+)
+@click.option(
+    "--aztenantid",
+    default=None,
+    envvar="AZURE_TENANT_ID",
+    help="Service Principal-based Azure storage credential",
+)
 def biascorrect(
     x,
     xtrain,
