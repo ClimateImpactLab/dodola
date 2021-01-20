@@ -2,7 +2,6 @@
 """
 
 from dodola.core import bias_correct_bcsd
-from dodola.repository import GcsRepository
 
 
 def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage):
