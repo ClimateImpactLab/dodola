@@ -1,7 +1,7 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 
-from dodola.core import bias_correct_bcsd
+from dodola.core import bias_correct_bcsd, build_xesmf_weights_file
 
 
 def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage):
@@ -38,9 +38,22 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage
     storage.write(out, bias_corrected_ds)
 
 
-def generate_weights(x, out, repo):
-    """This is just an example. Please replace or delete."""
-    raise NotImplementedError
+def generate_weights(x, method, storage, outfile=None):
+    """Generate local NetCDF weights file for regridding climate data
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be regridded.
+    method : str
+        Method of regridding. Passed to ``xesmf.Regridder``.
+    storage : RepositoryABC-like
+        Storage abstraction for data IO.
+    outfile : optional
+        Local file path name to write regridding weights file to.
+    """
+    ds = storage.read(x)
+    weights_path = build_xesmf_weights_file(ds, method=method, filename=outfile)
 
 
 def disaggregate(x, weights, out, repo):
