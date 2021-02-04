@@ -3,7 +3,7 @@
 
 import numpy as np
 import xarray as xr
-from dodola.services import bias_correct
+from dodola.services import bias_correct, generate_weights
 from dodola.repository import FakeRepository
 
 
@@ -82,3 +82,32 @@ def test_bias_correct_basic_call():
         fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[-5:],
         tail_vals,
     )
+
+
+def test_generate_weights(tmpdir):
+    """Test that services.generate_weights produces a weights file"""
+    # Output to tmp dir so we cleanup & don't clobber existing files...
+    weightsfile = tmpdir.join("a_file_path_weights.nc")
+
+    # Make fake input data.
+    lat_n = 30
+    lon_n = 60
+    ds_in = xr.Dataset(
+        {"fakevariable": (["lon", "lat"], np.ones(shape=(lon_n, lat_n)))},
+        coords={
+            "lon": (["lon"], np.linspace(-180, 179, lon_n)),
+            "lat": (["lat"], np.linspace(-90, 90, lat_n)),
+        },
+    )
+
+    fakestorage = FakeRepository(
+        {
+            "a_file_path": ds_in,
+        }
+    )
+
+    generate_weights(
+        "a_file_path", method="bilinear", outfile=weightsfile, storage=fakestorage
+    )
+    # Test that weights file is actually created where we asked.
+    assert weightsfile.exists()
