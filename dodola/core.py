@@ -29,8 +29,6 @@ def bias_correct_bcsd(
         variable name used in training data
     out_variable : str
         variable name used in downscaled output
-    ds_predicted : Dataset
-        bias corrected future model data
     """
 
     # note that time_grouper='daily_nasa-nex' is what runs the
