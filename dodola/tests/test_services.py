@@ -45,7 +45,7 @@ def test_bias_correct_basic_call():
     x_test = x_train.copy(deep=True)
 
     # pick test method
-    method = "BCSD" 
+    method = "BCSD"
 
     output_key = "test_output"
     training_model_key = "x_train"
