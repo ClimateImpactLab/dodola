@@ -38,7 +38,7 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage
     storage.write(out, bias_corrected_ds)
 
 
-def generate_weights(x, method, storage, outfile=None):
+def build_weights(x, method, storage, outpath=None):
     """Generate local NetCDF weights file for regridding climate data
 
     Parameters
@@ -49,11 +49,11 @@ def generate_weights(x, method, storage, outfile=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     storage : RepositoryABC-like
         Storage abstraction for data IO.
-    outfile : optional
+    outpath : optional
         Local file path name to write regridding weights file to.
     """
     ds = storage.read(x)
-    weights_path = build_xesmf_weights_file(ds, method=method, filename=outfile)
+    weights_path = build_xesmf_weights_file(ds, method=method, filename=outpath)
 
 
 def disaggregate(x, weights, out, repo):
