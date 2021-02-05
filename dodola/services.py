@@ -53,7 +53,7 @@ def build_weights(x, method, storage, outpath=None):
         Local file path name to write regridding weights file to.
     """
     ds = storage.read(x)
-    weights_path = build_xesmf_weights_file(ds, method=method, filename=outpath)
+    build_xesmf_weights_file(ds, method=method, filename=outpath)
 
 
 def disaggregate(x, weights, out, repo):
