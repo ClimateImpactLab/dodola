@@ -44,6 +44,9 @@ def test_bias_correct_basic_call():
     # Yes, we're testing and training on the same data...
     x_test = x_train.copy(deep=True)
 
+    # pick test method
+    method = "BCSD" 
+
     output_key = "test_output"
     training_model_key = "x_train"
     training_obs_key = "y_train"
@@ -66,6 +69,7 @@ def test_bias_correct_basic_call():
         y_train=training_obs_key,
         out=output_key,
         out_variable="fakevariable",
+        method=method,
         storage=fakestorage,
     )
 
