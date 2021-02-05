@@ -1,15 +1,25 @@
 """Commandline interface to the application.
 """
 
+import logging
 import click
 import dodola.services as services
 from dodola.repository import AzureZarr
 
 
+logger = logging.getLogger(__name__)
+
+
 # Main entry point
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
-def dodola_cli():
+@click.option("--debug/--no-debug", default=False, envvar="DODOLA_DEBUG")
+def dodola_cli(debug):
     """GCM bias-correction and downscaling"""
+    loglevel = logging.INFO
+    if debug:
+        loglevel = logging.DEBUG
+
+    logging.basicConfig(level=loglevel)
 
 
 @dodola_cli.command(help="Bias-correct GCM on observations")

@@ -4,8 +4,12 @@ These are abstractions to isolate most of the data layer.
 """
 
 import abc
+import logging
 from adlfs import AzureBlobFileSystem
 from xarray import open_zarr
+
+
+logger = logging.getLogger(__name__)
 
 
 class RepositoryABC(abc.ABC):
@@ -84,7 +88,9 @@ class AzureZarr(RepositoryABC):
         -------
         xr.Dataset
         """
-        return open_zarr(self.fs.get_mapper(url_or_path))
+        x = open_zarr(self.fs.get_mapper(url_or_path))
+        logger.info(f"Read {url_or_path}")
+        return x
 
     def write(self, url_or_path, x):
         """Write Dataset to Zarr file in storage
@@ -99,6 +105,7 @@ class AzureZarr(RepositoryABC):
         x : xr.Dataset
         """
         x.to_zarr(self.fs.get_mapper(url_or_path), mode="w", compute=True)
+        logger.info(f"Written {url_or_path}")
 
 
 class FakeRepository(RepositoryABC):

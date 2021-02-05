@@ -1,7 +1,10 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
-
+import logging
 from dodola.core import bias_correct_bcsd, build_xesmf_weights_file
+
+
+logger = logging.getLogger(__name__)
 
 
 def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage):
@@ -26,6 +29,7 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage
     storage : RepositoryABC-like
         Storage abstraction for data IO.
     """
+    logger.info("Correcting bias")
     gcm_training_ds = storage.read(x_train)
     obs_training_ds = storage.read(y_train)
     gcm_predict_ds = storage.read(x)
@@ -36,6 +40,7 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage
     )
 
     storage.write(out, bias_corrected_ds)
+    logger.info("Bias corrected")
 
 
 def build_weights(x, method, storage, outpath=None):
@@ -52,8 +57,10 @@ def build_weights(x, method, storage, outpath=None):
     outpath : optional
         Local file path name to write regridding weights file to.
     """
+    logger.info("Building weights")
     ds = storage.read(x)
     build_xesmf_weights_file(ds, method=method, filename=outpath)
+    logger.info("Weights built")
 
 
 def disaggregate(x, weights, out, repo):
