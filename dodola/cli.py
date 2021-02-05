@@ -84,3 +84,75 @@ def biascorrect(
         train_variable=trainvariable,
         out_variable=outvariable,
     )
+
+
+@dodola_cli.command(help="Build NetCDF weights file for regridding")
+@click.argument("x", required=True)
+@click.option(
+    "--method",
+    "-m",
+    required=True,
+    help="Regridding method - 'bilinear' or 'conservative'",
+)
+@click.option(
+    "--outpath",
+    "-o",
+    default=None,
+    help="Local path to write weights file",
+)
+@click.option(
+    "--azstorageaccount",
+    default=None,
+    envvar="AZURE_STORAGE_ACCOUNT",
+    help="Key-based Azure storage credential",
+)
+@click.option(
+    "--azstoragekey",
+    default=None,
+    envvar="AZURE_STORAGE_KEY",
+    help="Key-based Azure storage credential",
+)
+@click.option(
+    "--azclientid",
+    default=None,
+    envvar="AZURE_CLIENT_ID",
+    help="Service Principal-based Azure storage credential",
+)
+@click.option(
+    "--azclientsecret",
+    default=None,
+    envvar="AZURE_CLIENT_SECRET",
+    help="Service Principal-based Azure storage credential",
+)
+@click.option(
+    "--aztenantid",
+    default=None,
+    envvar="AZURE_TENANT_ID",
+    help="Service Principal-based Azure storage credential",
+)
+def buildweights(
+    x,
+    method,
+    outpath,
+    azstorageaccount,
+    azstoragekey,
+    azclientid,
+    azclientsecret,
+    aztenantid,
+):
+    """Generate local NetCDF weights file for regridding a target climate dataset
+
+    Note, the output weights file is only written to the local disk. See
+    https://xesmf.readthedocs.io/ for details on requirements for `x` with
+    different methods.
+    """
+
+    # Configure storage while we have access to users configurations.
+    storage = AzureZarr(
+        account_name=azstorageaccount,
+        account_key=azstoragekey,
+        client_id=azclientid,
+        client_secret=azclientsecret,
+        tenant_id=aztenantid,
+    )
+    services.build_weights(str(x), str(method), storage=storage, outpath=str(outpath))
