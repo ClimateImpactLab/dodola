@@ -105,6 +105,12 @@ def biascorrect(
     help="Regridding method - 'bilinear' or 'conservative'",
 )
 @click.option(
+    "--targetresolution",
+    "-r",
+    default=1.0,
+    help="Global-grid resolution to regrid to",
+)
+@click.option(
     "--outpath",
     "-o",
     default=None,
@@ -143,6 +149,7 @@ def biascorrect(
 def buildweights(
     x,
     method,
+    targetgrid,
     outpath,
     azstorageaccount,
     azstoragekey,
@@ -165,4 +172,10 @@ def buildweights(
         client_secret=azclientsecret,
         tenant_id=aztenantid,
     )
-    services.build_weights(str(x), str(method), storage=storage, outpath=str(outpath))
+    services.build_weights(
+        str(x),
+        str(method),
+        target_resolution=float(targetgrid),
+        storage=storage,
+        outpath=str(outpath),
+    )

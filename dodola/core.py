@@ -41,14 +41,16 @@ def bias_correct_bcsd(
     return ds_predicted
 
 
-def build_xesmf_weights_file(x, method, filename=None):
-    """Build ESMF weights file for regridding x to a global 1x1 grid
+def build_xesmf_weights_file(x, method, target_resolution, filename=None):
+    """Build ESMF weights file for regridding x to a global grid
 
     Parameters
     ----------
     x : xr.Dataset
     method : str
         Method of regridding. Passed to ``xesmf.Regridder``.
+    target_resolution: float
+        Decimal-degree resolution of global grid to regrid to.
     filename : optional
         Local path to output netCDF weights file.
 
@@ -57,5 +59,10 @@ def build_xesmf_weights_file(x, method, filename=None):
     outfilename : str
         Path to resulting weights file.
     """
-    out = xe.Regridder(x, xe.util.grid_global(1, 1), method=method, filename=filename)
+    out = xe.Regridder(
+        x,
+        xe.util.grid_global(target_resolution, target_resolution),
+        method=method,
+        filename=filename,
+    )
     return str(out.filename)
