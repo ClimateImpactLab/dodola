@@ -3,6 +3,9 @@
 
 import numpy as np
 import xarray as xr
+import pytest
+from xesmf.data import wave_smooth
+from xesmf.util import grid_global
 from dodola.services import bias_correct, build_weights
 from dodola.repository import FakeRepository
 
@@ -84,21 +87,15 @@ def test_bias_correct_basic_call():
     )
 
 
-def test_build_weights(tmpdir):
+@pytest.mark.parametrize("regrid_method", ["bilinear", "conservative"])
+def test_build_weights(regrid_method, tmpdir):
     """Test that services.build_weights produces a weights file"""
     # Output to tmp dir so we cleanup & don't clobber existing files...
     weightsfile = tmpdir.join("a_file_path_weights.nc")
 
     # Make fake input data.
-    lat_n = 30
-    lon_n = 60
-    ds_in = xr.Dataset(
-        {"fakevariable": (["lon", "lat"], np.ones(shape=(lon_n, lat_n)))},
-        coords={
-            "lon": (["lon"], np.linspace(-180, 179, lon_n)),
-            "lat": (["lat"], np.linspace(-90, 90, lat_n)),
-        },
-    )
+    ds_in = grid_global(30, 20)
+    ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
     fakestorage = FakeRepository(
         {
@@ -107,7 +104,7 @@ def test_build_weights(tmpdir):
     )
 
     build_weights(
-        "a_file_path", method="bilinear", storage=fakestorage, outpath=weightsfile
+        "a_file_path", method=regrid_method, storage=fakestorage, outpath=weightsfile
     )
     # Test that weights file is actually created where we asked.
     assert weightsfile.exists()
