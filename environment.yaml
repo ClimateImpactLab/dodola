@@ -10,6 +10,7 @@ dependencies:
 - pytest
 - python=3.8
 - xarray
+- xesmf
 - bottleneck
 - zarr
 - pip:

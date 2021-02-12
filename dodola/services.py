@@ -1,7 +1,10 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
+import logging
+from dodola.core import apply_bias_correction, build_xesmf_weights_file
 
-from dodola.core import apply_bias_correction
+logger = logging.getLogger(__name__)
+
 
 
 def bias_correct(
@@ -30,6 +33,7 @@ def bias_correct(
     storage : RepositoryABC-like
         Storage abstraction for data IO.
     """
+    logger.info("Correcting bias")
     gcm_training_ds = storage.read(x_train)
     obs_training_ds = storage.read(y_train)
     gcm_predict_ds = storage.read(x)
@@ -45,11 +49,31 @@ def bias_correct(
     )
 
     storage.write(out, bias_corrected_ds)
+    logger.info("Bias corrected")
 
 
-def generate_weights(x, out, repo):
-    """This is just an example. Please replace or delete."""
-    raise NotImplementedError
+def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
+    """Generate local NetCDF weights file for regridding climate data
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be regridded.
+    method : str
+        Method of regridding. Passed to ``xesmf.Regridder``.
+    target_resolution : float, optional
+        Decimal-degree resolution of global grid to regrid to.
+    storage : RepositoryABC-like
+        Storage abstraction for data IO.
+    outpath : optional
+        Local file path name to write regridding weights file to.
+    """
+    logger.info("Building weights")
+    ds = storage.read(x)
+    build_xesmf_weights_file(
+        ds, method=method, target_resolution=target_resolution, filename=outpath
+    )
+    logger.info("Weights built")
 
 
 def disaggregate(x, weights, out, repo):

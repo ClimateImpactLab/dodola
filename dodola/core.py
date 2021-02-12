@@ -5,6 +5,7 @@ Math stuff and business logic goes here. This is the "business logic".
 
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 from xclim import sdba
+import xesmf as xe
 
 # Break this down into a submodule(s) if needed.
 # Assume data input here is generally clean and valid.
@@ -40,6 +41,7 @@ def apply_bias_correction(
     ds_predicted : Dataset
         bias corrected future model data
     """
+
     if method == "BCSD":
         # note that time_grouper='daily_nasa-nex' is what runs the
         # NASA-NEX version of daily BCSD
@@ -58,3 +60,30 @@ def apply_bias_correction(
         raise ValueError("this method is not yet supported")
     ds_predicted = predicted.to_dataset(name=out_variable)
     return ds_predicted
+
+
+def build_xesmf_weights_file(x, method, target_resolution, filename=None):
+    """Build ESMF weights file for regridding x to a global grid
+
+    Parameters
+    ----------
+    x : xr.Dataset
+    method : str
+        Method of regridding. Passed to ``xesmf.Regridder``.
+    target_resolution: float
+        Decimal-degree resolution of global grid to regrid to.
+    filename : optional
+        Local path to output netCDF weights file.
+
+    Returns
+    -------
+    outfilename : str
+        Path to resulting weights file.
+    """
+    out = xe.Regridder(
+        x,
+        xe.util.grid_global(target_resolution, target_resolution),
+        method=method,
+        filename=filename,
+    )
+    return str(out.filename)

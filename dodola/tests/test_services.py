@@ -4,7 +4,10 @@
 import numpy as np
 import pytest
 import xarray as xr
-from dodola.services import bias_correct
+import pytest
+from xesmf.data import wave_smooth
+from xesmf.util import grid_global
+from dodola.services import bias_correct, build_weights
 from dodola.repository import FakeRepository
 
 
@@ -95,3 +98,26 @@ def test_bias_correct_basic_call(method):
         fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[-5:],
         tail_vals,
     )
+
+
+@pytest.mark.parametrize("regrid_method", ["bilinear", "conservative"])
+def test_build_weights(regrid_method, tmpdir):
+    """Test that services.build_weights produces a weights file"""
+    # Output to tmp dir so we cleanup & don't clobber existing files...
+    weightsfile = tmpdir.join("a_file_path_weights.nc")
+
+    # Make fake input data.
+    ds_in = grid_global(30, 20)
+    ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
+
+    fakestorage = FakeRepository(
+        {
+            "a_file_path": ds_in,
+        }
+    )
+
+    build_weights(
+        "a_file_path", method=regrid_method, storage=fakestorage, outpath=weightsfile
+    )
+    # Test that weights file is actually created where we asked.
+    assert weightsfile.exists()
