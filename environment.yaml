@@ -12,7 +12,7 @@ dependencies:
 - xarray
 - xesmf
 - bottleneck
+- xclim
 - zarr
 - pip:
   - git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
-  - xclim
