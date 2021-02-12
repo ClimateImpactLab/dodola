@@ -4,7 +4,6 @@
 import numpy as np
 import pytest
 import xarray as xr
-import pytest
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
 from dodola.services import bias_correct, build_weights

@@ -6,7 +6,6 @@ from dodola.core import apply_bias_correction, build_xesmf_weights_file
 logger = logging.getLogger(__name__)
 
 
-
 def bias_correct(
     x, x_train, train_variable, y_train, out, out_variable, method, storage
 ):

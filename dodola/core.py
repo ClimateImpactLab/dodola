@@ -36,7 +36,7 @@ def apply_bias_correction(
         variable name used in training data
     out_variable : str
         variable name used in downscaled output
-    method : str
+    method : {"BCSD", "QDM"}
         method to be used in the applied bias correction
     ds_predicted : Dataset
         bias corrected future model data
