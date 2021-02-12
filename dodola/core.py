@@ -57,7 +57,7 @@ def apply_bias_correction(
         model.train(gcm_training_ds[train_variable], obs_training_ds[train_variable])
         predicted = model.adjust(gcm_predict_ds[train_variable])
     else:
-        raise ValueError("this method is not yet supported")
+        raise ValueError("this method is not supported")
     ds_predicted = predicted.to_dataset(name=out_variable)
     return ds_predicted
 
