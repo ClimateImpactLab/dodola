@@ -32,8 +32,24 @@ def _datafactory(x, start_time="1950-01-01"):
     return out
 
 
-@pytest.mark.parametrize("method", ["QDM", "BCSD"])
-def test_bias_correct_basic_call(method):
+@pytest.mark.parametrize(
+    "method, expected_head, expected_tail",
+    [
+        pytest.param(
+            "QDM",
+            np.array([4.0, 4.008609, 4.0172155, 4.0258169, 4.0344106]),
+            np.array([3.9655894, 3.9741831, 3.9827845, 3.991391, 4.0]),
+            id="QDM head/tail",
+        ),
+        pytest.param(
+            "BCSD",
+            np.array([-0.08129293, -0.07613746, -0.0709855, -0.0658377, -0.0606947]),
+            np.array([0.0520793, 0.06581804, 0.07096781, 0.07612168, 0.08127902]),
+            id="BCSD head/tail",
+        ),
+    ],
+)
+def test_bias_correct_basic_call(method, expected_head, expected_tail):
     """Simple integration test of bias_correct service"""
     # Setup input data.
     n_years = 10
@@ -77,25 +93,13 @@ def test_bias_correct_basic_call(method):
     # We can't just test for removal of bias here since quantile mapping
     # and adding in trend are both components of bias correction,
     # so testing head and tail values instead
-    if method == "BCSD":
-        head_vals = np.array(
-            [-0.08129293, -0.07613746, -0.0709855, -0.0658377, -0.0606947]
-        )
-        tail_vals = np.array(
-            [0.0520793, 0.06581804, 0.07096781, 0.07612168, 0.08127902]
-        )
-    elif method == "QDM":
-        head_vals = np.array([4.0, 4.008609, 4.0172155, 4.0258169, 4.0344106])
-        tail_vals = np.array([3.9655894, 3.9741831, 3.9827845, 3.991391, 4.0])
-    else:
-        raise ValueError("this method has not yet been tested")
     np.testing.assert_almost_equal(
         fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[:5],
-        head_vals,
+        expected_head,
     )
     np.testing.assert_almost_equal(
         fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[-5:],
-        tail_vals,
+        expected_tail,
     )
 
 
