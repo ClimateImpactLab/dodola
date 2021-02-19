@@ -32,6 +32,7 @@ def dodola_cli(debug):
 )
 @click.argument("out", required=True)
 @click.argument("outvariable", required=True)
+@click.argument("method", required=True)
 @click.option(
     "--azstorageaccount",
     default=None,
@@ -69,13 +70,14 @@ def biascorrect(
     ytrain,
     out,
     outvariable,
+    method,
     azstorageaccount,
     azstoragekey,
     azclientid,
     azclientsecret,
     aztenantid,
 ):
-    """Bias-correct GCM (x) to 'out' based on model (xtrain), obs (ytrain)"""
+    """Bias-correct GCM (x) to 'out' based on model (xtrain), obs (ytrain) using (method)"""
 
     # Configure storage while we have access to users configurations.
     storage = AzureZarr(
@@ -93,6 +95,7 @@ def biascorrect(
         storage,
         train_variable=trainvariable,
         out_variable=outvariable,
+        method=method,
     )
 
 

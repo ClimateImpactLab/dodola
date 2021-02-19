@@ -1,13 +1,14 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 import logging
-from dodola.core import bias_correct_bcsd, build_xesmf_weights_file
-
+from dodola.core import apply_bias_correction, build_xesmf_weights_file
 
 logger = logging.getLogger(__name__)
 
 
-def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage):
+def bias_correct(
+    x, x_train, train_variable, y_train, out, out_variable, method, storage
+):
     """Bias correct input model data with IO to storage
 
     Parameters
@@ -26,6 +27,8 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage
         Storage URL to write bias-corrected output to.
     out_variable : str
         Variable name used as output variable name.
+    method : str
+        Bias correction method to be used.
     storage : RepositoryABC-like
         Storage abstraction for data IO.
     """
@@ -35,8 +38,13 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, storage
     gcm_predict_ds = storage.read(x)
 
     # This is all made up demo. Just get the output dataset the user expects.
-    bias_corrected_ds = bias_correct_bcsd(
-        gcm_training_ds, obs_training_ds, gcm_predict_ds, train_variable, out_variable
+    bias_corrected_ds = apply_bias_correction(
+        gcm_training_ds,
+        obs_training_ds,
+        gcm_predict_ds,
+        train_variable,
+        out_variable,
+        method,
     )
 
     storage.write(out, bias_corrected_ds)
