@@ -1,7 +1,7 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 import logging
-from dodola.core import apply_bias_correction, build_xesmf_weights_file
+from dodola.core import apply_bias_correction, build_xesmf_weights_file, rechunk_ds
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +75,27 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
     logger.info("Weights built")
 
 
-def rechunk(x, weights, out, repo):
-    """This is just an example. Please replace or delete."""
-    raise NotImplementedError
+def rechunk(x, target_chunks, out, max_mem, storage):
+    """Rechunk data
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input data.
+    target_chunks : dict
+        {coordinate_name: chunk_size} mapping showing how data is to be rechunked.
+    out : str
+        Storage URL to write rechunked output to.
+    max_mem : int or str
+        Maximum memory to use for rechunking (bytes).
+    storage : RepositoryABC-like
+        Storage abstraction for data IO.
+    """
+    logger.info("Rechunking data")
+    ds = storage.read(x)
+    rechunked_ds = rechunk_ds(ds, target_chunks=target_chunks, max_mem=max_mem)
+    storage.write(out, rechunked_ds)
+    logger.info("Data rechunked")
 
 
 def disaggregate(x, weights, out, repo):
