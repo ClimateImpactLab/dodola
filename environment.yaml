@@ -9,6 +9,7 @@ dependencies:
 - pip
 - pytest
 - python=3.8
+- rechunker
 - xarray
 - xesmf
 - bottleneck
