@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from dodola.services import bias_correct, build_weights
+from dodola.services import bias_correct, build_weights, rechunk
 from dodola.repository import FakeRepository
 
 
@@ -124,3 +124,22 @@ def test_build_weights(regrid_method, tmpdir):
     )
     # Test that weights file is actually created where we asked.
     assert weightsfile.exists()
+
+
+def test_rechunk():
+    """Test that rechunk service rechunks"""
+    chunks_goal = {"time": 4, "lon": 1, "lat": 1}
+    in_ds = xr.Dataset(
+        {"fakevariable": (["time", "lon", "lat"], np.ones((4, 4, 4)))},
+        coords={
+            "time": [1, 2, 3, 4],
+            "lon": (["lon"], [1.0, 2.0, 3.0, 4.0]),
+            "lat": (["lat"], [1.5, 2.5, 3.5, 4.5]),
+        },
+    )
+
+    fakestorage = FakeRepository({"input_ds": in_ds})
+
+    rechunk("input_ds", target_chunks=chunks_goal, out="output_ds", max_mem=256000, storage=fakestorage)
+
+    fakestorage.storage["output"]["fakevariable"].chunks == chunks_goal

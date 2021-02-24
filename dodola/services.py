@@ -75,6 +75,11 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
     logger.info("Weights built")
 
 
+def rechunk(x, weights, out, repo):
+    """This is just an example. Please replace or delete."""
+    raise NotImplementedError
+
+
 def disaggregate(x, weights, out, repo):
     """This is just an example. Please replace or delete."""
     raise NotImplementedError
