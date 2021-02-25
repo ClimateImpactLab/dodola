@@ -111,8 +111,9 @@ def rechunk(x, target_chunks, out, max_mem, storage):
             max_mem=max_mem,
         )
         plan.execute()
+        logger.info(f"Written {out}")
 
-    logger.info("Data rechunked")
+logger.info("Data rechunked")
 
 
 def disaggregate(x, weights, out, repo):
