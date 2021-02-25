@@ -100,17 +100,13 @@ def rechunk(x, target_chunks, out, max_mem, storage):
     max_mem = str(max_mem)  # To work around bug in rechunker.
     ds = storage.read(x)
 
-    # Tightly couple with storage so can stream rechunked file directly
-    # into storage.
-    rechunked_store = storage.get_mapper(out)
-
     # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
     with TemporaryDirectory() as tmpdir:
         tmpzarr_path = os.path.join(tmpdir, "rechunk_tmp.zarr")
         plan = rechunker_rechunk(
             ds,
             target_chunks=target_chunks,
-            target_store=rechunked_store,
+            target_store=storage.get_mapper(out), # Stream directly into storage.
             temp_store=tmpzarr_path,
             max_mem=max_mem,
         )
