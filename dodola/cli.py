@@ -205,7 +205,7 @@ def buildweights(
     help="Max memory (bytes) to use for rechunking",
 )
 @click.option(
-    "--outpath",
+    "--out",
     "-o",
     required=True,
 )
@@ -244,7 +244,7 @@ def rechunk(
     variable,
     chunk,
     maxmemory,
-    outpath,
+    out,
     azstorageaccount,
     azstoragekey,
     azclientid,
@@ -269,7 +269,7 @@ def rechunk(
     services.rechunk(
         str(x),
         target_chunks=target_chunks,
-        out=outpath,
+        out=out,
         max_mem=maxmemory,
         storage=storage,
     )
