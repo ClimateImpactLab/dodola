@@ -147,5 +147,6 @@ def test_rechunk():
         max_mem=256000,
         storage=fakestorage,
     )
+    actual_chunks = fakestorage.read("output_ds")["fakevariable"].data.chunksize
 
-    assert fakestorage.read("output_ds")["fakevariable"].chunks == chunks_goal
+    assert actual_chunks == tuple(chunks_goal.values())
