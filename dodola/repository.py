@@ -10,10 +10,10 @@ from xarray import open_zarr
 logger = logging.getLogger(__name__)
 
 
-class ZarrRepo:
+class _ZarrRepo:
     """Puts a simple read-Dataset/write-Zarr interface over fsspec-like storage
 
-    This puts a basic read/write repository interface pattern over a file
+    This puts a basic read/write repository pattern over a file
     system to abstract-away the data layer. Aside from the ``read()``
     and ``write()`` methods, the additional ``get_mapper()`` method is for
     external packages that couple directly with `fsspec` to stream output
@@ -99,9 +99,9 @@ def adl_repository(
 
     Returns
     -------
-    repo : dodola.repository.ZarrRepo
+    repo : dodola.repository._ZarrRepo
     """
-    repo = ZarrRepo(
+    repo = _ZarrRepo(
         fs=AzureBlobFileSystem(
             account_name=account_name,
             account_key=account_key,
@@ -126,9 +126,9 @@ def memory_repository(storage=None):
 
     Returns
     -------
-    repo : dodola.repository.ZarrRepo
+    repo : dodola.repository._ZarrRepo
     """
-    repo = ZarrRepo(fs=MemoryFileSystem())
+    repo = _ZarrRepo(fs=MemoryFileSystem())
     for k, v in storage.items():
         repo.write(k, v)
     return repo
