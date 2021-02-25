@@ -4,7 +4,7 @@
 import logging
 import click
 import dodola.services as services
-from dodola.repository import AzureZarr
+from dodola.repository import adl_repository
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ def biascorrect(
     """Bias-correct GCM (x) to 'out' based on model (xtrain), obs (ytrain) using (method)"""
 
     # Configure storage while we have access to users configurations.
-    storage = AzureZarr(
+    storage = adl_repository(
         account_name=azstorageaccount,
         account_key=azstoragekey,
         client_id=azclientid,
@@ -168,7 +168,7 @@ def buildweights(
     """
 
     # Configure storage while we have access to users configurations.
-    storage = AzureZarr(
+    storage = adl_repository(
         account_name=azstorageaccount,
         account_key=azstoragekey,
         client_id=azclientid,

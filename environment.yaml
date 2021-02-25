@@ -5,6 +5,7 @@ dependencies:
 - adlfs
 - click
 - cftime
+- fsspec
 - numpy
 - pip
 - pytest
