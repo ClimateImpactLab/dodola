@@ -97,7 +97,6 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         Storage abstraction for data IO.
     """
     logger.info("Rechunking data")
-    max_mem = str(max_mem)  # To work around bug in rechunker.
     ds = storage.read(x)
 
     # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
