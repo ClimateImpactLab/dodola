@@ -1,7 +1,6 @@
 name: base
 channels:
 - conda-forge
-- nesii
 dependencies:
 - adlfs
 - click
