@@ -148,4 +148,4 @@ def test_rechunk():
         storage=fakestorage,
     )
 
-    fakestorage.storage["output_ds"]["fakevariable"].chunks == chunks_goal
+    assert fakestorage.read("output_ds")["fakevariable"].chunks == chunks_goal
