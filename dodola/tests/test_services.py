@@ -129,7 +129,7 @@ def test_build_weights(regrid_method, tmpdir):
 def test_rechunk():
     """Test that rechunk service rechunks"""
     chunks_goal = {"time": 4, "lon": 1, "lat": 1}
-    in_ds = xr.Dataset(
+    test_ds = xr.Dataset(
         {"fakevariable": (["time", "lon", "lat"], np.ones((4, 4, 4)))},
         coords={
             "time": [1, 2, 3, 4],
@@ -138,8 +138,14 @@ def test_rechunk():
         },
     )
 
-    fakestorage = FakeRepository({"input_ds": in_ds})
+    fakestorage = FakeRepository({"input_ds": test_ds})
 
-    rechunk("input_ds", target_chunks=chunks_goal, out="output_ds", max_mem=256000, storage=fakestorage)
+    rechunk(
+        "input_ds",
+        target_chunks={"fakevariable": chunks_goal},
+        out="output_ds",
+        max_mem=256000,
+        storage=fakestorage,
+    )
 
-    fakestorage.storage["output"]["fakevariable"].chunks == chunks_goal
+    fakestorage.storage["output_ds"]["fakevariable"].chunks == chunks_goal
