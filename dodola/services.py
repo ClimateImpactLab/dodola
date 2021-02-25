@@ -106,14 +106,14 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         plan = rechunker_rechunk(
             ds,
             target_chunks=target_chunks,
-            target_store=storage.get_mapper(out), # Stream directly into storage.
+            target_store=storage.get_mapper(out),  # Stream directly into storage.
             temp_store=tmpzarr_path,
             max_mem=max_mem,
         )
         plan.execute()
         logger.info(f"Written {out}")
 
-logger.info("Data rechunked")
+    logger.info("Data rechunked")
 
 
 def disaggregate(x, weights, out, repo):
