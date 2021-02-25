@@ -76,14 +76,16 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
 
 
 def rechunk(x, target_chunks, out, max_mem, storage):
-    """Rechunk data
+    """Rechunk data to specification
 
     Parameters
     ----------
     x : str
         Storage URL to input data.
     target_chunks : dict
-        {coordinate_name: chunk_size} mapping showing how data is to be rechunked.
+        A dict of dicts. Top-level dict key maps variables name in `ds` to an
+        inner dict {coordinate_name: chunk_size} mapping showing how data is
+        to be rechunked.
     out : str
         Storage URL to write rechunked output to.
     max_mem : int or str

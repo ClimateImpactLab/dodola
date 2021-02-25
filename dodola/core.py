@@ -95,7 +95,7 @@ def build_xesmf_weights_file(x, method, target_resolution, filename=None):
 
 
 def rechunk_ds(ds, target_chunks, max_mem):
-    """Quickly (re)chunk a Dataset to specification.
+    """Quickly (re)chunk a Dataset to specification
 
     Note, this rechunks the input into a Zarr store on the local disk. Be sure
     disk volume is available for this operation.
