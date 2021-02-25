@@ -3,7 +3,12 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
+import os
+from tempfile import TemporaryDirectory
+
+from rechunker import rechunk
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
+import xarray as xr
 from xclim import sdba
 import xesmf as xe
 
@@ -87,3 +92,40 @@ def build_xesmf_weights_file(x, method, target_resolution, filename=None):
         filename=filename,
     )
     return str(out.filename)
+
+
+def rechunk_ds(ds, target_chunks, max_mem):
+    """Quickly (re)chunk a Dataset to specification.
+
+    Note, this rechunks the input into a Zarr store on the local disk. Be sure
+    disk volume is available for this operation.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    target_chunks : dict
+        A dict of dicts. Top-level dict key maps variables name in `ds` to an
+        inner dict {coordinate_name: chunk_size} mapping showing how data is
+        to be rechunked.
+    max_mem : int or str
+        Maximum memory to use for rechunking (bytes).
+
+    Returns
+    -------
+    out : xr.Dataset
+    """
+    max_mem = str(max_mem)  # To work around bug in rechunker.
+    # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
+    with TemporaryDirectory() as tmpdir:
+        rechunkedzarr_path = os.path.join(tmpdir, "rechunk_out.zarr")
+        tmpzarr_path = os.path.join(tmpdir, "rechunk_tmp.zarr")
+        plan = rechunk(
+            ds,
+            target_chunks=target_chunks,
+            target_store=rechunkedzarr_path,
+            temp_store=tmpzarr_path,
+            max_mem=max_mem,
+        )
+        plan.execute()
+        out = xr.open_zarr(rechunkedzarr_path).load()
+    return out
