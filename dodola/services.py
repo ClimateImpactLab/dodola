@@ -1,7 +1,10 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 import logging
-from dodola.core import apply_bias_correction, build_xesmf_weights_file, rechunk_ds
+import os
+from tempfile import TemporaryDirectory
+from rechunker import rechunk as rechunker_rechunk
+from dodola.core import apply_bias_correction, build_xesmf_weights_file
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +97,25 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         Storage abstraction for data IO.
     """
     logger.info("Rechunking data")
+    max_mem = str(max_mem)  # To work around bug in rechunker.
     ds = storage.read(x)
-    rechunked_ds = rechunk_ds(ds, target_chunks=target_chunks, max_mem=max_mem)
-    storage.write(out, rechunked_ds)
+
+    # Tightly couple with storage so can stream rechunked file directly
+    # into storage.
+    rechunked_store = storage.get_mapper(out)
+
+    # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
+    with TemporaryDirectory() as tmpdir:
+        tmpzarr_path = os.path.join(tmpdir, "rechunk_tmp.zarr")
+        plan = rechunker_rechunk(
+            ds,
+            target_chunks=target_chunks,
+            target_store=rechunked_store,
+            temp_store=tmpzarr_path,
+            max_mem=max_mem,
+        )
+        plan.execute()
+
     logger.info("Data rechunked")
 
 
