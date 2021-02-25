@@ -32,7 +32,7 @@ def bias_correct(
         Variable name used as output variable name.
     method : str
         Bias correction method to be used.
-    storage : RepositoryABC-like
+    storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     """
     logger.info("Correcting bias")
@@ -65,7 +65,7 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     target_resolution : float, optional
         Decimal-degree resolution of global grid to regrid to.
-    storage : RepositoryABC-like
+    storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     outpath : optional
         Local file path name to write regridding weights file to.
@@ -93,7 +93,7 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         Storage URL to write rechunked output to.
     max_mem : int or str
         Maximum memory to use for rechunking (bytes).
-    storage : RepositoryABC-like
+    storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     """
     logger.info("Rechunking data")

@@ -19,9 +19,18 @@ class _ZarrRepo:
     external packages that couple directly with `fsspec` to stream output
     immediately into storage.
 
+    This is commonly instantiated through ``adl_repository``, or for testing
+    with ``memory_repository``.
+
     Parameters
     ----------
     fs : fsspec.AbstractFileSystem-like
+
+    See Also
+    --------
+    adl_repository: Instantiate a Zarr data repo using Azure Datalake Gen. 2 as backend
+    memory_repository: Instantiate a Zarr data repo in memory
+
     """
 
     def __init__(self, fs):
@@ -33,7 +42,7 @@ class _ZarrRepo:
         Parameters
         ----------
         url_or_path : str
-            Location Zarr store to read.
+            Location of Zarr store to read.
 
         Returns
         -------
@@ -82,7 +91,7 @@ def adl_repository(
     client_secret=None,
     tenant_id=None,
 ):
-    """Instantiate a for Zarr data repo using Azure Datalake Gen. 2 as backend
+    """Instantiate a Zarr data repo using Azure Datalake Gen. 2 as backend
 
     To authenticate with storage must pass in `account_name` and
     `account_key` for key-based authentication or `client_id`, `client_secret`,
@@ -114,7 +123,7 @@ def adl_repository(
 
 
 def memory_repository(storage=None):
-    """Instantiate a ZarrRepo in memory
+    """Instantiate a Zarr data repo in memory
 
     This is most commonly used for testing. Keep in mind that all instances
     share memory globally.
