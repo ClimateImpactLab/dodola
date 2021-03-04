@@ -4,6 +4,7 @@ Math stuff and business logic goes here. This is the "business logic".
 """
 
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
+import xarray as xr
 from xclim import sdba
 import xesmf as xe
 

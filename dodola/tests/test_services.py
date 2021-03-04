@@ -6,8 +6,8 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from dodola.services import bias_correct, build_weights
-from dodola.repository import FakeRepository
+from dodola.services import bias_correct, build_weights, rechunk
+from dodola.repository import memory_repository
 
 
 def _datafactory(x, start_time="1950-01-01"):
@@ -71,7 +71,7 @@ def test_bias_correct_basic_call(method, expected_head, expected_tail):
 
     # Load up a fake repo with our input data in the place of big data and cloud
     # storage.
-    fakestorage = FakeRepository(
+    fakestorage = memory_repository(
         {
             training_model_key: x_train,
             training_obs_key: y_train,
@@ -94,11 +94,11 @@ def test_bias_correct_basic_call(method, expected_head, expected_tail):
     # and adding in trend are both components of bias correction,
     # so testing head and tail values instead
     np.testing.assert_almost_equal(
-        fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[:5],
+        fakestorage.read(output_key)["fakevariable"].squeeze(drop=True).values[:5],
         expected_head,
     )
     np.testing.assert_almost_equal(
-        fakestorage.storage[output_key]["fakevariable"].squeeze(drop=True).values[-5:],
+        fakestorage.read(output_key)["fakevariable"].squeeze(drop=True).values[-5:],
         expected_tail,
     )
 
@@ -113,7 +113,7 @@ def test_build_weights(regrid_method, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = FakeRepository(
+    fakestorage = memory_repository(
         {
             "a_file_path": ds_in,
         }
@@ -124,3 +124,29 @@ def test_build_weights(regrid_method, tmpdir):
     )
     # Test that weights file is actually created where we asked.
     assert weightsfile.exists()
+
+
+def test_rechunk():
+    """Test that rechunk service rechunks"""
+    chunks_goal = {"time": 4, "lon": 1, "lat": 1}
+    test_ds = xr.Dataset(
+        {"fakevariable": (["time", "lon", "lat"], np.ones((4, 4, 4)))},
+        coords={
+            "time": [1, 2, 3, 4],
+            "lon": (["lon"], [1.0, 2.0, 3.0, 4.0]),
+            "lat": (["lat"], [1.5, 2.5, 3.5, 4.5]),
+        },
+    )
+
+    fakestorage = memory_repository({"input_ds": test_ds})
+
+    rechunk(
+        "input_ds",
+        target_chunks={"fakevariable": chunks_goal},
+        out="output_ds",
+        max_mem=256000,
+        storage=fakestorage,
+    )
+    actual_chunks = fakestorage.read("output_ds")["fakevariable"].data.chunksize
+
+    assert actual_chunks == tuple(chunks_goal.values())

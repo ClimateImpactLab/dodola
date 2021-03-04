@@ -1,6 +1,9 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 import logging
+import os
+from tempfile import TemporaryDirectory
+from rechunker import rechunk as rechunker_rechunk
 from dodola.core import apply_bias_correction, build_xesmf_weights_file
 
 logger = logging.getLogger(__name__)
@@ -29,7 +32,7 @@ def bias_correct(
         Variable name used as output variable name.
     method : str
         Bias correction method to be used.
-    storage : RepositoryABC-like
+    storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     """
     logger.info("Correcting bias")
@@ -62,7 +65,7 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     target_resolution : float, optional
         Decimal-degree resolution of global grid to regrid to.
-    storage : RepositoryABC-like
+    storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     outpath : optional
         Local file path name to write regridding weights file to.
@@ -73,6 +76,43 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
         ds, method=method, target_resolution=target_resolution, filename=outpath
     )
     logger.info("Weights built")
+
+
+def rechunk(x, target_chunks, out, max_mem, storage):
+    """Rechunk data to specification
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input data.
+    target_chunks : dict
+        A dict of dicts. Top-level dict key maps variables name in `ds` to an
+        inner dict {coordinate_name: chunk_size} mapping showing how data is
+        to be rechunked.
+    out : str
+        Storage URL to write rechunked output to.
+    max_mem : int or str
+        Maximum memory to use for rechunking (bytes).
+    storage : dodola.repository._ZarrRepo
+        Storage abstraction for data IO.
+    """
+    logger.info("Rechunking data")
+    ds = storage.read(x)
+
+    # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
+    with TemporaryDirectory() as tmpdir:
+        tmpzarr_path = os.path.join(tmpdir, "rechunk_tmp.zarr")
+        plan = rechunker_rechunk(
+            ds,
+            target_chunks=target_chunks,
+            target_store=storage.get_mapper(out),  # Stream directly into storage.
+            temp_store=tmpzarr_path,
+            max_mem=max_mem,
+        )
+        plan.execute()
+        logger.info(f"Written {out}")
+
+    logger.info("Data rechunked")
 
 
 def disaggregate(x, weights, out, repo):
