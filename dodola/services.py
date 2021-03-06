@@ -21,6 +21,7 @@ def log_service(func):
             logger.exception(f"Fatal error in {servicename} dodola service")
         else:
             logger.info(f"dodola service {servicename} done")
+
     return service_logger
 
 
