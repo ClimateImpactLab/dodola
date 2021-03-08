@@ -1,5 +1,6 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
+from functools import wraps
 import logging
 import os
 from tempfile import TemporaryDirectory
@@ -9,6 +10,22 @@ from dodola.core import apply_bias_correction, build_xesmf_weights_file
 logger = logging.getLogger(__name__)
 
 
+def log_service(func):
+    @wraps(func)
+    def service_logger(*args, **kwargs):
+        servicename = func.__name__
+        try:
+            logger.info(f"Starting {servicename} dodola service")
+            func(*args, **kwargs)
+        except Exception:
+            logger.exception(f"Fatal error in {servicename} dodola service")
+        else:
+            logger.info(f"dodola service {servicename} done")
+
+    return service_logger
+
+
+@log_service
 def bias_correct(
     x, x_train, train_variable, y_train, out, out_variable, method, storage
 ):
@@ -35,7 +52,6 @@ def bias_correct(
     storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     """
-    logger.info("Correcting bias")
     gcm_training_ds = storage.read(x_train)
     obs_training_ds = storage.read(y_train)
     gcm_predict_ds = storage.read(x)
@@ -51,9 +67,9 @@ def bias_correct(
     )
 
     storage.write(out, bias_corrected_ds)
-    logger.info("Bias corrected")
 
 
+@log_service
 def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
     """Generate local NetCDF weights file for regridding climate data
 
@@ -70,14 +86,13 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
     outpath : optional
         Local file path name to write regridding weights file to.
     """
-    logger.info("Building weights")
     ds = storage.read(x)
     build_xesmf_weights_file(
         ds, method=method, target_resolution=target_resolution, filename=outpath
     )
-    logger.info("Weights built")
 
 
+@log_service
 def rechunk(x, target_chunks, out, max_mem, storage):
     """Rechunk data to specification
 
@@ -96,7 +111,6 @@ def rechunk(x, target_chunks, out, max_mem, storage):
     storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
     """
-    logger.info("Rechunking data")
     ds = storage.read(x)
 
     # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
@@ -112,9 +126,8 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         plan.execute()
         logger.info(f"Written {out}")
 
-    logger.info("Data rechunked")
 
-
+@log_service
 def disaggregate(x, weights, out, repo):
     """This is just an example. Please replace or delete."""
     raise NotImplementedError
