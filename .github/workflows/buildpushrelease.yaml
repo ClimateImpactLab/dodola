@@ -1,0 +1,35 @@
+name: Build, Push Container on Release
+
+on:
+  release:
+    types:
+    - published
+
+jobs:
+  buildpushrelease:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker login
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - name: Set image release tag
+      env:
+        FULL_RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: |
+        echo "docker_tag=${FULL_RELEASE_TAG#v}" >> $GITHUB_ENV
+    - name: Set image name
+      run: |
+        echo "release_image_name=${{ secrets.ACR_LOGIN_SERVER }}/dodola:${{ env.docker_tag }}" >> $GITHUB_ENV
+    - name: Build container
+      run: |
+        docker build . -t "${{ env.release_image_name }}"
+    - name: Push to registry
+      run: |
+        docker push "${{ env.release_image_name }}"
