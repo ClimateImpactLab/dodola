@@ -5,7 +5,7 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 from rechunker import rechunk as rechunker_rechunk
-from dodola.core import apply_bias_correction, build_xesmf_weights_file
+from dodola.core import apply_bias_correction, build_xesmf_weights_file, xesmf_regrid
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +125,32 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         )
         plan.execute()
         logger.info(f"Written {out}")
+
+
+@log_service
+def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
+    """Regrid climate data
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be regridded.
+    out : str
+        Storage URL to write regridded output to.
+    method : str
+        Method of regridding. Passed to ``xesmf.Regridder``.
+    storage : dodola.repository._ZarrRepo
+        Storage abstraction for data IO.
+    weights_path : optional
+        Local file path name to write regridding weights file to.
+    target_resolution : float, optional
+        Decimal-degree resolution of global grid to regrid to.
+    """
+    ds = storage.read(x)
+    regridded_ds = xesmf_regrid(
+        ds, method=method, target_resolution=target_resolution, weights_path=weights_path
+    )
+    storage.write(out, regridded_ds)
 
 
 @log_service

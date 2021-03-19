@@ -112,3 +112,34 @@ def rechunk(x, variable, chunk, maxmemory, out):
         max_mem=maxmemory,
         storage=_authenticate_storage(),
     )
+
+
+@dodola_cli.command(help="Build NetCDF weights file for regridding")
+@click.argument("x", required=True)
+@click.option(
+    "--method",
+    "-m",
+    required=True,
+    help="Regridding method - 'bilinear' or 'conservative'",
+)
+@click.option(
+    "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
+)
+@click.option("--out", "-o", required=True)
+@click.option("--weightspath", "-w", default=None, help="Local path to existing regrid weights file")
+def regrid(x, method, targetgrid, out, weightspath):
+    """Regrid a target climate dataset
+
+    Note, the weightspath only accepts paths to NetCDF files on the local disk. See
+    https://xesmf.readthedocs.io/ for details on requirements for `x` with
+    different methods.
+    """
+    # Configure storage while we have access to users configurations.
+    services.regrid(
+        str(x),
+        out=str(out),
+        method=str(method),
+        storage=_authenticate_storage(),
+        weights_path=weightspath,
+        target_resolution=float(targetgrid),
+    )

@@ -88,3 +88,29 @@ def build_xesmf_weights_file(x, method, target_resolution, filename=None):
         filename=filename,
     )
     return str(out.filename)
+
+
+def xesmf_regrid(x, method, target_resolution, weights_path=None):
+    """
+
+    Parameters
+    ----------
+    x : xr.Dataset
+    method : str
+        Method of regridding. Passed to ``xesmf.Regridder``.
+    target_resolution : float
+        Decimal-degree resolution of global latxlon grid to regrid to.
+    weights_path : str, optional
+        Local path to netCDF file of pre-calculated XESMF regridding weights.
+
+    Returns
+    -------
+    xr.Dataset
+    """
+    regridder = xe.Regridder(
+        x,
+        xe.util.grid_global(target_resolution, target_resolution),
+        method=method,
+        filename=weights_path,
+    )
+    return regridder(x)
