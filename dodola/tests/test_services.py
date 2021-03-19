@@ -235,7 +235,7 @@ def test_regrid_resolution(target_resolution, expected_shape):
 
 def test_regrid_weights_integration(tmpdir):
     """Test basic integration between service.regrid and service.build_weights"""
-    expected_shape=(180, 360)
+    expected_shape = (180, 360)
     # Output to tmp dir so we cleanup & don't clobber existing files...
     weightsfile = tmpdir.join("a_file_path_weights.nc")
 
@@ -251,7 +251,10 @@ def test_regrid_weights_integration(tmpdir):
 
     # First, use service to pre-build regridding weights files, then read-in to regrid.
     build_weights(
-        "an/input/path.zarr", method="bilinear", storage=fakestorage, outpath=weightsfile
+        "an/input/path.zarr",
+        method="bilinear",
+        storage=fakestorage,
+        outpath=weightsfile,
     )
     regrid(
         "an/input/path.zarr",

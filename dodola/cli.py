@@ -126,7 +126,12 @@ def rechunk(x, variable, chunk, maxmemory, out):
     "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
 )
 @click.option("--out", "-o", required=True)
-@click.option("--weightspath", "-w", default=None, help="Local path to existing regrid weights file")
+@click.option(
+    "--weightspath",
+    "-w",
+    default=None,
+    help="Local path to existing regrid weights file",
+)
 def regrid(x, method, targetgrid, out, weightspath):
     """Regrid a target climate dataset
 

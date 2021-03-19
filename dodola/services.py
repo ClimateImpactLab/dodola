@@ -148,7 +148,10 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
     """
     ds = storage.read(x)
     regridded_ds = xesmf_regrid(
-        ds, method=method, target_resolution=target_resolution, weights_path=weights_path
+        ds,
+        method=method,
+        target_resolution=target_resolution,
+        weights_path=weights_path,
     )
     storage.write(out, regridded_ds)
 

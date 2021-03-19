@@ -7,7 +7,13 @@ import dodola.services
 @pytest.mark.parametrize(
     "subcmd",
     [None, "biascorrect", "buildweights", "rechunk", "regrid"],
-    ids=("--help", "biascorrect --help", "buildweights --help", "rechunk --help", "regrid --help"),
+    ids=(
+        "--help",
+        "biascorrect --help",
+        "buildweights --help",
+        "rechunk --help",
+        "regrid --help",
+    ),
 )
 def test_cli_helpflags(subcmd):
     """Test that CLI commands and subcommands don't throw Error if given --help flag"""
