@@ -11,16 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 def log_service(func):
+    """Decorator for dodola.services to log service start and stop"""
+
     @wraps(func)
     def service_logger(*args, **kwargs):
         servicename = func.__name__
-        try:
-            logger.info(f"Starting {servicename} dodola service")
-            func(*args, **kwargs)
-        except Exception:
-            logger.exception(f"Fatal error in {servicename} dodola service")
-        else:
-            logger.info(f"dodola service {servicename} done")
+        logger.info(f"Starting {servicename} dodola service")
+        func(*args, **kwargs)
+        logger.info(f"dodola service {servicename} done")
 
     return service_logger
 
