@@ -116,6 +116,7 @@ def rechunk(x, variable, chunk, maxmemory, out):
 
 @dodola_cli.command(help="Build NetCDF weights file for regridding")
 @click.argument("x", required=True)
+@click.option("--out", "-o", required=True)
 @click.option(
     "--method",
     "-m",
@@ -125,14 +126,13 @@ def rechunk(x, variable, chunk, maxmemory, out):
 @click.option(
     "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
 )
-@click.option("--out", "-o", required=True)
 @click.option(
     "--weightspath",
     "-w",
     default=None,
     help="Local path to existing regrid weights file",
 )
-def regrid(x, method, targetgrid, out, weightspath):
+def regrid(x, out, method, targetgrid, weightspath):
     """Regrid a target climate dataset
 
     Note, the weightspath only accepts paths to NetCDF files on the local disk. See
