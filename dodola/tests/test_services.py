@@ -170,7 +170,7 @@ def test_rechunk():
 def test_regrid_methods(regrid_method, expected_shape):
     """Smoke test that services.regrid outputs with different regrid methods
 
-    The the expected shape is the same, but change in methods should not error.
+    The expected shape is the same, but change in methods should not error.
     """
     # Make fake input data.
     ds_in = grid_global(30, 20)
@@ -210,7 +210,7 @@ def test_regrid_methods(regrid_method, expected_shape):
 def test_regrid_resolution(target_resolution, expected_shape):
     """Smoke test that services.regrid outputs with different regrid methods
 
-    The the expected shape is the same, but change in methods should not error.
+    The expected shape is the same, but change in methods should not error.
     """
     # Make fake input data.
     ds_in = grid_global(30, 20)
