@@ -132,7 +132,7 @@ def rechunk(x, variable, chunk, maxmemory, out):
     default=None,
     help="Local path to existing regrid weights file",
 )
-def regrid(x, out, method, targetgrid, weightspath):
+def regrid(x, out, method, targetresolution, weightspath):
     """Regrid a target climate dataset
 
     Note, the weightspath only accepts paths to NetCDF files on the local disk. See
@@ -146,5 +146,5 @@ def regrid(x, out, method, targetgrid, weightspath):
         method=str(method),
         storage=_authenticate_storage(),
         weights_path=weightspath,
-        target_resolution=float(targetgrid),
+        target_resolution=float(targetresolution),
     )
