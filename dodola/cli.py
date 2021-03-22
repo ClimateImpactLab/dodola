@@ -74,7 +74,7 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
     "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
 )
 @click.option("--outpath", "-o", default=None, help="Local path to write weights file")
-def buildweights(x, method, targetgrid, outpath):
+def buildweights(x, method, targetresolution, outpath):
     """Generate local NetCDF weights file for regridding a target climate dataset
 
     Note, the output weights file is only written to the local disk. See
@@ -85,7 +85,7 @@ def buildweights(x, method, targetgrid, outpath):
     services.build_weights(
         str(x),
         str(method),
-        target_resolution=float(targetgrid),
+        target_resolution=float(targetresolution),
         storage=_authenticate_storage(),
         outpath=str(outpath),
     )
