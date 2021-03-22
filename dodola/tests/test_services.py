@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from dodola.services import bias_correct, build_weights, rechunk
+from dodola.services import bias_correct, build_weights, rechunk, regrid
 from dodola.repository import memory_repository
 
 
@@ -150,3 +150,118 @@ def test_rechunk():
     actual_chunks = fakestorage.read("output_ds")["fakevariable"].data.chunksize
 
     assert actual_chunks == tuple(chunks_goal.values())
+
+
+@pytest.mark.parametrize(
+    "regrid_method, expected_shape",
+    [
+        pytest.param(
+            "bilinear",
+            (180, 360),
+            id="Bilinear regrid",
+        ),
+        pytest.param(
+            "conservative",
+            (180, 360),
+            id="Conservative regrid",
+        ),
+    ],
+)
+def test_regrid_methods(regrid_method, expected_shape):
+    """Smoke test that services.regrid outputs with different regrid methods
+
+    The expected shape is the same, but change in methods should not error.
+    """
+    # Make fake input data.
+    ds_in = grid_global(30, 20)
+    ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
+
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_in,
+        }
+    )
+
+    regrid(
+        "an/input/path.zarr",
+        out="an/output/path.zarr",
+        method=regrid_method,
+        storage=fakestorage,
+    )
+    actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
+    assert actual_shape == expected_shape
+
+
+@pytest.mark.parametrize(
+    "target_resolution, expected_shape",
+    [
+        pytest.param(
+            1.0,
+            (180, 360),
+            id="Regrid to global 1.0° x 1.0° grid",
+        ),
+        pytest.param(
+            2.0,
+            (90, 180),
+            id="Regrid to global 2.0° x 2.0° grid",
+        ),
+    ],
+)
+def test_regrid_resolution(target_resolution, expected_shape):
+    """Smoke test that services.regrid outputs with different regrid methods
+
+    The expected shape is the same, but change in methods should not error.
+    """
+    # Make fake input data.
+    ds_in = grid_global(30, 20)
+    ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
+
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_in,
+        }
+    )
+
+    regrid(
+        "an/input/path.zarr",
+        out="an/output/path.zarr",
+        target_resolution=target_resolution,
+        method="bilinear",
+        storage=fakestorage,
+    )
+    actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
+    assert actual_shape == expected_shape
+
+
+def test_regrid_weights_integration(tmpdir):
+    """Test basic integration between service.regrid and service.build_weights"""
+    expected_shape = (180, 360)
+    # Output to tmp dir so we cleanup & don't clobber existing files...
+    weightsfile = tmpdir.join("a_file_path_weights.nc")
+
+    # Make fake input data.
+    ds_in = grid_global(30, 20)
+    ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
+
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_in,
+        }
+    )
+
+    # First, use service to pre-build regridding weights files, then read-in to regrid.
+    build_weights(
+        "an/input/path.zarr",
+        method="bilinear",
+        storage=fakestorage,
+        outpath=weightsfile,
+    )
+    regrid(
+        "an/input/path.zarr",
+        out="an/output/path.zarr",
+        method="bilinear",
+        weights_path=weightsfile,
+        storage=fakestorage,
+    )
+    actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
+    assert actual_shape == expected_shape
