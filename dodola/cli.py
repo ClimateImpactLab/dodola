@@ -94,7 +94,7 @@ def buildweights(x, method, targetresolution, outpath):
 @dodola_cli.command(help="Rechunk Zarr store")
 @click.argument("x", required=True)
 @click.option("--variable", "-v", required=True, help="Variable to rechunk")
-@click.option("--chunk", "-c", required=True, help="coord=chunksize to rechunk to")
+@click.option("--chunk", "-c", multiple=True, required=True, help="coord=chunksize to rechunk to")
 @click.option(
     "--maxmemory", "-m", required=True, help="Max memory (bytes) to use for rechunking"
 )
