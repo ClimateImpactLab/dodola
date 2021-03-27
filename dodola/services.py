@@ -3,6 +3,7 @@
 from functools import wraps
 import cf_xarray as cfxr
 import logging
+import numpy as np
 import os
 from tempfile import TemporaryDirectory
 from rechunker import rechunk as rechunker_rechunk
@@ -153,7 +154,7 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
         weights_path=weights_path,
     )
 
-    if method is not "conservative":
+    if method != "conservative":
         lon_name = ds.cf["X"]
         lat_name = ds.cf["Y"]
         ds = ds.rename({lon_name: "lon", lat_name: "lat"})
