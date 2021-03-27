@@ -155,11 +155,11 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
     )
 
     if method != "conservative":
-        lon_name = ds.cf["X"]
-        lat_name = ds.cf["Y"]
-        ds = ds.rename({lon_name: "lon", lat_name: "lat"})
-        ds["lat"] = np.unique(ds.lat.values)
-        ds["lon"] = np.unique(ds.lon.values)
+        lon_name = ds.cf.standard_names['longitude']
+        lat_name = ds.cf.standard_names['latitude']
+        ds = ds.rename({'x': lon_name, 'y': lat_name})
+        ds[lat_name] = np.unique(ds[lat_name].values)
+        ds[lon_name] = np.unique(ds[lon_name].values)
 
     storage.write(out, regridded_ds)
 
