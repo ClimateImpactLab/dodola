@@ -4,6 +4,7 @@ channels:
 dependencies:
 - adlfs
 - click
+- cf-xarray
 - cftime
 - fsspec
 - numpy

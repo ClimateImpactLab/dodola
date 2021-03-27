@@ -1,6 +1,7 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 from functools import wraps
+import cf_xarray as cfxr
 import logging
 import os
 from tempfile import TemporaryDirectory
@@ -151,6 +152,14 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
         target_resolution=target_resolution,
         weights_path=weights_path,
     )
+
+    if method is not "conservative":
+        lon_name = ds.cf["X"]
+        lat_name = ds.cf["Y"]
+        ds = ds.rename({lon_name: 'lon', lat_name: 'lat'})
+        ds['lat'] = np.unique(ds.lat.values)
+        ds['lon'] = np.unique(ds.lon.values)
+
     storage.write(out, regridded_ds)
 
 
