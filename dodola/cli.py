@@ -94,16 +94,17 @@ def buildweights(x, method, targetresolution, outpath):
 @dodola_cli.command(help="Rechunk Zarr store")
 @click.argument("x", required=True)
 @click.option("--variable", "-v", required=True, help="Variable to rechunk")
-@click.option("--chunk", "-c", required=True, help="coord=chunksize to rechunk to")
+@click.option("--time_chunk", "-time", required=True, help="time chunksize to rechunk to")
+@click.option("--lat_chunk", "-lat", required=True, help="latitude chunksize to rechunk to")
+@click.option("--lon_chunk", "-lon", required=True, help="longitude chunksize to rechunk to")
 @click.option(
     "--maxmemory", "-m", required=True, help="Max memory (bytes) to use for rechunking"
 )
 @click.option("--out", "-o", required=True)
-def rechunk(x, variable, chunk, maxmemory, out):
+def rechunk(x, variable, time_chunk, lat_chunk, lon_chunk, maxmemory, out):
     """Rechunk Zarr store"""
-    # Convert ["k1=1", "k2=2"] into {k1: 1, k2: 2}
-    coord_chunks = {c.split("=")[0]: int(c.split("=")[1]) for c in chunk}
-    target_chunks = {variable: coord_chunks}
+    coords_chunks = {'time': int(time_chunk), 'lat': int(lat_chunk), 'lon': int(lon_chunk)}
+    target_chunks = {variable: coords_chunks}
 
     services.rechunk(
         str(x),
