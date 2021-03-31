@@ -6,6 +6,7 @@ Math stuff and business logic goes here. This is the "business logic".
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 import xarray as xr
 from xclim import sdba
+from xclim.core.calendar import convert_calendar
 import xesmf as xe
 
 # Break this down into a submodule(s) if needed.
@@ -114,3 +115,58 @@ def xesmf_regrid(x, method, target_resolution, weights_path=None):
         filename=weights_path,
     )
     return regridder(x)
+
+
+def standardize_gcm(ds, leapday_removal):
+    """
+
+    Parameters
+    ----------
+    x : xr.Dataset
+    leapday_removal : bool
+    
+    Returns
+    -------
+    xr.Dataset
+    """
+    dims_to_drop = []
+    if "height" in ds.dims:
+        dims_to_drop.append("height")
+    if "member_id" in ds.dims:
+        dims_to_drop.append("member_id")
+    if "time_bnds" in ds.dims:
+        dims_to_drop.append("time_bnds")
+
+    if "member_id" in ds.dims:
+        ds_cleaned = ds.isel(member_id=0).drop(dims_to_drop)
+    else:
+        ds_cleaned = ds.isel.drop(dims_to_drop)
+
+    if leapday_removal:
+        # if calendar is just integers, xclim cannot understand it
+        if ds.time.dtype == "int64":
+            ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
+        # remove leap days and update calendar
+        ds_noleap = xclim_remove_leapdays(ds_cleaned)
+
+        # rechunk, otherwise chunks are different sizes
+        ds_out = ds_noleap.chunk(730, len(ds.lat), len(ds.lon))
+    else:
+        ds_out = ds_cleaned
+
+    return ds_out
+
+
+def xclim_remove_leapdays(ds):
+    """
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+
+    Returns
+    -------
+    xr.Dataset
+    """
+    ds_noleap = convert_calendar(ds, target="noleap")
+    return ds_noleap

@@ -6,7 +6,15 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from dodola.services import bias_correct, build_weights, rechunk, regrid
+from xclim.core.calendar import convert_calendar
+from dodola.services import (
+    bias_correct,
+    build_weights,
+    rechunk,
+    regrid,
+    remove_leapdays,
+    cmip6_clean,
+)
 from dodola.repository import memory_repository
 
 
@@ -29,6 +37,37 @@ def _datafactory(x, start_time="1950-01-01"):
             "lat": (["lat"], [1.0]),
         },
     )
+    return out
+
+
+def _gcmfactory(x, start_time="1950-01-01"):
+    """Populate xr.Dataset with synthetic data for testing"""
+    start_time = str(start_time)
+    if x.ndim != 1:
+        raise ValueError("'x' needs dim of one")
+
+    time = xr.cftime_range(
+        start=start_time, freq="D", periods=len(x), calendar="standard"
+    )
+
+    out = xr.Dataset(
+        {
+            "fakevariable": (
+                ["time", "lon", "lat", "member_id"],
+                x[:, np.newaxis, np.newaxis, np.newaxis],
+            )
+        },
+        coords={
+            "index": time,
+            "time": time,
+            "lon": (["lon"], [1.0]),
+            "lat": (["lat"], [1.0]),
+            "member_id": (["member_id"], [1.0]),
+            "height": (["height"], [1.0]),
+            "time_bnds": (["time_bnds"], [1.0]),
+        },
+    )
+    # out['time'] = out['time'].assign_attrs({'calendar': 'standard'})
     return out
 
 
@@ -113,11 +152,7 @@ def test_build_weights(regrid_method, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "a_file_path": ds_in,
-        }
-    )
+    fakestorage = memory_repository({"a_file_path": ds_in,})
 
     build_weights(
         "a_file_path", method=regrid_method, storage=fakestorage, outpath=weightsfile
@@ -155,16 +190,8 @@ def test_rechunk():
 @pytest.mark.parametrize(
     "regrid_method, expected_shape",
     [
-        pytest.param(
-            "bilinear",
-            (180, 360),
-            id="Bilinear regrid",
-        ),
-        pytest.param(
-            "conservative",
-            (180, 360),
-            id="Conservative regrid",
-        ),
+        pytest.param("bilinear", (180, 360), id="Bilinear regrid",),
+        pytest.param("conservative", (180, 360), id="Conservative regrid",),
     ],
 )
 def test_regrid_methods(regrid_method, expected_shape):
@@ -176,11 +203,7 @@ def test_regrid_methods(regrid_method, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_in,
-        }
-    )
+    fakestorage = memory_repository({"an/input/path.zarr": ds_in,})
 
     regrid(
         "an/input/path.zarr",
@@ -195,16 +218,8 @@ def test_regrid_methods(regrid_method, expected_shape):
 @pytest.mark.parametrize(
     "target_resolution, expected_shape",
     [
-        pytest.param(
-            1.0,
-            (180, 360),
-            id="Regrid to global 1.0° x 1.0° grid",
-        ),
-        pytest.param(
-            2.0,
-            (90, 180),
-            id="Regrid to global 2.0° x 2.0° grid",
-        ),
+        pytest.param(1.0, (180, 360), id="Regrid to global 1.0° x 1.0° grid",),
+        pytest.param(2.0, (90, 180), id="Regrid to global 2.0° x 2.0° grid",),
     ],
 )
 def test_regrid_resolution(target_resolution, expected_shape):
@@ -216,11 +231,7 @@ def test_regrid_resolution(target_resolution, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_in,
-        }
-    )
+    fakestorage = memory_repository({"an/input/path.zarr": ds_in,})
 
     regrid(
         "an/input/path.zarr",
@@ -243,11 +254,7 @@ def test_regrid_weights_integration(tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_in,
-        }
-    )
+    fakestorage = memory_repository({"an/input/path.zarr": ds_in,})
 
     # First, use service to pre-build regridding weights files, then read-in to regrid.
     build_weights(
@@ -265,3 +272,42 @@ def test_regrid_weights_integration(tmpdir):
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
+
+
+def test_cmip6_clean():
+    """ Tests that cmip6 cleanup removes extra dimensions on dataset """
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
+
+    fakestorage = memory_repository({"an/input/path.zarr": ds_gcm,})
+
+    cmip6_clean(
+        "an/input/path.zarr",
+        "an/output/path.zarr",
+        storage=fakestorage,
+        leapday_removal=True,
+    )
+    ds_cleaned = fakestorage.read("an/output/path.zarr")
+
+    assert "height" not in ds_cleaned.dims
+    assert "member_id" not in ds_cleaned.dims
+    assert "time_bnds" not in ds_cleaned.dims
+
+
+def test_remove_leapdays():
+    """ Test that leapday removal service removes leap days """
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_leap = _gcmfactory(ts, start_time="1950-01-01")
+
+    fakestorage = memory_repository({"an/input/path.zarr": ds_leap,})
+
+    remove_leapdays("an/input/path.zarr", "an/output/path.zarr", storage=fakestorage)
+    ds_noleap = fakestorage.read("an/output/path.zarr")
+    ds_leapyear = ds_noleap.loc[dict(time=slice("1952-01-01", "1952-12-31"))]
+
+    # check to be sure that leap days have been removed
+    assert len(ds_leapyear.time) == 365

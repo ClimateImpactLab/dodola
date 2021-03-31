@@ -5,7 +5,13 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 from rechunker import rechunk as rechunker_rechunk
-from dodola.core import apply_bias_correction, build_xesmf_weights_file, xesmf_regrid
+from dodola.core import (
+    apply_bias_correction,
+    build_xesmf_weights_file,
+    xesmf_regrid,
+    standardize_gcm,
+    xclim_remove_leapdays,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +158,44 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
         weights_path=weights_path,
     )
     storage.write(out, regridded_ds)
+
+
+@log_service
+def cmip6_clean(x, out, storage, leapday_removal=True):
+    """ Cleans and standardizes CMIP6 GCM 
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be regridded.
+    out : str
+        Storage URL to write regridded output to.
+    storage : dodola.repository._ZarrRepo
+        Storage abstraction for data IO.
+    remove_leapdays : bool
+        Whether or not to remove leap days. Passed to ``remove_leapdays``.
+    """
+    ds = storage.read(x)
+    cleaned_ds = standardize_gcm(ds, leapday_removal)
+    storage.write(out, cleaned_ds)
+
+
+@log_service
+def remove_leapdays(x, out, storage):
+    """ Removes leap days and updates calendar attribute
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be regridded.
+    out : str
+        Storage URL to write regridded output to.
+    storage : dodola.repository._ZarrRepo
+        Storage abstraction for data IO.
+    """
+    ds = storage.read(x)
+    noleap_ds = xclim_remove_leapdays(ds)
+    storage.write(out, noleap_ds)
 
 
 @log_service

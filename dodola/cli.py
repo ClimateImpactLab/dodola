@@ -40,6 +40,25 @@ def dodola_cli(debug):
     logging.basicConfig(level=loglevel)
 
 
+@dodola_cli.command(help="Clean up and standardize GCM")
+@click.argument("x", required=True)
+@click.argument("out", required=True)
+@click.option(
+    "--leapday_removal", "-leapday", default=True, help="Whether to remove leap days"
+)
+def cmip6clean(x, out, leapday_removal):
+    """Clean and standardize CMIP6 GCM to 'out'. If leapday_removal is set to True, remove leap days"""
+    services.cmip6_clean(x, out, leapday_removal)
+
+
+@dodola_cli.command(help="Remove leap days and update calendar")
+@click.argument("x", required=True)
+@click.argument("out", required=True)
+def removeleapdays(x, out):
+    """ Remove leap days and update calendar attribute"""
+    services.remove_leapdays(x, out)
+
+
 @dodola_cli.command(help="Bias-correct GCM on observations")
 @click.argument("x", required=True)
 @click.argument("xtrain", required=True)
