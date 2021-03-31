@@ -55,8 +55,10 @@ def apply_bias_correction(
         # centered window: +/-15 day group
         group = sdba.Grouper("time.dayofyear", window=31)
         model = sdba.adjustment.QuantileDeltaMapping(group=group, kind="+")
-        model.train(gcm_training_ds[train_variable], obs_training_ds[train_variable])
-        predicted = model.adjust(gcm_predict_ds[train_variable])
+        model.train(
+            ref=obs_training_ds[train_variable], hist=gcm_training_ds[train_variable]
+        )
+        predicted = model.adjust(sim=gcm_predict_ds[train_variable])
     else:
         raise ValueError("this method is not supported")
     ds_predicted = predicted.to_dataset(name=out_variable)
