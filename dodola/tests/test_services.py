@@ -152,7 +152,11 @@ def test_build_weights(regrid_method, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository({"a_file_path": ds_in,})
+    fakestorage = memory_repository(
+        {
+            "a_file_path": ds_in,
+        }
+    )
 
     build_weights(
         "a_file_path", method=regrid_method, storage=fakestorage, outpath=weightsfile
@@ -190,8 +194,16 @@ def test_rechunk():
 @pytest.mark.parametrize(
     "regrid_method, expected_shape",
     [
-        pytest.param("bilinear", (180, 360), id="Bilinear regrid",),
-        pytest.param("conservative", (180, 360), id="Conservative regrid",),
+        pytest.param(
+            "bilinear",
+            (180, 360),
+            id="Bilinear regrid",
+        ),
+        pytest.param(
+            "conservative",
+            (180, 360),
+            id="Conservative regrid",
+        ),
     ],
 )
 def test_regrid_methods(regrid_method, expected_shape):
@@ -203,7 +215,11 @@ def test_regrid_methods(regrid_method, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository({"an/input/path.zarr": ds_in,})
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_in,
+        }
+    )
 
     regrid(
         "an/input/path.zarr",
@@ -218,8 +234,16 @@ def test_regrid_methods(regrid_method, expected_shape):
 @pytest.mark.parametrize(
     "target_resolution, expected_shape",
     [
-        pytest.param(1.0, (180, 360), id="Regrid to global 1.0° x 1.0° grid",),
-        pytest.param(2.0, (90, 180), id="Regrid to global 2.0° x 2.0° grid",),
+        pytest.param(
+            1.0,
+            (180, 360),
+            id="Regrid to global 1.0° x 1.0° grid",
+        ),
+        pytest.param(
+            2.0,
+            (90, 180),
+            id="Regrid to global 2.0° x 2.0° grid",
+        ),
     ],
 )
 def test_regrid_resolution(target_resolution, expected_shape):
@@ -231,7 +255,11 @@ def test_regrid_resolution(target_resolution, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository({"an/input/path.zarr": ds_in,})
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_in,
+        }
+    )
 
     regrid(
         "an/input/path.zarr",
@@ -254,7 +282,11 @@ def test_regrid_weights_integration(tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository({"an/input/path.zarr": ds_in,})
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_in,
+        }
+    )
 
     # First, use service to pre-build regridding weights files, then read-in to regrid.
     build_weights(
@@ -281,7 +313,11 @@ def test_cmip6_clean():
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
     ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
 
-    fakestorage = memory_repository({"an/input/path.zarr": ds_gcm,})
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_gcm,
+        }
+    )
 
     cmip6_clean(
         "an/input/path.zarr",
@@ -303,7 +339,11 @@ def test_remove_leapdays():
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
     ds_leap = _gcmfactory(ts, start_time="1950-01-01")
 
-    fakestorage = memory_repository({"an/input/path.zarr": ds_leap,})
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_leap,
+        }
+    )
 
     remove_leapdays("an/input/path.zarr", "an/output/path.zarr", storage=fakestorage)
     ds_noleap = fakestorage.read("an/output/path.zarr")

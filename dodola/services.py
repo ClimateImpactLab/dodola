@@ -162,7 +162,7 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
 
 @log_service
 def cmip6_clean(x, out, storage, leapday_removal=True):
-    """ Cleans and standardizes CMIP6 GCM 
+    """Cleans and standardizes CMIP6 GCM
 
     Parameters
     ----------
@@ -182,7 +182,7 @@ def cmip6_clean(x, out, storage, leapday_removal=True):
 
 @log_service
 def remove_leapdays(x, out, storage):
-    """ Removes leap days and updates calendar attribute
+    """Removes leap days and updates calendar attribute
 
     Parameters
     ----------
