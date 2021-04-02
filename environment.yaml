@@ -2,7 +2,7 @@ name: base
 channels:
 - conda-forge
 dependencies:
-- adlfs
+- adlfs=0.6
 - click
 - cftime
 - fsspec
