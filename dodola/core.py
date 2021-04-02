@@ -5,6 +5,7 @@ Math stuff and business logic goes here. This is the "business logic".
 
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 import xarray as xr
+import cf_xarray as cfxr
 from xclim import sdba
 import xesmf as xe
 
@@ -92,7 +93,7 @@ def build_xesmf_weights_file(x, method, target_resolution, filename=None):
     return str(out.filename)
 
 
-def xesmf_regrid(x, method, target_resolution, weights_path=None):
+def xesmf_regrid(x, method, target_resolution, weights_path=None, domain_file=None):
     """
 
     Parameters
@@ -104,14 +105,31 @@ def xesmf_regrid(x, method, target_resolution, weights_path=None):
         Decimal-degree resolution of global latxlon grid to regrid to.
     weights_path : str, optional
         Local path to netCDF file of pre-calculated XESMF regridding weights.
+    domain_file : str, optional
+        Local path to netCDF file of domain file to regrid to.
 
     Returns
     -------
     xr.Dataset
     """
+
+    if domain_file is not None:
+        target_grid = xr.open_dataset(domain_file)
+    else:
+        target_grid = xe.util.grid_global(target_resolution, target_resolution)
+
+    # dimensions must be named lat/lon for xesmf to recognize them
+    if x.cf.coordinates["longitude"] != "lon":
+        # rename dimensions
+        x = x.rename(
+            {
+                x.cf.coordinates["longitude"][0]: "lon",
+                x.cf.coordinates["latitude"][0]: "lat",
+            }
+        )
     regridder = xe.Regridder(
         x,
-        xe.util.grid_global(target_resolution, target_resolution),
+        target_grid,
         method=method,
         filename=weights_path,
     )

@@ -1,9 +1,7 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 from functools import wraps
-import cf_xarray as cfxr
 import logging
-import numpy as np
 import os
 from tempfile import TemporaryDirectory
 from rechunker import rechunk as rechunker_rechunk
@@ -128,7 +126,9 @@ def rechunk(x, target_chunks, out, max_mem, storage):
 
 
 @log_service
-def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
+def regrid(
+    x, out, method, storage, weights_path=None, domain_file=None, target_resolution=1.0
+):
     """Regrid climate data
 
     Parameters
@@ -143,23 +143,20 @@ def regrid(x, out, method, storage, weights_path=None, target_resolution=1.0):
         Storage abstraction for data IO.
     weights_path : optional
         Local file path name to write regridding weights file to.
+    domain_file : optional
+        Local file path name of domain file to regrid to.
     target_resolution : float, optional
         Decimal-degree resolution of global grid to regrid to.
     """
     ds = storage.read(x)
+
     regridded_ds = xesmf_regrid(
         ds,
         method=method,
         target_resolution=target_resolution,
         weights_path=weights_path,
+        domain_file=domain_file,
     )
-
-    if method != "conservative":
-        lon_name = ds.cf.standard_names["longitude"][0]
-        lat_name = ds.cf.standard_names["latitude"][0]
-        ds = ds.rename({"x": lon_name, "y": lat_name})
-        ds[lat_name] = np.unique(ds[lat_name].values)
-        ds[lon_name] = np.unique(ds[lon_name].values)
 
     storage.write(out, regridded_ds)
 
