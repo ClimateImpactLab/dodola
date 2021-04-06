@@ -127,8 +127,7 @@ def rechunk(x, target_chunks, out, max_mem, storage):
 
 @log_service
 def regrid(
-    x, out, method, storage, weights_path=None, domain_file=None, target_resolution=1.0
-):
+    x, out, method, storage, weights_path=None, domain_file=None):
     """Regrid climate data
 
     Parameters
@@ -145,15 +144,12 @@ def regrid(
         Local file path name to write regridding weights file to.
     domain_file : optional
         Local file path name of domain file to regrid to.
-    target_resolution : float, optional
-        Decimal-degree resolution of global grid to regrid to.
     """
     ds = storage.read(x)
 
     regridded_ds = xesmf_regrid(
         ds,
         method=method,
-        target_resolution=target_resolution,
         weights_path=weights_path,
         domain_file=domain_file,
     )
