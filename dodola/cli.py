@@ -110,7 +110,8 @@ def buildweights(x, method, targetresolution, outpath):
 )
 @click.option(
     "--maxmemory",
-    "-m", type=int,
+    "-m",
+    type=int,
     required=True,
     help="Max memory (bytes) to use for rechunking"
 )
