@@ -186,9 +186,18 @@ def test_regrid_methods(regrid_method, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
+    # make fake domain file
+    lon_name = "lon"
+    lat_name = "lat"
+    domain = grid_global(1, 1)
+    domain = domain.rename({"x": lon_name, "y": lat_name})
+    domain[lat_name] = np.unique(domain[lat_name].values)
+    domain[lon_name] = np.unique(domain[lon_name].values)
+
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
+            "a/domainfile/path.zarr": domain,
         }
     )
 
@@ -197,27 +206,22 @@ def test_regrid_methods(regrid_method, expected_shape):
         out="an/output/path.zarr",
         method=regrid_method,
         storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
 
 
 @pytest.mark.parametrize(
-    "target_resolution, expected_shape",
+    "expected_shape",
     [
         pytest.param(
-            1.0,
             (180, 360),
-            id="Regrid to global 1.0° x 1.0° grid",
-        ),
-        pytest.param(
-            2.0,
-            (90, 180),
-            id="Regrid to global 2.0° x 2.0° grid",
+            id="Regrid to domain file grid",
         ),
     ],
 )
-def test_regrid_resolution(target_resolution, expected_shape):
+def test_regrid_resolution(expected_shape):
     """Smoke test that services.regrid outputs with different regrid methods
 
     The expected shape is the same, but change in methods should not error.
@@ -226,18 +230,27 @@ def test_regrid_resolution(target_resolution, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
+    # make fake domain file
+    lon_name = "lon"
+    lat_name = "lat"
+    domain = grid_global(1, 1)
+    domain = domain.rename({"x": lon_name, "y": lat_name})
+    domain[lat_name] = np.unique(domain[lat_name].values)
+    domain[lon_name] = np.unique(domain[lon_name].values)
+
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
+            "a/domainfile/path.zarr": domain,
         }
     )
 
     regrid(
         "an/input/path.zarr",
         out="an/output/path.zarr",
-        target_resolution=target_resolution,
         method="bilinear",
         storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
@@ -253,9 +266,18 @@ def test_regrid_weights_integration(tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
+    # make fake domain file
+    lon_name = "lon"
+    lat_name = "lat"
+    domain = grid_global(1, 1)
+    domain = domain.rename({"x": lon_name, "y": lat_name})
+    domain[lat_name] = np.unique(domain[lat_name].values)
+    domain[lon_name] = np.unique(domain[lon_name].values)
+
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
+            "a/domainfile/path.zarr": domain,
         }
     )
 
@@ -272,6 +294,7 @@ def test_regrid_weights_integration(tmpdir):
         method="bilinear",
         weights_path=weightsfile,
         storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape

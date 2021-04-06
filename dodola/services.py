@@ -126,8 +126,7 @@ def rechunk(x, target_chunks, out, max_mem, storage):
 
 
 @log_service
-def regrid(
-    x, out, method, storage, weights_path=None, domain_file=None):
+def regrid(x, out, method, storage, weights_path=None, domain_file=None):
     """Regrid climate data
 
     Parameters
@@ -142,16 +141,18 @@ def regrid(
         Storage abstraction for data IO.
     weights_path : optional
         Local file path name to write regridding weights file to.
-    domain_file : optional
-        Local file path name of domain file to regrid to.
+    domain_file : str
+        Storage URL to input xr.Dataset domain file to regrid to.
     """
     ds = storage.read(x)
 
+    ds_domain = storage.read(domain_file)
+
     regridded_ds = xesmf_regrid(
         ds,
+        ds_domain,
         method=method,
         weights_path=weights_path,
-        domain_file=domain_file,
     )
 
     storage.write(out, regridded_ds)

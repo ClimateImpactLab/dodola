@@ -92,7 +92,7 @@ def build_xesmf_weights_file(x, method, target_resolution, filename=None):
     return str(out.filename)
 
 
-def xesmf_regrid(x, method, weights_path=None, domain_file=None):
+def xesmf_regrid(x, domain, method, weights_path=None):
     """
 
     Parameters
@@ -102,19 +102,17 @@ def xesmf_regrid(x, method, weights_path=None, domain_file=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     weights_path : str, optional
         Local path to netCDF file of pre-calculated XESMF regridding weights.
-    domain_file : str, optional
-        Local path to netCDF file of domain file to regrid to.
+    domain : xr.Dataset
+        Domain to regrid to.
 
     Returns
     -------
     xr.Dataset
     """
 
-    target_grid = xr.open_dataset(domain_file)
-
     regridder = xe.Regridder(
         x,
-        target_grid,
+        domain,
         method=method,
         filename=weights_path,
     )
