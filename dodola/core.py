@@ -5,7 +5,6 @@ Math stuff and business logic goes here. This is the "business logic".
 
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 import xarray as xr
-import cf_xarray as cfxr
 from xclim import sdba
 import xesmf as xe
 
@@ -111,20 +110,8 @@ def xesmf_regrid(x, method, weights_path=None, domain_file=None):
     xr.Dataset
     """
 
-    if domain_file is not None:
-        target_grid = xr.open_dataset(domain_file)
-    else:
-        target_grid = xe.util.grid_global(target_resolution, target_resolution)
+    target_grid = xr.open_dataset(domain_file)
 
-    # dimensions must be named lat/lon for xesmf to recognize them
-    if x.cf.coordinates["longitude"] != "lon":
-        # rename dimensions
-        x = x.rename(
-            {
-                x.cf.coordinates["longitude"][0]: "lon",
-                x.cf.coordinates["latitude"][0]: "lat",
-            }
-        )
     regridder = xe.Regridder(
         x,
         target_grid,

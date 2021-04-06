@@ -18,5 +18,4 @@ dependencies:
 - xclim
 - zarr
 - pip:
-  - cf-xarray
   - git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
