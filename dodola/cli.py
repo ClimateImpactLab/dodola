@@ -113,7 +113,7 @@ def buildweights(x, method, targetresolution, outpath):
     "-m",
     type=int,
     required=True,
-    help="Max memory (bytes) to use for rechunking"
+    help="Max memory (bytes) to use for rechunking",
 )
 @click.option("--out", "-o", required=True)
 def rechunk(x, variable, chunk, maxmemory, out):
