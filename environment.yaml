@@ -5,7 +5,7 @@ dependencies:
 - adlfs=0.6
 - click
 - cftime
-- fsspec=0.8.7 # Pinned req. for adlfs > 0.7
+- fsspec=0.8.7 # Pinned req. for adlfs < 0.7
 - numpy
 - pip
 - pytest
