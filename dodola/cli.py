@@ -33,6 +33,17 @@ def dodola_cli(debug):
     Alternatively, set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and
     AZURE_TENANT_ID for service principal-based authentication.
     """
+    noisy_loggers = [
+        "azure.core.pipeline.policies.http_logging_policy",
+        "asyncio",
+        "adlfs.spec",
+        "chardet.universaldetector",
+        "fsspec",
+    ]
+    for logger_name in noisy_loggers:
+        nl = logging.getLogger(logger_name)
+        nl.setLevel(logging.WARNING)
+
     loglevel = logging.INFO
     if debug:
         loglevel = logging.DEBUG
