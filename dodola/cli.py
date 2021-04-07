@@ -55,11 +55,13 @@ def dodola_cli(debug):
 @click.argument("x", required=True)
 @click.argument("out", required=True)
 @click.option(
-    "--leapday_removal", "-leapday", default=True, help="Whether to remove leap days"
+    "--drop_leapdays/--no-drop_leapdays",
+    default=True,
+    help="Whether to remove leap days",
 )
-def cmip6clean(x, out, leapday_removal):
-    """Clean and standardize CMIP6 GCM to 'out'. If leapday_removal is set to True, remove leap days"""
-    services.cmip6_clean(x, out, leapday_removal)
+def cleancmip6(x, out, drop_leapdays):
+    """Clean and standardize CMIP6 GCM to 'out'. If drop-leapdays option is set, remove leap days"""
+    services.clean_cmip6(x, out, drop_leapdays)
 
 
 @dodola_cli.command(help="Remove leap days and update calendar")
