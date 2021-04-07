@@ -13,7 +13,7 @@ from dodola.services import (
     rechunk,
     regrid,
     remove_leapdays,
-    cmip6_clean,
+    clean_cmip6,
 )
 from dodola.repository import memory_repository
 
@@ -316,7 +316,7 @@ def test_regrid_weights_integration(tmpdir):
     assert actual_shape == expected_shape
 
 
-def test_cmip6_clean():
+def test_clean_cmip6():
     """ Tests that cmip6 cleanup removes extra dimensions on dataset """
     # Setup input data
     n = 1500  # need over four years of daily data
@@ -329,7 +329,7 @@ def test_cmip6_clean():
         }
     )
 
-    cmip6_clean(
+    clean_cmip6(
         "an/input/path.zarr",
         "an/output/path.zarr",
         storage=fakestorage,
