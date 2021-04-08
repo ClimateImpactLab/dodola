@@ -39,8 +39,11 @@ def _datafactory(x, start_time="1950-01-01"):
     )
     return out
 
+
 def _gcmfactory(x, start_time="1950-01-01"):
-    """Populate xr.Dataset with synthetic data for testing"""
+    """Populate xr.Dataset with synthetic GCM data for testing
+    that includes extra dimensions and leap days to be removed.
+    """
     start_time = str(start_time)
     if x.ndim != 1:
         raise ValueError("'x' needs dim of one")
@@ -68,6 +71,7 @@ def _gcmfactory(x, start_time="1950-01-01"):
     )
     # out['time'] = out['time'].assign_attrs({'calendar': 'standard'})
     return out
+
 
 @pytest.fixture
 def domain_file(request):

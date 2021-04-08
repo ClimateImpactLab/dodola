@@ -120,13 +120,13 @@ def xesmf_regrid(x, domain, method, weights_path=None):
     return regridder(x)
 
 
-def standardize_gcm(ds, leapday_removal):
+def standardize_gcm(ds, leapday_removal=True):
     """
 
     Parameters
     ----------
     x : xr.Dataset
-    leapday_removal : bool
+    leapday_removal : bool, optional
 
     Returns
     -------

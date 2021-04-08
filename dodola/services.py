@@ -165,19 +165,19 @@ def regrid(x, out, method, storage, domain_file, weights_path=None):
 
 
 @log_service
-def clean_cmip6(x, out, storage, leapday_removal=True):
+def clean_cmip6(x, out, leapday_removal, storage):
     """Cleans and standardizes CMIP6 GCM
 
     Parameters
     ----------
     x : str
-        Storage URL to input xr.Dataset that will be regridded.
+        Storage URL to input xr.Dataset that will be cleaned.
     out : str
-        Storage URL to write regridded output to.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
+        Storage URL to write cleaned GCM output to.
     leapday_removal : bool
         Whether or not to remove leap days.
+    storage : dodola.repository._ZarrRepo
+        Storage abstraction for data IO.
     """
     ds = storage.read(x)
     cleaned_ds = standardize_gcm(ds, leapday_removal)

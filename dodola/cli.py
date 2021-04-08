@@ -55,13 +55,13 @@ def dodola_cli(debug):
 @click.argument("x", required=True)
 @click.argument("out", required=True)
 @click.option(
-    "--drop_leapdays/--no-drop_leapdays",
+    "--drop-leapdays/--no-drop-leapdays",
     default=True,
     help="Whether to remove leap days",
 )
 def cleancmip6(x, out, drop_leapdays):
     """Clean and standardize CMIP6 GCM to 'out'. If drop-leapdays option is set, remove leap days"""
-    services.clean_cmip6(x, out, drop_leapdays)
+    services.clean_cmip6(x, out, drop_leapdays, storage=_authenticate_storage())
 
 
 @dodola_cli.command(help="Remove leap days and update calendar")
@@ -69,7 +69,7 @@ def cleancmip6(x, out, drop_leapdays):
 @click.argument("out", required=True)
 def removeleapdays(x, out):
     """ Remove leap days and update calendar attribute"""
-    services.remove_leapdays(x, out)
+    services.remove_leapdays(x, out, storage=_authenticate_storage())
 
 
 @dodola_cli.command(help="Bias-correct GCM on observations")
