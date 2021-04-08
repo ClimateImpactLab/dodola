@@ -130,7 +130,11 @@ def buildweights(x, method, targetresolution, outpath):
     "--chunk", "-c", multiple=True, required=True, help="coord=chunksize to rechunk to"
 )
 @click.option(
-    "--maxmemory", "-m", required=True, help="Max memory (bytes) to use for rechunking"
+    "--maxmemory",
+    "-m",
+    type=int,
+    required=True,
+    help="Max memory (bytes) to use for rechunking",
 )
 @click.option("--out", "-o", required=True)
 def rechunk(x, variable, chunk, maxmemory, out):
@@ -157,16 +161,14 @@ def rechunk(x, variable, chunk, maxmemory, out):
     required=True,
     help="Regridding method - 'bilinear' or 'conservative'",
 )
-@click.option(
-    "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
-)
+@click.option("--domain-file", "-d", help="Domain file to regrid to")
 @click.option(
     "--weightspath",
     "-w",
     default=None,
     help="Local path to existing regrid weights file",
 )
-def regrid(x, out, method, targetresolution, weightspath):
+def regrid(x, out, method, domain_file, weightspath):
     """Regrid a target climate dataset
 
     Note, the weightspath only accepts paths to NetCDF files on the local disk. See
@@ -179,6 +181,6 @@ def regrid(x, out, method, targetresolution, weightspath):
         out=str(out),
         method=str(method),
         storage=_authenticate_storage(),
+        domain_file=domain_file,
         weights_path=weightspath,
-        target_resolution=float(targetresolution),
     )

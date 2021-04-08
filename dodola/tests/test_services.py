@@ -39,7 +39,6 @@ def _datafactory(x, start_time="1950-01-01"):
     )
     return out
 
-
 def _gcmfactory(x, start_time="1950-01-01"):
     """Populate xr.Dataset with synthetic data for testing"""
     start_time = str(start_time)
@@ -69,6 +68,17 @@ def _gcmfactory(x, start_time="1950-01-01"):
     )
     # out['time'] = out['time'].assign_attrs({'calendar': 'standard'})
     return out
+
+@pytest.fixture
+def domain_file(request):
+    """ Creates a fake domain Dataset for testing"""
+    lon_name = "lon"
+    lat_name = "lat"
+    domain = grid_global(request.param, request.param)
+    domain[lat_name] = np.unique(domain[lat_name].values)
+    domain[lon_name] = np.unique(domain[lon_name].values)
+
+    return domain
 
 
 @pytest.mark.parametrize(
@@ -202,21 +212,24 @@ def test_rechunk():
 
 
 @pytest.mark.parametrize(
-    "regrid_method, expected_shape",
+    "domain_file, regrid_method, expected_shape",
     [
         pytest.param(
+            1.0,
             "bilinear",
             (180, 360),
             id="Bilinear regrid",
         ),
         pytest.param(
+            1.0,
             "conservative",
             (180, 360),
             id="Conservative regrid",
         ),
     ],
+    indirect=["domain_file"],
 )
-def test_regrid_methods(regrid_method, expected_shape):
+def test_regrid_methods(domain_file, regrid_method, expected_shape):
     """Smoke test that services.regrid outputs with different regrid methods
 
     The expected shape is the same, but change in methods should not error.
@@ -228,6 +241,7 @@ def test_regrid_methods(regrid_method, expected_shape):
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
+            "a/domainfile/path.zarr": domain_file,
         }
     )
 
@@ -236,18 +250,19 @@ def test_regrid_methods(regrid_method, expected_shape):
         out="an/output/path.zarr",
         method=regrid_method,
         storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
 
 
 @pytest.mark.parametrize(
-    "target_resolution, expected_shape",
+    "domain_file, expected_shape",
     [
         pytest.param(
             1.0,
             (180, 360),
-            id="Regrid to global 1.0° x 1.0° grid",
+            id="Regrid to domain file grid",
         ),
         pytest.param(
             2.0,
@@ -255,9 +270,10 @@ def test_regrid_methods(regrid_method, expected_shape):
             id="Regrid to global 2.0° x 2.0° grid",
         ),
     ],
+    indirect=["domain_file"],
 )
-def test_regrid_resolution(target_resolution, expected_shape):
-    """Smoke test that services.regrid outputs with different regrid methods
+def test_regrid_resolution(domain_file, expected_shape):
+    """Smoke test that services.regrid outputs with different grid resolutions
 
     The expected shape is the same, but change in methods should not error.
     """
@@ -268,21 +284,25 @@ def test_regrid_resolution(target_resolution, expected_shape):
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
+            "a/domainfile/path.zarr": domain_file,
         }
     )
 
     regrid(
         "an/input/path.zarr",
         out="an/output/path.zarr",
-        target_resolution=target_resolution,
         method="bilinear",
         storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
 
 
-def test_regrid_weights_integration(tmpdir):
+@pytest.mark.parametrize(
+    "domain_file", [pytest.param(1.0, id="Regrid to domain file grid")], indirect=True
+)
+def test_regrid_weights_integration(domain_file, tmpdir):
     """Test basic integration between service.regrid and service.build_weights"""
     expected_shape = (180, 360)
     # Output to tmp dir so we cleanup & don't clobber existing files...
@@ -295,6 +315,7 @@ def test_regrid_weights_integration(tmpdir):
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
+            "a/domainfile/path.zarr": domain_file,
         }
     )
 
@@ -311,6 +332,7 @@ def test_regrid_weights_integration(tmpdir):
         method="bilinear",
         weights_path=weightsfile,
         storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
