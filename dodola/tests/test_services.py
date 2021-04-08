@@ -32,6 +32,18 @@ def _datafactory(x, start_time="1950-01-01"):
     return out
 
 
+@pytest.fixture
+def domain_file():
+    """ Creates a fake domain file for testing"""
+    lon_name = "lon"
+    lat_name = "lat"
+    domain = grid_global(1, 1)
+    domain[lat_name] = np.unique(domain[lat_name].values)
+    domain[lon_name] = np.unique(domain[lon_name].values)
+
+    return domain
+
+
 @pytest.mark.parametrize(
     "method, expected_head, expected_tail",
     [
@@ -177,7 +189,7 @@ def test_rechunk():
         ),
     ],
 )
-def test_regrid_methods(regrid_method, expected_shape):
+def test_regrid_methods(domain_file, regrid_method, expected_shape):
     """Smoke test that services.regrid outputs with different regrid methods
 
     The expected shape is the same, but change in methods should not error.
@@ -186,18 +198,10 @@ def test_regrid_methods(regrid_method, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    # make fake domain file
-    lon_name = "lon"
-    lat_name = "lat"
-    domain = grid_global(1, 1)
-    domain = domain.rename({"x": lon_name, "y": lat_name})
-    domain[lat_name] = np.unique(domain[lat_name].values)
-    domain[lon_name] = np.unique(domain[lon_name].values)
-
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
-            "a/domainfile/path.zarr": domain,
+            "a/domainfile/path.zarr": domain_file,
         }
     )
 
@@ -221,8 +225,8 @@ def test_regrid_methods(regrid_method, expected_shape):
         ),
     ],
 )
-def test_regrid_resolution(expected_shape):
-    """Smoke test that services.regrid outputs with different regrid methods
+def test_regrid_resolution(domain_file, expected_shape):
+    """Smoke test that services.regrid outputs with different grid resolutions
 
     The expected shape is the same, but change in methods should not error.
     """
@@ -230,18 +234,10 @@ def test_regrid_resolution(expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    # make fake domain file
-    lon_name = "lon"
-    lat_name = "lat"
-    domain = grid_global(1, 1)
-    domain = domain.rename({"x": lon_name, "y": lat_name})
-    domain[lat_name] = np.unique(domain[lat_name].values)
-    domain[lon_name] = np.unique(domain[lon_name].values)
-
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
-            "a/domainfile/path.zarr": domain,
+            "a/domainfile/path.zarr": domain_file,
         }
     )
 
@@ -256,7 +252,7 @@ def test_regrid_resolution(expected_shape):
     assert actual_shape == expected_shape
 
 
-def test_regrid_weights_integration(tmpdir):
+def test_regrid_weights_integration(domain_file, tmpdir):
     """Test basic integration between service.regrid and service.build_weights"""
     expected_shape = (180, 360)
     # Output to tmp dir so we cleanup & don't clobber existing files...
@@ -266,18 +262,10 @@ def test_regrid_weights_integration(tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    # make fake domain file
-    lon_name = "lon"
-    lat_name = "lat"
-    domain = grid_global(1, 1)
-    domain = domain.rename({"x": lon_name, "y": lat_name})
-    domain[lat_name] = np.unique(domain[lat_name].values)
-    domain[lon_name] = np.unique(domain[lon_name].values)
-
     fakestorage = memory_repository(
         {
             "an/input/path.zarr": ds_in,
-            "a/domainfile/path.zarr": domain,
+            "a/domainfile/path.zarr": domain_file,
         }
     )
 

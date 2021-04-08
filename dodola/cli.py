@@ -136,7 +136,7 @@ def rechunk(x, variable, chunk, maxmemory, out):
     required=True,
     help="Regridding method - 'bilinear' or 'conservative'",
 )
-@click.option("--domain_file", "-domain", help="Domain file to regrid to")
+@click.option("--domain-file", "-d", help="Domain file to regrid to")
 @click.option(
     "--weightspath",
     "-w",
@@ -156,6 +156,6 @@ def regrid(x, out, method, domain_file, weightspath):
         out=str(out),
         method=str(method),
         storage=_authenticate_storage(),
-        weights_path=weightspath,
         domain_file=domain_file,
+        weights_path=weightspath,
     )

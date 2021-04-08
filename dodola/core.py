@@ -98,12 +98,12 @@ def xesmf_regrid(x, domain, method, weights_path=None):
     Parameters
     ----------
     x : xr.Dataset
+    domain : xr.Dataset
+        Domain to regrid to.
     method : str
         Method of regridding. Passed to ``xesmf.Regridder``.
     weights_path : str, optional
         Local path to netCDF file of pre-calculated XESMF regridding weights.
-    domain : xr.Dataset
-        Domain to regrid to.
 
     Returns
     -------

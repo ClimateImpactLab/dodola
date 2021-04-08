@@ -126,7 +126,7 @@ def rechunk(x, target_chunks, out, max_mem, storage):
 
 
 @log_service
-def regrid(x, out, method, storage, weights_path=None, domain_file=None):
+def regrid(x, out, method, storage, domain_file, weights_path=None):
     """Regrid climate data
 
     Parameters
@@ -139,10 +139,10 @@ def regrid(x, out, method, storage, weights_path=None, domain_file=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     storage : dodola.repository._ZarrRepo
         Storage abstraction for data IO.
-    weights_path : optional
-        Local file path name to write regridding weights file to.
     domain_file : str
         Storage URL to input xr.Dataset domain file to regrid to.
+    weights_path : optional
+        Local file path name to write regridding weights file to.
     """
     ds = storage.read(x)
 
