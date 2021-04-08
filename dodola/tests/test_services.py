@@ -32,9 +32,9 @@ def _datafactory(x, start_time="1950-01-01"):
     return out
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def domain_file(request):
-    """ Creates a fake domain file for testing"""
+    """ Creates a fake domain Dataset for testing"""
     lon_name = "lon"
     lat_name = "lat"
     domain = grid_global(request.param, request.param)
