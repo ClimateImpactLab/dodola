@@ -32,12 +32,12 @@ def _datafactory(x, start_time="1950-01-01"):
     return out
 
 
-@pytest.fixture
-def domain_file():
+@pytest.fixture(scope="function")
+def domain_file(request):
     """ Creates a fake domain file for testing"""
     lon_name = "lon"
     lat_name = "lat"
-    domain = grid_global(1, 1)
+    domain = grid_global(request.param, request.param)
     domain[lat_name] = np.unique(domain[lat_name].values)
     domain[lon_name] = np.unique(domain[lon_name].values)
 
@@ -175,19 +175,22 @@ def test_rechunk():
 
 
 @pytest.mark.parametrize(
-    "regrid_method, expected_shape",
+    "domain_file, regrid_method, expected_shape",
     [
         pytest.param(
+            1.0,
             "bilinear",
             (180, 360),
             id="Bilinear regrid",
         ),
         pytest.param(
+            1.0,
             "conservative",
             (180, 360),
             id="Conservative regrid",
         ),
     ],
+    indirect=["domain_file"],
 )
 def test_regrid_methods(domain_file, regrid_method, expected_shape):
     """Smoke test that services.regrid outputs with different regrid methods
@@ -217,13 +220,20 @@ def test_regrid_methods(domain_file, regrid_method, expected_shape):
 
 
 @pytest.mark.parametrize(
-    "expected_shape",
+    "domain_file, expected_shape",
     [
         pytest.param(
+            1.0,
             (180, 360),
             id="Regrid to domain file grid",
         ),
+        pytest.param(
+            2.0,
+            (90, 180),
+            id="Regrid to global 2.0° x 2.0° grid",
+        ),
     ],
+    indirect=["domain_file"],
 )
 def test_regrid_resolution(domain_file, expected_shape):
     """Smoke test that services.regrid outputs with different grid resolutions
@@ -252,6 +262,9 @@ def test_regrid_resolution(domain_file, expected_shape):
     assert actual_shape == expected_shape
 
 
+@pytest.mark.parametrize(
+    "domain_file", [pytest.param(1.0, id="Regrid to domain file grid")], indirect=True
+)
 def test_regrid_weights_integration(domain_file, tmpdir):
     """Test basic integration between service.regrid and service.build_weights"""
     expected_shape = (180, 360)
