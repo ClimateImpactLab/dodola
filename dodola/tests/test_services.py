@@ -6,7 +6,15 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from dodola.services import bias_correct, build_weights, rechunk, regrid
+from xclim.core.calendar import convert_calendar
+from dodola.services import (
+    bias_correct,
+    build_weights,
+    rechunk,
+    regrid,
+    remove_leapdays,
+    clean_cmip6,
+)
 from dodola.repository import memory_repository
 
 
@@ -29,6 +37,39 @@ def _datafactory(x, start_time="1950-01-01"):
             "lat": (["lat"], [1.0]),
         },
     )
+    return out
+
+
+def _gcmfactory(x, start_time="1950-01-01"):
+    """Populate xr.Dataset with synthetic GCM data for testing
+    that includes extra dimensions and leap days to be removed.
+    """
+    start_time = str(start_time)
+    if x.ndim != 1:
+        raise ValueError("'x' needs dim of one")
+
+    time = xr.cftime_range(
+        start=start_time, freq="D", periods=len(x), calendar="standard"
+    )
+
+    out = xr.Dataset(
+        {
+            "fakevariable": (
+                ["time", "lon", "lat", "member_id"],
+                x[:, np.newaxis, np.newaxis, np.newaxis],
+            )
+        },
+        coords={
+            "index": time,
+            "time": time,
+            "lon": (["lon"], [1.0]),
+            "lat": (["lat"], [1.0]),
+            "member_id": (["member_id"], [1.0]),
+            "height": (["height"], [1.0]),
+            "time_bnds": (["time_bnds"], [1.0]),
+        },
+    )
+    # out['time'] = out['time'].assign_attrs({'calendar': 'standard'})
     return out
 
 
@@ -299,3 +340,50 @@ def test_regrid_weights_integration(domain_file, tmpdir):
     )
     actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
     assert actual_shape == expected_shape
+
+
+def test_clean_cmip6():
+    """ Tests that cmip6 cleanup removes extra dimensions on dataset """
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
+
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_gcm,
+        }
+    )
+
+    clean_cmip6(
+        "an/input/path.zarr",
+        "an/output/path.zarr",
+        storage=fakestorage,
+        leapday_removal=True,
+    )
+    ds_cleaned = fakestorage.read("an/output/path.zarr")
+
+    assert "height" not in ds_cleaned.dims
+    assert "member_id" not in ds_cleaned.dims
+    assert "time_bnds" not in ds_cleaned.dims
+
+
+def test_remove_leapdays():
+    """ Test that leapday removal service removes leap days """
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_leap = _gcmfactory(ts, start_time="1950-01-01")
+
+    fakestorage = memory_repository(
+        {
+            "an/input/path.zarr": ds_leap,
+        }
+    )
+
+    remove_leapdays("an/input/path.zarr", "an/output/path.zarr", storage=fakestorage)
+    ds_noleap = fakestorage.read("an/output/path.zarr")
+    ds_leapyear = ds_noleap.loc[dict(time=slice("1952-01-01", "1952-12-31"))]
+
+    # check to be sure that leap days have been removed
+    assert len(ds_leapyear.time) == 365
