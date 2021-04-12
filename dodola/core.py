@@ -143,7 +143,7 @@ def standardize_gcm(ds, leapday_removal=True):
     if "member_id" in ds.dims:
         ds_cleaned = ds.isel(member_id=0).drop(dims_to_drop)
     else:
-        ds_cleaned = ds.isel.drop(dims_to_drop)
+        ds_cleaned = ds.drop(dims_to_drop)
 
     if leapday_removal:
         # if calendar is just integers, xclim cannot understand it
