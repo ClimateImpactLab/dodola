@@ -15,7 +15,7 @@ from dodola.services import (
     remove_leapdays,
     clean_cmip6,
 )
-from dodola.repository import memory_repository
+import dodola.repository as repository
 
 
 def _datafactory(x, start_time="1950-01-01"):
@@ -127,20 +127,16 @@ def test_bias_correct_basic_call(method, expected_head, expected_tail):
     # Yes, we're testing and training on the same data...
     x_test = x_train.copy(deep=True)
 
-    output_key = "test_output"
-    training_model_key = "x_train"
-    training_obs_key = "y_train"
-    forecast_model_key = "x_test"
+    output_key = "memory://test_bias_correct_basic_call/test_output.zarr"
+    training_model_key = "memory://test_bias_correct_basic_call/x_train.zarr"
+    training_obs_key = "memory://test_bias_correct_basic_call/y_train.zarr"
+    forecast_model_key = "memory://test_bias_correct_basic_call/x_test.zarr"
 
     # Load up a fake repo with our input data in the place of big data and cloud
     # storage.
-    fakestorage = memory_repository(
-        {
-            training_model_key: x_train,
-            training_obs_key: y_train,
-            forecast_model_key: x_test,
-        }
-    )
+    repository.write(training_model_key, x_train)
+    repository.write(training_obs_key, y_train)
+    repository.write(forecast_model_key, x_test)
 
     bias_correct(
         forecast_model_key,
@@ -150,18 +146,17 @@ def test_bias_correct_basic_call(method, expected_head, expected_tail):
         out=output_key,
         out_variable="fakevariable",
         method=method,
-        storage=fakestorage,
     )
 
     # We can't just test for removal of bias here since quantile mapping
     # and adding in trend are both components of bias correction,
     # so testing head and tail values instead
     np.testing.assert_almost_equal(
-        fakestorage.read(output_key)["fakevariable"].squeeze(drop=True).values[:5],
+        repository.read(output_key)["fakevariable"].squeeze(drop=True).values[:5],
         expected_head,
     )
     np.testing.assert_almost_equal(
-        fakestorage.read(output_key)["fakevariable"].squeeze(drop=True).values[-5:],
+        repository.read(output_key)["fakevariable"].squeeze(drop=True).values[-5:],
         expected_tail,
     )
 
@@ -176,15 +171,10 @@ def test_build_weights(regrid_method, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "a_file_path": ds_in,
-        }
-    )
+    url = "memory://test_build_weights/a_file_path.zarr"
+    repository.write(url, ds_in)
 
-    build_weights(
-        "a_file_path", method=regrid_method, storage=fakestorage, outpath=weightsfile
-    )
+    build_weights(url, method=regrid_method, outpath=weightsfile)
     # Test that weights file is actually created where we asked.
     assert weightsfile.exists()
 
@@ -201,16 +191,17 @@ def test_rechunk():
         },
     )
 
-    fakestorage = memory_repository({"input_ds": test_ds})
+    in_url = "memory://test_rechunk/input_ds.zarr"
+    out_url = "memory://test_rechunk/output_ds.zarr"
+    repository.write(in_url, test_ds)
 
     rechunk(
-        "input_ds",
+        in_url,
         target_chunks={"fakevariable": chunks_goal},
-        out="output_ds",
+        out=out_url,
         max_mem=256000,
-        storage=fakestorage,
     )
-    actual_chunks = fakestorage.read("output_ds")["fakevariable"].data.chunksize
+    actual_chunks = repository.read(out_url)["fakevariable"].data.chunksize
 
     assert actual_chunks == tuple(chunks_goal.values())
 
@@ -242,21 +233,14 @@ def test_regrid_methods(domain_file, regrid_method, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_in,
-            "a/domainfile/path.zarr": domain_file,
-        }
-    )
+    in_url = "memory://test_regrid_methods/an/input/path.zarr"
+    domain_file_url = "memory://test_regrid_methods/a/domainfile/path.zarr"
+    out_url = "memory://test_regrid_methods/an/output/path.zarr"
+    repository.write(in_url, ds_in)
+    repository.write(domain_file_url, domain_file)
 
-    regrid(
-        "an/input/path.zarr",
-        out="an/output/path.zarr",
-        method=regrid_method,
-        storage=fakestorage,
-        domain_file="a/domainfile/path.zarr",
-    )
-    actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
+    regrid(in_url, out=out_url, method=regrid_method, domain_file=domain_file_url)
+    actual_shape = repository.read(out_url)["fakevariable"].shape
     assert actual_shape == expected_shape
 
 
@@ -285,21 +269,14 @@ def test_regrid_resolution(domain_file, expected_shape):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_in,
-            "a/domainfile/path.zarr": domain_file,
-        }
-    )
+    in_url = "memory://test_regrid_resolution/an/input/path.zarr"
+    domain_file_url = "memory://test_regrid_resolution/a/domainfile/path.zarr"
+    out_url = "memory://test_regrid_resolution/an/output/path.zarr"
+    repository.write(in_url, ds_in)
+    repository.write(domain_file_url, domain_file)
 
-    regrid(
-        "an/input/path.zarr",
-        out="an/output/path.zarr",
-        method="bilinear",
-        storage=fakestorage,
-        domain_file="a/domainfile/path.zarr",
-    )
-    actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
+    regrid(in_url, out=out_url, method="bilinear", domain_file=domain_file_url)
+    actual_shape = repository.read(out_url)["fakevariable"].shape
     assert actual_shape == expected_shape
 
 
@@ -316,29 +293,22 @@ def test_regrid_weights_integration(domain_file, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_in,
-            "a/domainfile/path.zarr": domain_file,
-        }
-    )
+    in_url = "memory://test_regrid_weights_integration/an/input/path.zarr"
+    domain_file_url = "memory://test_regrid_weights_integration/a/domainfile/path.zarr"
+    out_url = "memory://test_regrid_weights_integration/an/output/path.zarr"
+    repository.write(in_url, ds_in)
+    repository.write(domain_file_url, domain_file)
 
     # First, use service to pre-build regridding weights files, then read-in to regrid.
-    build_weights(
-        "an/input/path.zarr",
-        method="bilinear",
-        storage=fakestorage,
-        outpath=weightsfile,
-    )
+    build_weights(in_url, method="bilinear", outpath=weightsfile)
     regrid(
-        "an/input/path.zarr",
-        out="an/output/path.zarr",
+        in_url,
+        out=out_url,
         method="bilinear",
         weights_path=weightsfile,
-        storage=fakestorage,
-        domain_file="a/domainfile/path.zarr",
+        domain_file=domain_file_url,
     )
-    actual_shape = fakestorage.read("an/output/path.zarr")["fakevariable"].shape
+    actual_shape = repository.read(out_url)["fakevariable"].shape
     assert actual_shape == expected_shape
 
 
@@ -349,19 +319,12 @@ def test_clean_cmip6():
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
     ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_gcm,
-        }
-    )
+    in_url = "memory://test_clean_cmip6/an/input/path.zarr"
+    out_url = "memory://test_clean_cmip6/an/output/path.zarr"
+    repository.write(in_url, ds_gcm)
 
-    clean_cmip6(
-        "an/input/path.zarr",
-        "an/output/path.zarr",
-        storage=fakestorage,
-        leapday_removal=True,
-    )
-    ds_cleaned = fakestorage.read("an/output/path.zarr")
+    clean_cmip6(in_url, out_url, leapday_removal=True)
+    ds_cleaned = repository.read(out_url)
 
     assert "height" not in ds_cleaned.dims
     assert "member_id" not in ds_cleaned.dims
@@ -375,14 +338,12 @@ def test_remove_leapdays():
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
     ds_leap = _gcmfactory(ts, start_time="1950-01-01")
 
-    fakestorage = memory_repository(
-        {
-            "an/input/path.zarr": ds_leap,
-        }
-    )
+    in_url = "memory://test_remove_leapdays/an/input/path.zarr"
+    out_url = "memory://test_remove_leapdays/an/output/path.zarr"
+    repository.write(in_url, ds_leap)
 
-    remove_leapdays("an/input/path.zarr", "an/output/path.zarr", storage=fakestorage)
-    ds_noleap = fakestorage.read("an/output/path.zarr")
+    remove_leapdays(in_url, out_url)
+    ds_noleap = repository.read(out_url)
     ds_leapyear = ds_noleap.loc[dict(time=slice("1952-01-01", "1952-12-31"))]
 
     # check to be sure that leap days have been removed

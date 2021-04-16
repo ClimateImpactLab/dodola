@@ -12,6 +12,7 @@ from dodola.core import (
     standardize_gcm,
     xclim_remove_leapdays,
 )
+import dodola.repository as storage
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,7 @@ def log_service(func):
 
 
 @log_service
-def bias_correct(
-    x, x_train, train_variable, y_train, out, out_variable, method, storage
-):
+def bias_correct(x, x_train, train_variable, y_train, out, out_variable, method):
     """Bias correct input model data with IO to storage
 
     Parameters
@@ -53,8 +52,6 @@ def bias_correct(
         Variable name used as output variable name.
     method : str
         Bias correction method to be used.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     """
     gcm_training_ds = storage.read(x_train)
     obs_training_ds = storage.read(y_train)
@@ -74,7 +71,7 @@ def bias_correct(
 
 
 @log_service
-def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
+def build_weights(x, method, target_resolution=1.0, outpath=None):
     """Generate local NetCDF weights file for regridding climate data
 
     Parameters
@@ -85,8 +82,6 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     target_resolution : float, optional
         Decimal-degree resolution of global grid to regrid to.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     outpath : optional
         Local file path name to write regridding weights file to.
     """
@@ -97,7 +92,7 @@ def build_weights(x, method, storage, target_resolution=1.0, outpath=None):
 
 
 @log_service
-def rechunk(x, target_chunks, out, max_mem, storage):
+def rechunk(x, target_chunks, out, max_mem):
     """Rechunk data to specification
 
     Parameters
@@ -112,8 +107,6 @@ def rechunk(x, target_chunks, out, max_mem, storage):
         Storage URL to write rechunked output to.
     max_mem : int or str
         Maximum memory to use for rechunking (bytes).
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     """
     ds = storage.read(x)
 
@@ -132,7 +125,7 @@ def rechunk(x, target_chunks, out, max_mem, storage):
 
 
 @log_service
-def regrid(x, out, method, storage, domain_file, weights_path=None):
+def regrid(x, out, method, domain_file, weights_path=None):
     """Regrid climate data
 
     Parameters
@@ -143,8 +136,6 @@ def regrid(x, out, method, storage, domain_file, weights_path=None):
         Storage URL to write regridded output to.
     method : str
         Method of regridding. Passed to ``xesmf.Regridder``.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     domain_file : str
         Storage URL to input xr.Dataset domain file to regrid to.
     weights_path : optional
@@ -165,7 +156,7 @@ def regrid(x, out, method, storage, domain_file, weights_path=None):
 
 
 @log_service
-def clean_cmip6(x, out, leapday_removal, storage):
+def clean_cmip6(x, out, leapday_removal):
     """Cleans and standardizes CMIP6 GCM
 
     Parameters
@@ -176,8 +167,6 @@ def clean_cmip6(x, out, leapday_removal, storage):
         Storage URL to write cleaned GCM output to.
     leapday_removal : bool
         Whether or not to remove leap days.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     """
     ds = storage.read(x)
     cleaned_ds = standardize_gcm(ds, leapday_removal)
@@ -185,7 +174,7 @@ def clean_cmip6(x, out, leapday_removal, storage):
 
 
 @log_service
-def remove_leapdays(x, out, storage):
+def remove_leapdays(x, out):
     """Removes leap days and updates calendar attribute
 
     Parameters
@@ -194,8 +183,6 @@ def remove_leapdays(x, out, storage):
         Storage URL to input xr.Dataset that will be regridded.
     out : str
         Storage URL to write regridded output to.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     """
     ds = storage.read(x)
     noleap_ds = xclim_remove_leapdays(ds)
