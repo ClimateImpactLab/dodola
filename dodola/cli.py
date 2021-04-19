@@ -16,7 +16,7 @@ def dodola_cli(debug):
     """GCM bias-correction and downscaling
 
     Authenticate with storage by setting the appropriate environment variables
-    for your fsspec-compatibile URL library.
+    for your fsspec-compatible URL library.
     """
     noisy_loggers = [
         "azure.core.pipeline.policies.http_logging_policy",
