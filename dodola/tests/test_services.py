@@ -6,7 +6,6 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from xclim.core.calendar import convert_calendar
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -197,9 +196,8 @@ def test_rechunk():
 
     rechunk(
         in_url,
-        target_chunks={"fakevariable": chunks_goal},
+        target_chunks=chunks_goal,
         out=out_url,
-        max_mem=256000,
     )
     actual_chunks = repository.read(out_url)["fakevariable"].data.chunksize
 

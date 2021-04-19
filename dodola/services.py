@@ -2,9 +2,6 @@
 """
 from functools import wraps
 import logging
-import os
-from tempfile import TemporaryDirectory
-from rechunker import rechunk as rechunker_rechunk
 from dodola.core import (
     apply_bias_correction,
     build_xesmf_weights_file,
@@ -92,7 +89,7 @@ def build_weights(x, method, target_resolution=1.0, outpath=None):
 
 
 @log_service
-def rechunk(x, target_chunks, out, max_mem):
+def rechunk(x, target_chunks, out):
     """Rechunk data to specification
 
     Parameters
@@ -100,28 +97,23 @@ def rechunk(x, target_chunks, out, max_mem):
     x : str
         Storage URL to input data.
     target_chunks : dict
-        A dict of dicts. Top-level dict key maps variables name in `ds` to an
-        inner dict {coordinate_name: chunk_size} mapping showing how data is
+        Mapping {coordinate_name: chunk_size} showing how data is
         to be rechunked.
     out : str
         Storage URL to write rechunked output to.
-    max_mem : int or str
-        Maximum memory to use for rechunking (bytes).
     """
     ds = storage.read(x)
 
-    # Using tempdir for isolation/cleanup as rechunker dumps zarr files to disk.
-    with TemporaryDirectory() as tmpdir:
-        tmpzarr_path = os.path.join(tmpdir, "rechunk_tmp.zarr")
-        plan = rechunker_rechunk(
-            ds,
-            target_chunks=target_chunks,
-            target_store=storage.get_mapper(out),  # Stream directly into storage.
-            temp_store=tmpzarr_path,
-            max_mem=max_mem,
-        )
-        plan.execute()
-        logger.info(f"Written {out}")
+    # Simple, stable, but not for more specialized rechunking needs.
+    # In that case use "rechunker" package, or similar.
+    ds = ds.chunk(target_chunks)
+
+    # Hack to get around issue with writing chunks to zarr in xarray ~v0.17.0
+    # https://github.com/pydata/xarray/issues/2300
+    for v in ds.data_vars.keys():
+        del ds[v].encoding["chunks"]
+
+    storage.write(out, ds)
 
 
 @log_service

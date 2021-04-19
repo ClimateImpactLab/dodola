@@ -11,9 +11,8 @@ dependencies:
 - pip
 - pytest
 - python=3.8
-- rechunker
 - s3fs
-- xarray
+- xarray=0.17.0 # Pinned for bug in dodola.services.rechunk
 - xesmf
 - esmpy=8.0.1=nompi_py38h5410a82_2  # Not direct dep. Dep of xesmf.
 - bottleneck

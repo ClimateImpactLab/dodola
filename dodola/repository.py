@@ -2,7 +2,6 @@
 """
 
 import logging
-from fsspec import get_mapper as fs_get_mapper
 from xarray import open_zarr
 
 
@@ -40,20 +39,3 @@ def write(url_or_path, x):
     """
     x.to_zarr(url_or_path, mode="w", compute=True)
     logger.info(f"Written {url_or_path}")
-
-
-def get_mapper(root, check=False, create=False):
-    """Get fsspec.FSMap from wrapped FileSystemAbstraction
-
-    Parameters
-    ----------
-    root : str
-    check : bool
-        Do touch at storage to check for write access.
-    create : bool
-
-    Returns
-    -------
-    out : fsspec.FSMap
-    """
-    return fs_get_mapper(root, check=check, create=create)
