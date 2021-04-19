@@ -48,7 +48,7 @@ class _ZarrRepo:
         -------
         xr.Dataset
         """
-        x = open_zarr(self.get_mapper(url_or_path))
+        x = open_zarr(self._fs.get_mapper(url_or_path))
         logger.info(f"Read {url_or_path}")
         return x
 
@@ -64,24 +64,8 @@ class _ZarrRepo:
             Location to write Zarr store to.
         x : xr.Dataset
         """
-        x.to_zarr(self.get_mapper(url_or_path), mode="w", compute=True)
+        x.to_zarr(self._fs.get_mapper(url_or_path), mode="w", compute=True)
         logger.info(f"Written {url_or_path}")
-
-    def get_mapper(self, root, check=False, create=False):
-        """Get fsspec.FSMap from wrapped FileSystemAbstraction
-
-        Parameters
-        ----------
-        root : str
-        check : bool
-            Do touch at storage to check for write access.
-        create : bool
-
-        Returns
-        -------
-        out : fsspec.FSMap
-        """
-        return self._fs.get_mapper(root, check=check, create=create)
 
 
 def adl_repository(

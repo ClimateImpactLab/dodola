@@ -6,7 +6,6 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from xclim.core.calendar import convert_calendar
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -205,9 +204,8 @@ def test_rechunk():
 
     rechunk(
         "input_ds",
-        target_chunks={"fakevariable": chunks_goal},
+        target_chunks=chunks_goal,
         out="output_ds",
-        max_mem=256000,
         storage=fakestorage,
     )
     actual_chunks = fakestorage.read("output_ds")["fakevariable"].data.chunksize
