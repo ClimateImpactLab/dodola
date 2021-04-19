@@ -28,7 +28,7 @@ def read(url_or_path):
 def write(url_or_path, x):
     """Write Dataset to Zarr store
 
-    This opens Zarr store with mode "w" and is called with with
+    This opens Zarr store with mode "w" and is called with
     ``compute=True``, so any lazy computations will be completed.
 
     Parameters
