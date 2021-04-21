@@ -112,7 +112,7 @@ def buildweights(x, method, targetresolution, outpath):
     "--chunk", "-c", multiple=True, required=True, help="coord=chunksize to rechunk to"
 )
 @click.option("--out", "-o", required=True)
-def rechunk(x, variable, chunk, maxmemory, out):
+def rechunk(x, chunk, out):
     """Rechunk Zarr store"""
     # Convert ["k1=1", "k2=2"] into {k1: 1, k2: 2}
     coord_chunks = {c.split("=")[0]: int(c.split("=")[1]) for c in chunk}
