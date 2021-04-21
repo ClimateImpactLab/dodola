@@ -116,11 +116,10 @@ def rechunk(x, chunk, out):
     """Rechunk Zarr store"""
     # Convert ["k1=1", "k2=2"] into {k1: 1, k2: 2}
     coord_chunks = {c.split("=")[0]: int(c.split("=")[1]) for c in chunk}
-    target_chunks = {variable: coord_chunks}
 
     services.rechunk(
         str(x),
-        target_chunks=target_chunks,
+        target_chunks=coord_chunks,
         out=out,
     )
 
