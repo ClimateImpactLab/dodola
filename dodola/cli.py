@@ -1,25 +1,12 @@
 """Commandline interface to the application.
 """
 
-from os import getenv
 import logging
 import click
 import dodola.services as services
-from dodola.repository import adl_repository
 
 
 logger = logging.getLogger(__name__)
-
-
-def _authenticate_storage():
-    storage = adl_repository(
-        account_name=getenv("AZURE_STORAGE_ACCOUNT"),
-        account_key=getenv("AZURE_STORAGE_KEY"),
-        client_id=getenv("AZURE_CLIENT_ID"),
-        client_secret=getenv("AZURE_CLIENT_SECRET"),
-        tenant_id=getenv("AZURE_TENANT_ID"),
-    )
-    return storage
 
 
 # Main entry point
@@ -28,10 +15,8 @@ def _authenticate_storage():
 def dodola_cli(debug):
     """GCM bias-correction and downscaling
 
-    Authenticate with storage by setting the AZURE_STORAGE_ACCOUNT and
-    AZURE_STORAGE_KEY environment variables for key-based authentication.
-    Alternatively, set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and
-    AZURE_TENANT_ID for service principal-based authentication.
+    Authenticate with storage by setting the appropriate environment variables
+    for your fsspec-compatible URL library.
     """
     noisy_loggers = [
         "azure.core.pipeline.policies.http_logging_policy",
@@ -61,7 +46,7 @@ def dodola_cli(debug):
 )
 def cleancmip6(x, out, drop_leapdays):
     """Clean and standardize CMIP6 GCM to 'out'. If drop-leapdays option is set, remove leap days"""
-    services.clean_cmip6(x, out, drop_leapdays, storage=_authenticate_storage())
+    services.clean_cmip6(x, out, drop_leapdays)
 
 
 @dodola_cli.command(help="Remove leap days and update calendar")
@@ -69,7 +54,7 @@ def cleancmip6(x, out, drop_leapdays):
 @click.argument("out", required=True)
 def removeleapdays(x, out):
     """ Remove leap days and update calendar attribute"""
-    services.remove_leapdays(x, out, storage=_authenticate_storage())
+    services.remove_leapdays(x, out)
 
 
 @dodola_cli.command(help="Bias-correct GCM on observations")
@@ -87,7 +72,6 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
         xtrain,
         ytrain,
         out,
-        storage=_authenticate_storage(),
         train_variable=trainvariable,
         out_variable=outvariable,
         method=method,
@@ -118,7 +102,6 @@ def buildweights(x, method, targetresolution, outpath):
         str(x),
         str(method),
         target_resolution=float(targetresolution),
-        storage=_authenticate_storage(),
         outpath=str(outpath),
     )
 
@@ -139,7 +122,6 @@ def rechunk(x, variable, chunk, maxmemory, out):
         str(x),
         target_chunks=target_chunks,
         out=out,
-        storage=_authenticate_storage(),
     )
 
 
@@ -171,7 +153,6 @@ def regrid(x, out, method, domain_file, weightspath):
         str(x),
         out=str(out),
         method=str(method),
-        storage=_authenticate_storage(),
         domain_file=domain_file,
         weights_path=weightspath,
     )
