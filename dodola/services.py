@@ -46,6 +46,8 @@ def bias_correct(
         bias-correction model.
     out : str
         Storage URL to write bias-corrected output to.
+    af : str
+        Storage URL to write fine-resolution adjustment factors to. 
     out_variable : str
         Variable name used as output variable name.
     method : str
@@ -69,6 +71,49 @@ def bias_correct(
 
     storage.write(out, bias_corrected_ds)
 
+
+@log_service
+def downscale(
+    x, y_train, out, af, storage, train_variable, out_variable, method, 
+):
+    """Downscale bias corrected model data with IO to storage
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to bias corrected input data to downscale.
+    y_train : str
+        Storage URL to input 'true' data or observations to use for downscaling.
+    y_climo : str
+        Storage URL to input obs climatology to use for computing adjustment factors. 
+    out : str
+        Storage URL to write downscaled output to.
+    af : str, optional
+        Storage URL to write fine-resolution adjustment factors to.
+    storage : dodola.repository._ZarrRepo
+        Storage abstraction for data IO.
+    train_variable : str
+        Variable name used in training and obs data.
+    out_variable : str
+        Variable name used as output variable name.
+    method : str
+        Downscaling method to be used.
+    """
+    bc_ds = storage.read(x)
+    obs_ds = storage.read(y_train)
+    obs_climo = storage.read(y_climo)
+
+    adjustment_factors, downscaled_ds = apply_downscaling(
+        bc_ds,
+        obs_ds,
+        obs_climo,
+        train_variable,
+        out_variable,
+        method,
+    )
+
+    storage.write(out, downscaled_ds)
+    storage.write(af, adjustment_factors)
 
 @log_service
 def build_weights(x, method, storage, target_resolution=1.0, outpath=None):

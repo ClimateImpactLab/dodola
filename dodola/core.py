@@ -4,6 +4,7 @@ Math stuff and business logic goes here. This is the "business logic".
 """
 
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
+from skdownscale.spatial_models import SpatialDisaggregator, apply_weights
 import xarray as xr
 from xclim import sdba
 from xclim.core.calendar import convert_calendar
@@ -20,7 +21,7 @@ def apply_bias_correction(
     train_variable,
     out_variable,
     method,
-):
+    ):
 
     """Bias correct input model data using specified method,
        using either monthly or +/- 15 day time grouping. Currently
@@ -64,6 +65,64 @@ def apply_bias_correction(
         raise ValueError("this method is not supported")
     ds_predicted = predicted.to_dataset(name=out_variable)
     return ds_predicted
+
+
+def apply_downscaling(
+    bc_ds,
+    obs_climo_coarse,
+    obs_climo_fine,
+    train_variable,
+    out_variable,
+    method,
+    domain_fine,
+    weights_path=None,
+    ):
+
+    """Downscale input bias corrected data using specified method. 
+       Currently only the BCSD method for spatial disaggregation is 
+       supported.
+
+    Parameters
+    ----------
+    bc_ds : Dataset
+        bias corrected model data 
+    obs_climo_coarse : Dataset
+        observation climatologies at coarse resolution
+    obs_climo_fine : Dataset
+        observation climatologies at fine resolution
+    train_variable : str
+        variable name used in obs data
+    out_variable : str
+        variable name used in downscaled output
+    method : {"BCSD"}
+        method to be used in the applied downscaling
+    domain_fine : Dataset
+        domain that specifies the fine resolution grid to downscale to 
+    weights_path : str, optional
+        path to the weights file if they will be used in regridding, 
+        weights for downscaling to fine resolution
+    ds_downscaled : Dataset
+        downscaled model data
+    adjustment_factors : Dataset
+        adjustment factors produced in downscaling
+    """
+
+    if method == "BCSD":
+        model = SpatialDisaggregator(var=train_variable)
+        af_coarse = model.fit(bc_ds, obs_climo_coarse, var_name=train_variable)
+
+        # regrid adjustment factors 
+        # BCSD uses bilinear interpolation for both temperature and precip to 
+        # regrid adjustment factors 
+        af_fine = xesmf_regrid(af_coarse, domain_fine, 'bilinear', weights_path)
+
+        # apply adjustment factors
+        predicted = model.predict(af_fine, obs_climo_fine, var_name=train_variable
+    else:
+        raise ValueError("this method is not supported")
+
+    ds_downscaled = predicted.to_dataset(name=out_variable)
+    return af_fine, ds_downscaled
 
 
 def build_xesmf_weights_file(x, method, target_resolution, filename=None):

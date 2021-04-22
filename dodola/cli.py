@@ -94,6 +94,29 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
     )
 
 
+@dodola_cli.command(help="Downscale bias-corrected GCM")
+@click.argument("x", required=True)
+@click.argument("trainvariable", required=True)
+@click.argument("ytrain", required=True)
+@click.argument("yclimo", required=True)
+@click.argument("out", required=True)
+@click.argument("af", required=False)
+@click.argument("outvariable", required=True)
+@click.argument("method", required=True)
+def downscale(x, trainvariable, ytrain, yclimo, out, af, outvariable, method):
+   """Downscale bias corrected GCM to 'out' based on obs (ytrain) and obs climo (yclimo) using (method)"""
+   services.downscale(
+       x, 
+       ytrain, 
+       yclimo, 
+       out,
+       af, 
+       storage=_authenticate_storage(),
+       train_variable=trainvariable,
+       out_variable=outvariable,
+       method=method,
+   )
+
 @dodola_cli.command(help="Build NetCDF weights file for regridding")
 @click.argument("x", required=True)
 @click.option(
