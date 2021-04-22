@@ -21,7 +21,7 @@ def apply_bias_correction(
     train_variable,
     out_variable,
     method,
-    ):
+):
 
     """Bias correct input model data using specified method,
        using either monthly or +/- 15 day time grouping. Currently
@@ -76,16 +76,16 @@ def apply_downscaling(
     method,
     domain_fine,
     weights_path=None,
-    ):
+):
 
-    """Downscale input bias corrected data using specified method. 
-       Currently only the BCSD method for spatial disaggregation is 
+    """Downscale input bias corrected data using specified method.
+       Currently only the BCSD method for spatial disaggregation is
        supported.
 
     Parameters
     ----------
     bc_ds : Dataset
-        bias corrected model data 
+        bias corrected model data
     obs_climo_coarse : Dataset
         observation climatologies at coarse resolution
     obs_climo_fine : Dataset
@@ -97,9 +97,9 @@ def apply_downscaling(
     method : {"BCSD"}
         method to be used in the applied downscaling
     domain_fine : Dataset
-        domain that specifies the fine resolution grid to downscale to 
+        domain that specifies the fine resolution grid to downscale to
     weights_path : str, optional
-        path to the weights file if they will be used in regridding, 
+        path to the weights file if they will be used in regridding,
         weights for downscaling to fine resolution
     ds_downscaled : Dataset
         downscaled model data
@@ -111,13 +111,13 @@ def apply_downscaling(
         model = SpatialDisaggregator(var=train_variable)
         af_coarse = model.fit(bc_ds, obs_climo_coarse, var_name=train_variable)
 
-        # regrid adjustment factors 
-        # BCSD uses bilinear interpolation for both temperature and precip to 
-        # regrid adjustment factors 
-        af_fine = xesmf_regrid(af_coarse, domain_fine, 'bilinear', weights_path)
+        # regrid adjustment factors
+        # BCSD uses bilinear interpolation for both temperature and precip to
+        # regrid adjustment factors
+        af_fine = xesmf_regrid(af_coarse, domain_fine, "bilinear", weights_path)
 
         # apply adjustment factors
-        predicted = model.predict(af_fine, obs_climo_fine, var_name=train_variable
+        predicted = model.predict(af_fine, obs_climo_fine, var_name=train_variable)
     else:
         raise ValueError("this method is not supported")
 

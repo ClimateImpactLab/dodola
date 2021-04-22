@@ -47,7 +47,7 @@ def bias_correct(
     out : str
         Storage URL to write bias-corrected output to.
     af : str
-        Storage URL to write fine-resolution adjustment factors to. 
+        Storage URL to write fine-resolution adjustment factors to.
     out_variable : str
         Variable name used as output variable name.
     method : str
@@ -74,7 +74,17 @@ def bias_correct(
 
 @log_service
 def downscale(
-    x, y_train, out, af, storage, train_variable, out_variable, method, 
+    x,
+    y_climo_coarse,
+    y_climo_fine,
+    out,
+    af,
+    storage,
+    train_variable,
+    out_variable,
+    method,
+    domain_file,
+    weights_path,
 ):
     """Downscale bias corrected model data with IO to storage
 
@@ -82,10 +92,10 @@ def downscale(
     ----------
     x : str
         Storage URL to bias corrected input data to downscale.
-    y_train : str
-        Storage URL to input 'true' data or observations to use for downscaling.
-    y_climo : str
-        Storage URL to input obs climatology to use for computing adjustment factors. 
+    y_climo_coarse : str
+        Storage URL to input coarse-res obs climatology to use for computing adjustment factors.
+    y_climo_fine : str
+        Storage URL to input fine-res obs climatology to use for computing adjustment factors.
     out : str
         Storage URL to write downscaled output to.
     af : str, optional
@@ -98,22 +108,30 @@ def downscale(
         Variable name used as output variable name.
     method : str
         Downscaling method to be used.
+    domain_file : str
+        Storage URL to input grid for regridding adjustment factors
+    weights_path : str, optional
+        Storage URL for input weights for regridding
     """
     bc_ds = storage.read(x)
-    obs_ds = storage.read(y_train)
-    obs_climo = storage.read(y_climo)
+    obs_climo_coarse = storage.read(y_climo_coarse)
+    obs_climo_fine = storage.read(y_climo_fine)
+    domain_fine = storage.read(domain_file)
 
     adjustment_factors, downscaled_ds = apply_downscaling(
         bc_ds,
-        obs_ds,
-        obs_climo,
+        obs_climo_coarse,
+        obs_climo_fine,
         train_variable,
         out_variable,
         method,
+        domain_fine,
+        weights_path,
     )
 
     storage.write(out, downscaled_ds)
     storage.write(af, adjustment_factors)
+
 
 @log_service
 def build_weights(x, method, storage, target_resolution=1.0, outpath=None):

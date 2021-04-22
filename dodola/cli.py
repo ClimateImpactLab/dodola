@@ -97,25 +97,46 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
 @dodola_cli.command(help="Downscale bias-corrected GCM")
 @click.argument("x", required=True)
 @click.argument("trainvariable", required=True)
-@click.argument("ytrain", required=True)
-@click.argument("yclimo", required=True)
+@click.argument("yclimocoarse", required=True)
+@click.argument("yclimofine", required=True)
 @click.argument("out", required=True)
 @click.argument("af", required=False)
 @click.argument("outvariable", required=True)
 @click.argument("method", required=True)
-def downscale(x, trainvariable, ytrain, yclimo, out, af, outvariable, method):
-   """Downscale bias corrected GCM to 'out' based on obs (ytrain) and obs climo (yclimo) using (method)"""
-   services.downscale(
-       x, 
-       ytrain, 
-       yclimo, 
-       out,
-       af, 
-       storage=_authenticate_storage(),
-       train_variable=trainvariable,
-       out_variable=outvariable,
-       method=method,
-   )
+@click.option("--domain-file", "-d", required=True, help="Domain file to regrid to")
+@click.option(
+    "--weightspath",
+    "-w",
+    default=None,
+    help="Local path to existing regrid weights file",
+)
+def downscale(
+    x,
+    trainvariable,
+    yclimocoarse,
+    yclimofine,
+    out,
+    af,
+    outvariable,
+    method,
+    domain_file,
+    weightspath,
+):
+    """Downscale bias corrected GCM to 'out' based on obs climo (yclimocoarse, yclimofine) using (method) and (domain_file)"""
+    services.downscale(
+        x,
+        yclimocoarse,
+        yclimofine,
+        out,
+        af,
+        storage=_authenticate_storage(),
+        train_variable=trainvariable,
+        out_variable=outvariable,
+        method=method,
+        domain_file=domain_file,
+        weights_path=weights_path,
+    )
+
 
 @dodola_cli.command(help="Build NetCDF weights file for regridding")
 @click.argument("x", required=True)
