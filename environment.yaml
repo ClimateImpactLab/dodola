@@ -17,4 +17,4 @@ dependencies:
 - xclim
 - zarr
 - pip:
-  - git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix
+  - git+https://github.com/dgergel/xsd@feature/add_spatial_disaggregation_recipe

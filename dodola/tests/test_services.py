@@ -104,12 +104,6 @@ def domain_file(request):
             ),
             id="QDM head/tail",
         ),
-        pytest.param(
-            "BCSD",
-            np.array([-0.08129293, -0.07613746, -0.0709855, -0.0658377, -0.0606947]),
-            np.array([0.0520793, 0.06581804, 0.07096781, 0.07612168, 0.08127902]),
-            id="BCSD head/tail",
-        ),
     ],
 )
 def test_bias_correct_basic_call(method, expected_head, expected_tail):

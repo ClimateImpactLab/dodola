@@ -25,7 +25,7 @@ def apply_bias_correction(
 
     """Bias correct input model data using specified method,
        using either monthly or +/- 15 day time grouping. Currently
-       BCSD and QDM methods are supported.
+       the QDM method is supported.
 
     Parameters
     ----------
@@ -39,20 +39,13 @@ def apply_bias_correction(
         variable name used in training data
     out_variable : str
         variable name used in downscaled output
-    method : {"BCSD", "QDM"}
+    method : {"QDM"}
         method to be used in the applied bias correction
     ds_predicted : Dataset
         bias corrected future model data
     """
 
-    if method == "BCSD":
-        # note that time_grouper='daily_nasa-nex' is what runs the
-        # NASA-NEX version of daily BCSD
-        # TO-DO: switch to NASA-NEX version once tests pass
-        model = PointWiseDownscaler(BcsdTemperature(return_anoms=False))
-        model.fit(gcm_training_ds[train_variable], obs_training_ds[train_variable])
-        predicted = model.predict(gcm_predict_ds[train_variable]).load()
-    elif method == "QDM":
+    if method == "QDM":
         # instantiates a grouper class that groups by day of the year
         # centered window: +/-15 day group
         group = sdba.Grouper("time.dayofyear", window=31)
