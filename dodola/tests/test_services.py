@@ -393,34 +393,36 @@ def test_downscale(domain_file, method, var):
     elif var == "precipitation":
         af_coarse = ds_bc.groupby("time.dayofyear") / climo_coarse
 
-    fakestorage = memory_repository(
-        {
-            "a/biascorrected/path.zarr": ds_bc,
-            "a/domainfile/path.zarr": domain_file,
-            "a/coarseclimo/path.zarr": climo_coarse,
-            "a/coarseaf/path.zarr": af_coarse,
-        }
-    )
+    ds_bc_url = "memory://test_downscale/a/biascorrected/path.zarr"
+    repository.write(ds_bc_url, ds_bc)
+    domain_file_url = "memory://test_downscale/a/domainfile/path.zarr"
+    repository.write(domain_file_url, domain_file)
+    climo_coarse_url = "memory://test_downscale/a/coarseclimo/path.zarr"
+    repository.write(climo_coarse_url, climo_coarse)
+    af_coarse_url = "memory://test_downscale/a/coarseaf/path.zarr"
+    repository.write(af_coarse_url, af_coarse)
+    fine_climo_url = "memory://test_downscale/a/fineaf/path.zarr"
+    af_fine_url = "memory://test_downscale/a/fineaf/path.zarr"
+    downscaled_url = "memory://test_downscale/a/downscaled/path.zarr"
+    af_saved_url = "memory://test_downscale/a/afsaved/path.zarr"
 
     # regrid climatology to fine resolution
     regrid(
-        "a/coarseclimo/path.zarr",
-        out="a/fineclimo/path.zarr",
+        climo_coarse_url,
+        out=fine_climo_url,
         method="bilinear",
-        storage=fakestorage,
-        domain_file="a/domainfile/path.zarr",
+        domain_file=domain_file_url,
     )
-    climo_fine = fakestorage.read("a/fineclimo/path.zarr")[var]
+    climo_fine = repository.read(fine_climo_url)[var]
 
     # regrid adjustment factor
     regrid(
-        "a/coarseaf/path.zarr",
-        out="a/fineaf/path.zarr",
+        af_coarse_url,
+        out=af_fine_url,
         method="bilinear",
-        storage=fakestorage,
-        domain_file="a/domainfile/path.zarr",
+        domain_file=domain_file_url,
     )
-    af_fine = fakestorage.read("a/fineaf/path.zarr")[var]
+    af_fine = repository.read(af_fine_url)[var]
 
     # compute test downscaled values
     if var == "temperature":
@@ -429,17 +431,16 @@ def test_downscale(domain_file, method, var):
         downscaled_test = af_fine.groupby("time.dayofyear") * climo_fine
 
     downscale(
-        "a/biascorrected/path.zarr",
-        "a/coarseclimo/path.zarr",
-        "a/fineclimo/path.zarr",
-        "a/downscaled/path.zarr",
-        "a/adjustmentfactor/path.zarr",
-        storage=fakestorage,
+        ds_bc_url,
+        climo_coarse_url,
+        fine_climo_url,
+        downscaled_url,
+        af_saved_url,
         train_variable=var,
         out_variable=var,
         method=method,
-        domain_file="a/domainfile/path.zarr",
+        domain_file=domain_file_url,
         weights_path=None,
     )
-    downscaled_ds = fakestorage.read("a/downscaled/path.zarr")[var]
+    downscaled_ds = repository.read(downscaled_url)[var]
     np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)

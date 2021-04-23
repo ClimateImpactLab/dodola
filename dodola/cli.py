@@ -113,7 +113,6 @@ def downscale(
         yclimofine,
         out,
         af,
-        storage=_authenticate_storage(),
         train_variable=trainvariable,
         out_variable=outvariable,
         method=method,

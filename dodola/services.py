@@ -77,7 +77,6 @@ def downscale(
     y_climo_fine,
     out,
     af,
-    storage,
     train_variable,
     out_variable,
     method,
@@ -98,8 +97,6 @@ def downscale(
         Storage URL to write downscaled output to.
     af : str, optional
         Storage URL to write fine-resolution adjustment factors to.
-    storage : dodola.repository._ZarrRepo
-        Storage abstraction for data IO.
     train_variable : str
         Variable name used in training and obs data.
     out_variable : str
