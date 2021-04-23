@@ -385,8 +385,8 @@ def test_remove_leapdays():
 @pytest.mark.parametrize(
     "domain_file, method, var",
     [
-        pytest.param(0.25, "BCSD", "temperature"),
-        pytest.param(0.25, "BCSD", "precipitation"),
+        pytest.param(30, "BCSD", "temperature"),
+        pytest.param(30, "BCSD", "precipitation"),
     ],
     indirect=["domain_file"],
 )
@@ -397,28 +397,38 @@ def test_downscale(domain_file, method, var):
     end_time = "1951-12-31"
 
     # make fake bias corrected data
-    ds_bc = grid_global(1, 1)
+    res = 36
+    lat_name = 'lat'
+    lon_name = 'lon'
+    ds_bc = grid_global(res, res)
+    ds_bc = ds_bc.rename({"x": lon_name, "y": lat_name})
+    ds_bc[lat_name] = np.unique(ds_bc[lat_name].values)
+    ds_bc[lon_name] = np.unique(ds_bc[lon_name].values)
     time = pd.date_range(start_time, end_time, freq="D")
-    ds_bc["fakevariable"] = xr.DataArray(
-        np.random.randn(len(time), len(ds_bc["y"]), len(ds_bc["x"])),
-        dims=("time", "y", "x"),
-        coords={"time": time, "y": ds_bc["y"], "x": ds_bc["x"]},
+    ds_bc[var] = xr.DataArray(
+        np.random.randn(len(time), len(ds_bc["lat"]), len(ds_bc["lon"])),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": ds_bc["lat"], "lon": ds_bc["lon"]},
     )
+    ds_bc = ds_bc.drop(['lon_b', 'lat_b'])
 
     # make fake climatology at coarse res
-    ds_for_climo = grid_global(1, 1)
-    ds_for_climo["fakevariable"] = xr.DataArray(
-        np.random.randn(len(time), len(ds_for_climo["y"]), len(ds_for_climo["x"])),
-        dims=("time", "y", "x"),
-        coords={"time": time, "y": ds_for_climo["y"], "x": ds_for_climo["x"]},
+    ds_for_climo = grid_global(res, res)
+    ds_for_climo = ds_for_climo.rename({"x": lon_name, "y": lat_name})
+    ds_for_climo[lat_name] = np.unique(ds_for_climo[lat_name].values)
+    ds_for_climo[lon_name] = np.unique(ds_for_climo[lon_name].values)
+    ds_for_climo[var] = xr.DataArray(
+        np.random.randn(len(time), len(ds_for_climo["lat"]), len(ds_for_climo["lon"])),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": ds_for_climo["lat"], "lon": ds_for_climo["lon"]},
     )
-    climo_coarse = ds_for_climo.groupby("time.dayofyear").mean()
+    climo_coarse = ds_for_climo.groupby("time.dayofyear").mean().drop(['lon_b', 'lat_b'])
 
     # compute adjustment factor
     if var == "temperature":
-        af_coarse = ds_bc["fakevariable"].groupby("time.dayofyear") - climo_coarse
+        af_coarse = ds_bc.groupby("time.dayofyear") - climo_coarse
     elif var == "precipitation":
-        af_coarse = ds_bc["fakevariable"].groupby("time.dayofyear") / climo_coarse
+        af_coarse = ds_bc.groupby("time.dayofyear") / climo_coarse
 
     fakestorage = memory_repository(
         {
@@ -437,7 +447,7 @@ def test_downscale(domain_file, method, var):
         storage=fakestorage,
         domain_file="a/domainfile/path.zarr",
     )
-    climo_fine = fakestorage.read("a/fineclimo/path.zarr")["fakevariable"]
+    climo_fine = fakestorage.read("a/fineclimo/path.zarr")[var]
 
     # regrid adjustment factor
     regrid(
@@ -447,7 +457,7 @@ def test_downscale(domain_file, method, var):
         storage=fakestorage,
         domain_file="a/domainfile/path.zarr",
     )
-    af_fine = fakestorage.read("a/fineaf/path.zarr")
+    af_fine = fakestorage.read("a/fineaf/path.zarr")[var]
 
     # compute test downscaled values
     if var == "temperature":
@@ -455,16 +465,18 @@ def test_downscale(domain_file, method, var):
     elif var == "precipitation":
         downscaled_test = af_fine * climo_fine
 
-    afs, downscaled_ds = downscale(
-        ds_bc,
-        climo_coarse,
-        climo_fine,
+    downscale(
+        "a/biascorrected/path.zarr",
+        "a/coarseclimo/path.zarr",
+        "a/fineclimo/path.zarr",
         "a/downscaled/path.zarr",
+        "a/adjustmentfactor/path.zarr",
         storage=fakestorage,
-        train_variable="fakevariable",
-        out_variable="fakevariable",
+        train_variable=var,
+        out_variable=var,
         method=method,
-        domain_file=domain_file,
+        domain_file="a/domainfile/path.zarr",
+        weights_path=None,
     )
-
+    downscaled_ds = fakestorage.read("a/downscaled/path.zarr")[var]
     np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
