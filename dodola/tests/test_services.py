@@ -13,6 +13,7 @@ from dodola.services import (
     regrid,
     remove_leapdays,
     clean_cmip6,
+    downscale,
 )
 from dodola.repository import memory_repository
 
@@ -68,7 +69,6 @@ def _gcmfactory(x, start_time="1950-01-01"):
             "time_bnds": (["time_bnds"], [1.0]),
         },
     )
-    # out['time'] = out['time'].assign_attrs({'calendar': 'standard'})
     return out
 
 
@@ -385,3 +385,91 @@ def test_remove_leapdays():
 
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
+
+
+@pytest.mark.parametrize(
+    "domain_file, method, var",
+    [
+        pytest.param(0.25, "BCSD", "temperature"),
+        pytest.param(0.25, "BCSD", "precipitation"),
+    ],
+    indirect=["domain_file"],
+)
+def test_downscale(domain_file, method, var):
+    """Simple test of downscaling service"""
+    # set up test data
+    start_time = "1950-01-01"
+    end_time = "1951-12-31"
+
+    # make fake bias corrected data
+    ds_bc = grid_global(1, 1)
+    time = pd.date_range(start_time, end_time, freq="D")
+    ds_bc["fakevariable"] = xr.DataArray(
+        np.random.randn(len(time), len(ds_bc["y"]), len(ds_bc["x"])),
+        dims=("time", "y", "x"),
+        coords={"time": time, "y": ds_bc["y"], "x": ds_bc["x"]},
+    )
+
+    # make fake climatology at coarse res
+    ds_for_climo = grid_global(1, 1)
+    ds_for_climo["fakevariable"] = xr.DataArray(
+        np.random.randn(len(time), len(ds_for_climo["y"]), len(ds_for_climo["x"])),
+        dims=("time", "y", "x"),
+        coords={"time": time, "y": ds_for_climo["y"], "x": ds_for_climo["x"]},
+    )
+    climo_coarse = ds_for_climo.groupby("time.dayofyear").mean()
+
+    # compute adjustment factor
+    if var == "temperature":
+        af_coarse = ds_bc["fakevariable"].groupby("time.dayofyear") - climo_coarse
+    elif var == "precipitation":
+        af_coarse = ds_bc["fakevariable"].groupby("time.dayofyear") / climo_coarse
+
+    fakestorage = memory_repository(
+        {
+            "a/biascorrected/path.zarr": ds_bc,
+            "a/domainfile/path.zarr": domain_file,
+            "a/coarseclimo/path.zarr": climo_coarse,
+            "a/coarseaf/path.zarr": af_coarse,
+        }
+    )
+
+    # regrid climatology to fine resolution
+    regrid(
+        "a/coarseclimo/path.zarr",
+        out="a/fineclimo/path.zarr",
+        method="bilinear",
+        storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
+    )
+    climo_fine = fakestorage.read("a/fineclimo/path.zarr")["fakevariable"]
+
+    # regrid adjustment factor
+    regrid(
+        "a/coarseaf/path.zarr",
+        out="a/fineaf/path.zarr",
+        method="bilinear",
+        storage=fakestorage,
+        domain_file="a/domainfile/path.zarr",
+    )
+    af_fine = fakestorage.read("a/fineaf/path.zarr")
+
+    # compute test downscaled values
+    if var == "temperature":
+        downscaled_test = af_fine + climo_fine
+    elif var == "precipitation":
+        downscaled_test = af_fine * climo_fine
+
+    afs, downscaled_ds = downscale(
+        ds_bc,
+        climo_coarse,
+        climo_fine,
+        "a/downscaled/path.zarr",
+        storage=fakestorage,
+        train_variable="fakevariable",
+        out_variable="fakevariable",
+        method=method,
+        domain_file=domain_file,
+    )
+
+    np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
