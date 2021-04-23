@@ -82,7 +82,6 @@ def domain_file(request):
     domain[lat_name] = np.unique(domain[lat_name].values)
     domain[lon_name] = np.unique(domain[lon_name].values)
 
-    domain = domain.drop(["lon_b", "lat_b"])
     return domain
 
 
