@@ -82,6 +82,7 @@ def domain_file(request):
     domain[lat_name] = np.unique(domain[lat_name].values)
     domain[lon_name] = np.unique(domain[lon_name].values)
 
+    domain = domain.drop(["lon_b", "lat_b"])
     return domain
 
 
@@ -395,30 +396,37 @@ def test_downscale(domain_file, method, var):
 
     ds_bc_url = "memory://test_downscale/a/biascorrected/path.zarr"
     repository.write(ds_bc_url, ds_bc)
+
     domain_file_url = "memory://test_downscale/a/domainfile/path.zarr"
     repository.write(domain_file_url, domain_file)
+
     climo_coarse_url = "memory://test_downscale/a/coarseclimo/path.zarr"
     repository.write(climo_coarse_url, climo_coarse)
+
     af_coarse_url = "memory://test_downscale/a/coarseaf/path.zarr"
     repository.write(af_coarse_url, af_coarse)
-    fine_climo_url = "memory://test_downscale/a/fineaf/path.zarr"
+
+    climo_fine_url = "memory://test_downscale/a/fineclimo/path.zarr"
+
     af_fine_url = "memory://test_downscale/a/fineaf/path.zarr"
+
     downscaled_url = "memory://test_downscale/a/downscaled/path.zarr"
+
     af_saved_url = "memory://test_downscale/a/afsaved/path.zarr"
 
     # regrid climatology to fine resolution
     regrid(
         climo_coarse_url,
-        out=fine_climo_url,
+        out=climo_fine_url,
         method="bilinear",
         domain_file=domain_file_url,
     )
-    climo_fine = repository.read(fine_climo_url)[var]
+    climo_fine = repository.read(climo_fine_url)[var]
 
     # regrid adjustment factor
     regrid(
         af_coarse_url,
-        out=af_fine_url,
+        af_fine_url,
         method="bilinear",
         domain_file=domain_file_url,
     )
@@ -433,7 +441,7 @@ def test_downscale(domain_file, method, var):
     downscale(
         ds_bc_url,
         climo_coarse_url,
-        fine_climo_url,
+        climo_fine_url,
         downscaled_url,
         af_saved_url,
         train_variable=var,
