@@ -398,8 +398,8 @@ def test_downscale(domain_file, method, var):
 
     # make fake bias corrected data
     res = 36
-    lat_name = 'lat'
-    lon_name = 'lon'
+    lat_name = "lat"
+    lon_name = "lon"
     ds_bc = grid_global(res, res)
     ds_bc = ds_bc.rename({"x": lon_name, "y": lat_name})
     ds_bc[lat_name] = np.unique(ds_bc[lat_name].values)
@@ -410,7 +410,7 @@ def test_downscale(domain_file, method, var):
         dims=("time", "lat", "lon"),
         coords={"time": time, "lat": ds_bc["lat"], "lon": ds_bc["lon"]},
     )
-    ds_bc = ds_bc.drop(['lon_b', 'lat_b'])
+    ds_bc = ds_bc.drop(["lon_b", "lat_b"])
 
     # make fake climatology at coarse res
     ds_for_climo = grid_global(res, res)
@@ -422,7 +422,9 @@ def test_downscale(domain_file, method, var):
         dims=("time", "lat", "lon"),
         coords={"time": time, "lat": ds_for_climo["lat"], "lon": ds_for_climo["lon"]},
     )
-    climo_coarse = ds_for_climo.groupby("time.dayofyear").mean().drop(['lon_b', 'lat_b'])
+    climo_coarse = (
+        ds_for_climo.groupby("time.dayofyear").mean().drop(["lon_b", "lat_b"])
+    )
 
     # compute adjustment factor
     if var == "temperature":
