@@ -1,15 +1,16 @@
-from xarray import Dataset
-from dodola.repository import memory_repository
+from xarray import Dataset, open_zarr
+import dodola.repository
 
 
 def test_memory_repository_read():
     """Basic test that memory_repository.read() works"""
-    storage = memory_repository(storage={"foo": Dataset({"bar": 123})})
-    assert storage.read(url_or_path="foo") == Dataset({"bar": 123})
+    url = "memory://test_memory_repository_read.zarr"
+    Dataset({"bar": 321}).to_zarr(url)  # Manually write to memory FS.
+    assert dodola.repository.read(url) == Dataset({"bar": 123})
 
 
 def test_memory_repository_write():
     """Basic test that memory_repository.write() works"""
-    storage = memory_repository(storage={"foo": Dataset({"bar": 321})})
-    storage.write(url_or_path="foo", x=Dataset({"bar": "SPAM"}))
-    assert storage.read(url_or_path="foo") == Dataset({"bar": "SPAM"})
+    url = "memory://test_memory_repository_write.zarr"
+    dodola.repository.write(url, Dataset({"bar": "SPAM"}))
+    assert open_zarr(url) == Dataset({"bar": "SPAM"})
