@@ -134,7 +134,7 @@ def downscale(
         out_variable=outvariable,
         method=method,
         domain_file=domain_file,
-        weights_path=weights_path,
+        weights_path=weightspath,
     )
 
 

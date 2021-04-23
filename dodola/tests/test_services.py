@@ -3,6 +3,7 @@
 
 import numpy as np
 import pytest
+import pandas as pd
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global

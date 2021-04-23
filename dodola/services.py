@@ -8,6 +8,7 @@ from dodola.core import (
     xesmf_regrid,
     standardize_gcm,
     xclim_remove_leapdays,
+    apply_downscaling,
 )
 
 logger = logging.getLogger(__name__)
