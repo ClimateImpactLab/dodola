@@ -110,11 +110,10 @@ def apply_downscaling(
         af_fine = xesmf_regrid(af_coarse, domain_fine, "bilinear", weights_path)
 
         # apply adjustment factors
-        predicted = model.predict(af_fine, obs_climo_fine, var_name=train_variable)
+        ds_downscaled = model.predict(af_fine, obs_climo_fine, var_name=train_variable)
     else:
         raise ValueError("this method is not supported")
 
-    ds_downscaled = predicted.to_dataset(name=out_variable)
     return af_fine, ds_downscaled
 
 

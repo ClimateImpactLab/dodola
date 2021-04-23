@@ -461,9 +461,9 @@ def test_downscale(domain_file, method, var):
 
     # compute test downscaled values
     if var == "temperature":
-        downscaled_test = af_fine + climo_fine
+        downscaled_test = af_fine.groupby("time.dayofyear") + climo_fine
     elif var == "precipitation":
-        downscaled_test = af_fine * climo_fine
+        downscaled_test = af_fine.groupby("time.dayofyear") * climo_fine
 
     downscale(
         "a/biascorrected/path.zarr",
