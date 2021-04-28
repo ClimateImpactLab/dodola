@@ -76,12 +76,12 @@ def downscale(
     y_climo_coarse,
     y_climo_fine,
     out,
-    af,
     train_variable,
     out_variable,
     method,
     domain_file,
-    weights_path,
+    adjustmentfactors=None,
+    weights_path=None,
 ):
     """Downscale bias corrected model data with IO to storage
 
@@ -95,7 +95,7 @@ def downscale(
         Storage URL to input fine-res obs climatology to use for computing adjustment factors.
     out : str
         Storage URL to write downscaled output to.
-    af : str, optional
+    adjustmentfactors : str, optional
         Storage URL to write fine-resolution adjustment factors to.
     train_variable : str
         Variable name used in training and obs data.
@@ -105,6 +105,8 @@ def downscale(
         Downscaling method to be used.
     domain_file : str
         Storage URL to input grid for regridding adjustment factors
+    adjustmentfactors : str, optional
+        Storage URL to write fine-resolution adjustment factors to.
     weights_path : str, optional
         Storage URL for input weights for regridding
     """
@@ -125,7 +127,7 @@ def downscale(
     )
 
     storage.write(out, downscaled_ds)
-    storage.write(af, adjustment_factors)
+    storage.write(adjustmentfactors, adjustment_factors)
 
 
 @log_service

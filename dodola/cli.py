@@ -80,14 +80,20 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
 
 @dodola_cli.command(help="Downscale bias-corrected GCM")
 @click.argument("x", required=True)
-@click.argument("trainvariable", required=True)
-@click.argument("yclimocoarse", required=True)
-@click.argument("yclimofine", required=True)
-@click.argument("out", required=True)
-@click.argument("af", required=False)
-@click.argument("outvariable", required=True)
-@click.argument("method", required=True)
+@click.option("--trainvariable", "-tv", required=True)
+@click.option(
+    "--yclimocoarse", "-ycc", required=True, help="Coarse resolution obs climatology"
+)
+@click.option(
+    "--yclimofine", "-ycf", required=True, help="Fine resolution obs climatology"
+)
+@click.option("--out", "-o", required=True)
+@click.option("--outvariable", "-ov", required=True)
+@click.argument("--method", "-m", required=True, help="Downscaling method")
 @click.option("--domain-file", "-d", required=True, help="Domain file to regrid to")
+@click.option(
+    "--adjustmentfactors", "-af", default=None, help="Outpath for adjustment factors"
+)
 @click.option(
     "--weightspath",
     "-w",
@@ -100,23 +106,23 @@ def downscale(
     yclimocoarse,
     yclimofine,
     out,
-    af,
     outvariable,
     method,
     domain_file,
+    adjustmentfactors,
     weightspath,
 ):
     """Downscale bias corrected GCM to 'out' based on obs climo (yclimocoarse, yclimofine) using (method) and (domain_file)"""
     services.downscale(
         x,
-        yclimocoarse,
-        yclimofine,
-        out,
-        af,
+        yclimocoarse=yclimocoarse,
+        yclimofine=yclimofine,
+        out=out,
         train_variable=trainvariable,
         out_variable=outvariable,
         method=method,
         domain_file=domain_file,
+        adjustmentfactors=adjustmentfactors,
         weights_path=weightspath,
     )
 
