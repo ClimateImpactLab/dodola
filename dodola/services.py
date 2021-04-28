@@ -68,7 +68,7 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, method)
 
 
 @log_service
-def build_weights(x, method, target_resolution=1.0, outpath=None):
+def build_weights(x, method, domain_file, outpath=None):
     """Generate local NetCDF weights file for regridding climate data
 
     Parameters
@@ -77,15 +77,16 @@ def build_weights(x, method, target_resolution=1.0, outpath=None):
         Storage URL to input xr.Dataset that will be regridded.
     method : str
         Method of regridding. Passed to ``xesmf.Regridder``.
-    target_resolution : float, optional
-        Decimal-degree resolution of global grid to regrid to.
+    domain_file : str
+        Storage URL to input xr.Dataset domain file to regrid to.
     outpath : optional
         Local file path name to write regridding weights file to.
     """
     ds = storage.read(x)
-    build_xesmf_weights_file(
-        ds, method=method, target_resolution=target_resolution, filename=outpath
-    )
+
+    ds_domain = storage.read(domain_file)
+
+    build_xesmf_weights_file(ds, ds_domain, method=method, filename=outpath)
 
 
 @log_service

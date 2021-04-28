@@ -53,7 +53,7 @@ def cleancmip6(x, out, drop_leapdays):
 @click.argument("x", required=True)
 @click.argument("out", required=True)
 def removeleapdays(x, out):
-    """ Remove leap days and update calendar attribute"""
+    """Remove leap days and update calendar attribute"""
     services.remove_leapdays(x, out)
 
 
@@ -86,11 +86,9 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
     required=True,
     help="Regridding method - 'bilinear' or 'conservative'",
 )
-@click.option(
-    "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
-)
+@click.option("--domain-file", "-d", help="Domain file to regrid to")
 @click.option("--outpath", "-o", default=None, help="Local path to write weights file")
-def buildweights(x, method, targetresolution, outpath):
+def buildweights(x, method, domain_file, outpath):
     """Generate local NetCDF weights file for regridding a target climate dataset
 
     Note, the output weights file is only written to the local disk. See
@@ -101,7 +99,7 @@ def buildweights(x, method, targetresolution, outpath):
     services.build_weights(
         str(x),
         str(method),
-        target_resolution=float(targetresolution),
+        domain_file,
         outpath=str(outpath),
     )
 

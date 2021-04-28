@@ -1,4 +1,4 @@
-"""Test application services
+"""test application services
 """
 
 import numpy as np
@@ -74,7 +74,7 @@ def _gcmfactory(x, start_time="1950-01-01"):
 
 @pytest.fixture
 def domain_file(request):
-    """ Creates a fake domain Dataset for testing"""
+    """Creates a fake domain Dataset for testing"""
     lon_name = "lon"
     lat_name = "lat"
     domain = grid_global(request.param, request.param)
@@ -160,8 +160,12 @@ def test_bias_correct_basic_call(method, expected_head, expected_tail):
     )
 
 
-@pytest.mark.parametrize("regrid_method", ["bilinear", "conservative"])
-def test_build_weights(regrid_method, tmpdir):
+@pytest.mark.parametrize(
+    "domain_file, regrid_method",
+    [pytest.param(1.0, "bilinear"), pytest.param(1.0, "conservative")],
+    indirect=["domain_file"],
+)
+def test_build_weights(domain_file, regrid_method, tmpdir):
     """Test that services.build_weights produces a weights file"""
     # Output to tmp dir so we cleanup & don't clobber existing files...
     weightsfile = tmpdir.join("a_file_path_weights.nc")
@@ -170,10 +174,13 @@ def test_build_weights(regrid_method, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
+    domain_file_url = "memory://test_regrid_methods/a/domainfile/path.zarr"
+    repository.write(domain_file_url, domain_file)
+
     url = "memory://test_build_weights/a_file_path.zarr"
     repository.write(url, ds_in)
 
-    build_weights(url, method=regrid_method, outpath=weightsfile)
+    build_weights(url, regrid_method, domain_file_url, outpath=weightsfile)
     # Test that weights file is actually created where we asked.
     assert weightsfile.exists()
 
@@ -298,7 +305,9 @@ def test_regrid_weights_integration(domain_file, tmpdir):
     repository.write(domain_file_url, domain_file)
 
     # First, use service to pre-build regridding weights files, then read-in to regrid.
-    build_weights(in_url, method="bilinear", outpath=weightsfile)
+    build_weights(
+        in_url, method="bilinear", domain_file=domain_file_url, outpath=weightsfile
+    )
     regrid(
         in_url,
         out=out_url,
@@ -311,7 +320,7 @@ def test_regrid_weights_integration(domain_file, tmpdir):
 
 
 def test_clean_cmip6():
-    """ Tests that cmip6 cleanup removes extra dimensions on dataset """
+    """Tests that cmip6 cleanup removes extra dimensions on dataset"""
     # Setup input data
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
@@ -330,7 +339,7 @@ def test_clean_cmip6():
 
 
 def test_remove_leapdays():
-    """ Test that leapday removal service removes leap days """
+    """Test that leapday removal service removes leap days"""
     # Setup input data
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5

@@ -66,16 +66,16 @@ def apply_bias_correction(
     return ds_predicted
 
 
-def build_xesmf_weights_file(x, method, target_resolution, filename=None):
+def build_xesmf_weights_file(x, domain, method, filename=None):
     """Build ESMF weights file for regridding x to a global grid
 
     Parameters
     ----------
     x : xr.Dataset
+    domain : xr.Dataset
+        Domain to regrid to.
     method : str
         Method of regridding. Passed to ``xesmf.Regridder``.
-    target_resolution: float
-        Decimal-degree resolution of global grid to regrid to.
     filename : optional
         Local path to output netCDF weights file.
 
@@ -86,7 +86,7 @@ def build_xesmf_weights_file(x, method, target_resolution, filename=None):
     """
     out = xe.Regridder(
         x,
-        xe.util.grid_global(target_resolution, target_resolution),
+        domain,
         method=method,
         filename=filename,
     )
