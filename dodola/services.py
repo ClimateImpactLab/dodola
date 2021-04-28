@@ -123,7 +123,7 @@ def downscale(
         out_variable,
         method,
         domain_fine,
-        weights_path,
+        weights_path=weights_path,
     )
 
     storage.write(out, downscaled_ds)

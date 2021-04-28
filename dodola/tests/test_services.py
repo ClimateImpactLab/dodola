@@ -442,11 +442,11 @@ def test_downscale(domain_file, method, var):
         climo_coarse_url,
         climo_fine_url,
         downscaled_url,
+        var,
+        var,
+        method,
+        domain_file_url,
         af_saved_url,
-        train_variable=var,
-        out_variable=var,
-        method=method,
-        domain_file=domain_file_url,
         weights_path=None,
     )
     downscaled_ds = repository.read(downscaled_url)[var]
