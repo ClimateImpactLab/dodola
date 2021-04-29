@@ -36,6 +36,14 @@ def dodola_cli(debug):
     logging.basicConfig(level=loglevel)
 
 
+@dodola_cli.command(help="Find range of QDM rolling-year window")
+@click.argument("x")
+@click.option("--out", "-o", help="URL to write JSON output to")
+def find_qdm_ryw(x, out):
+    """Write first and last year of QDM rolling-year window for (x) to JSON (out)"""
+    services.remove_leapdays(x, out)
+
+
 @dodola_cli.command(help="Clean up and standardize GCM")
 @click.argument("x", required=True)
 @click.argument("out", required=True)

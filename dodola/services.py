@@ -1,13 +1,16 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 from functools import wraps
+import json
 import logging
+import fsspec
 from dodola.core import (
     apply_bias_correction,
     build_xesmf_weights_file,
     xesmf_regrid,
     standardize_gcm,
     xclim_remove_leapdays,
+    qdm_rollingyearwindow,
 )
 import dodola.repository as storage
 
@@ -25,6 +28,28 @@ def log_service(func):
         logger.info(f"dodola service {servicename} done")
 
     return service_logger
+
+
+@log_service
+def find_qdm_rollingyearwindow(x, out):
+    """Write JSON of first and last years for QDM of x with rolling yearly window
+
+    Parameters
+    ----------
+    x : str
+        fsspec-compliant URL to climate data. Must have a CF-compliant time
+        dimension.
+    out : str
+        fsspec-compliant URL to write JSON information to. The output file is a
+        mapping of str to ints: {'firstyear': x, 'lastyear': y}.
+    """
+    ds = storage.read(x)
+    firstyear, lastyear = qdm_rollingyearwindow(ds)
+
+    logger.debug(f"Writing to {out}")
+    with fsspec.open(out, mode="w") as fl:
+        json.dump({"firstyear": firstyear, "lastyear": lastyear}, fl)
+    logger.info(f"Written {out}")
 
 
 @log_service

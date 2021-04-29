@@ -3,14 +3,75 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
+from datetime import timedelta
+import logging
+import cftime
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
 import xarray as xr
 from xclim import sdba
 from xclim.core.calendar import convert_calendar
 import xesmf as xe
 
+logger = logging.getLogger(__name__)
+
 # Break this down into a submodule(s) if needed.
 # Assume data input here is generally clean and valid.
+
+def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
+    """Get the first and last years for QDM of ds with an rolling yearly window
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+        Must have "time" variable, populated with cftime.Datetime.
+    halfyearwindow_n : int, optional
+        Half the length of the rolling year-window for QDM.
+
+    Returns
+    -------
+    firstyear : int
+    lastyear : int
+    """
+    earliest_dt = min(ds["time"].values)
+    latest_dt = max(ds["time"].values)
+    logger.debug(f"Dataset earliest datetime: {earliest_dt}")
+    logger.debug(f"Dataset latest datetime: {latest_dt}")
+
+    earliest_year = earliest_dt.year
+    latest_year = latest_dt.year
+
+    assert earliest_dt.calendar == latest_dt.calendar, "time values should have the same calendar"
+
+    # Figure out how many years we need to offset for our 1) year window
+    # and 2) 15 day window for the earliest end of the window...
+    early_limit = cftime.datetime(year=earliest_year, month=12, day=15, calendar=earliest_dt.calendar)
+    additional_offset = 1  # +1 yr because we need 15 days from end of the first year:
+    if early_limit < earliest_dt:
+        # Require additional year offset if we have less than 15 days from the
+        # *first* year, at the end of the year...
+        additional_offset += 1
+    firstyear = int(earliest_year + halfyearwindow_n + additional_offset)
+
+    # Same as above but to find offset on the latest end of window.
+    late_limit = cftime.datetime(year=latest_year, month=1, day=15, calendar=latest_dt.calendar)
+    additional_offset = 1  # -1 yr because we need 15 days from beginning of the last year:
+    if latest_dt < late_limit:
+        # Use additional year offset if we fewer than 15 days from the
+        # at the start of the year in the *last* year...
+        additional_offset += 1
+    lastyear = int(latest_year - halfyearwindow_n - additional_offset)
+
+    logger.info(f"QDM window first year: {firstyear}")
+    logger.info(f"QDM window last year: {lastyear}")
+
+    if firstyear > lastyear:
+        raise ValueError("firstyear must be <= lastyear to have years for QDM window.")
+    # Safety against spending lots and *lots* of time and money:
+    if abs(firstyear - lastyear) > 200:
+        # Maybe this should be a different exception? Maybe should be validation?
+        raise ValueError("dif between firstyear and lastyear seems too large, error?")
+
+    return firstyear, lastyear
 
 
 def apply_bias_correction(
