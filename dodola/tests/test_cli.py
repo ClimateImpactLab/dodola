@@ -14,6 +14,7 @@ import dodola.services
         "regrid",
         "find-qdm-ryw",
         "train-qdm",
+        "apply-qdm",
     ],
     ids=(
         "--help",
@@ -23,6 +24,7 @@ import dodola.services
         "regrid --help",
         "find-qdm-ryw --help",
         "train-qdm --help",
+        "apply-qdm --help",
     ),
 )
 def test_cli_helpflags(subcmd):
