@@ -1,6 +1,8 @@
 """Test application services
 """
 
+import json
+import fsspec
 import numpy as np
 import pytest
 import xarray as xr
@@ -13,6 +15,7 @@ from dodola.services import (
     regrid,
     remove_leapdays,
     clean_cmip6,
+    find_qdm_rollingyearwindow,
 )
 import dodola.repository as repository
 
@@ -82,6 +85,25 @@ def domain_file(request):
     domain[lon_name] = np.unique(domain[lon_name].values)
 
     return domain
+
+def test_find_qdm_rollingyearwindow():
+    """Basic test that find_qdm_rollingyearwindow output correct time range in JSON"""
+    # Create test data
+    expected = {"firstyear": 2026, "lastyear": 2088}
+    t = xr.cftime_range(start="2015-01-01", freq="D", end="2100-01-01", calendar="noleap")
+    x = np.ones(len(t))
+    in_ds = xr.Dataset({"fakevariable": (["time"], x)}, coords={"time": t})
+    in_key = "memory://test_find_qdm_rollingyearwindow/test_in.zarr"
+    out_key = "memory://test_find_qdm_rollingyearwindow/test_out.json"
+    repository.write(in_key, in_ds)
+
+    find_qdm_rollingyearwindow(in_key, out_key)
+
+    # Can't use repository read because output is JSON...
+    out_file = None
+    with fsspec.open(out_key) as fl:
+        actual = json.load(fl)
+    assert actual == expected
 
 
 @pytest.mark.parametrize(

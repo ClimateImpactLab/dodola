@@ -6,13 +6,14 @@ import dodola.services
 
 @pytest.mark.parametrize(
     "subcmd",
-    [None, "biascorrect", "buildweights", "rechunk", "regrid"],
+    [None, "biascorrect", "buildweights", "rechunk", "regrid", "find-qdm-ryw"],
     ids=(
         "--help",
         "biascorrect --help",
         "buildweights --help",
         "rechunk --help",
         "regrid --help",
+        "find-qdm-ryw --help",
     ),
 )
 def test_cli_helpflags(subcmd):
