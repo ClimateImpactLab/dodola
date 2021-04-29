@@ -53,7 +53,7 @@ def cleancmip6(x, out, drop_leapdays):
 @click.argument("x", required=True)
 @click.argument("out", required=True)
 def removeleapdays(x, out):
-    """ Remove leap days and update calendar attribute"""
+    """Remove leap days and update calendar attribute"""
     services.remove_leapdays(x, out)
 
 

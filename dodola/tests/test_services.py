@@ -74,7 +74,7 @@ def _gcmfactory(x, start_time="1950-01-01"):
 
 @pytest.fixture
 def domain_file(request):
-    """ Creates a fake domain Dataset for testing"""
+    """Creates a fake domain Dataset for testing"""
     lon_name = "lon"
     lat_name = "lat"
     domain = grid_global(request.param, request.param)
@@ -311,7 +311,7 @@ def test_regrid_weights_integration(domain_file, tmpdir):
 
 
 def test_clean_cmip6():
-    """ Tests that cmip6 cleanup removes extra dimensions on dataset """
+    """Tests that cmip6 cleanup removes extra dimensions on dataset"""
     # Setup input data
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
@@ -330,7 +330,7 @@ def test_clean_cmip6():
 
 
 def test_remove_leapdays():
-    """ Test that leapday removal service removes leap days """
+    """Test that leapday removal service removes leap days"""
     # Setup input data
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
