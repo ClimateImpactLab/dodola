@@ -103,7 +103,6 @@ def test_find_qdm_rollingyearwindow():
     find_qdm_rollingyearwindow(in_key, out_key)
 
     # Can't use repository read because output is JSON...
-    out_file = None
     with fsspec.open(out_key) as fl:
         actual = json.load(fl)
     assert actual == expected
