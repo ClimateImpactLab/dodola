@@ -50,7 +50,9 @@ def train_quantiledeltamapping(
     return qdm
 
 
-def adjust_quantiledeltamapping_year(simulation, qdm, year, variable, halfyearwindow_n=10):
+def adjust_quantiledeltamapping_year(
+    simulation, qdm, year, variable, halfyearwindow_n=10
+):
     """Apply QDM to adjust a year within a simulation.
 
     Parameters
