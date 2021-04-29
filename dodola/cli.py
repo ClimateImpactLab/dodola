@@ -45,16 +45,21 @@ def find_qdm_ryw(x, out):
 
 
 @dodola_cli.command(help="Train quantile delta mapping (QDM)")
-@click.option("--historical", "-h", help="URL to historical simulation store")
-@click.option("--reference", "-r", help="URL to store to use as reference")
-@click.option("--variable", "-v", help="Variable name in data stores")
+@click.option(
+    "--historical", "-h", required=True, help="URL to historical simulation store"
+)
+@click.option(
+    "--reference", "-r", required=True, help="URL to store to use as reference"
+)
+@click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
     "--kind",
     "-k",
+    required=True,
     type=click.Choice(["temperature", "precipitation"], case_sensitive=True),
     help="Variable kind for mapping",
 )
-@click.option("--out", "-o", help="URL to write QDM model to")
+@click.option("--out", "-o", required=True, help="URL to write QDM model to")
 def train_qdm(historical, reference, out, variable, kind):
     """Train Quantile Delta Mapping (QDM) and output to storage"""
     services.train_qdm(
