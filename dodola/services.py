@@ -61,7 +61,7 @@ def train_qdm(historical, reference, out, variable, kind):
         historical=hist, reference=ref, variable=variable, kind=kind_map[kind]
     )
 
-    storage.write(out, qdm)
+    storage.write(out, qdm.ds)
 
 
 @log_service

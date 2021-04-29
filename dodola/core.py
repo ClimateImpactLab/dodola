@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def train_quantiledeltamapping(
     historical, reference, variable, kind, quantiles_n=100, window_n=31
 ):
-    """Train quantile delta mapping and return reference to its core Dataset
+    """Train quantile delta mapping
 
     Parameters
     ----------
@@ -39,7 +39,7 @@ def train_quantiledeltamapping(
 
     Returns
     -------
-    xr.Dataset
+    xclim.sdba.adjustment.QuantileDeltaMapping
     """
     qdm = sdba.adjustment.QuantileDeltaMapping(
         kind=str(kind),
@@ -47,7 +47,7 @@ def train_quantiledeltamapping(
         nquantiles=int(quantiles_n),
     )
     qdm.train(ref=reference[variable], hist=historical[variable])
-    return qdm.ds
+    return qdm
 
 
 def adjust_quantiledeltamapping_year(sim, qdm, year, variable, halfyearwindow_n=10):
