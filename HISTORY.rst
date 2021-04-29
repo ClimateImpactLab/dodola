@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-*
+* Add bias-correction quantile delta mapping (QDM) components to support Argo Workflows. New commands added: ``dodola find-qdm-ryw``, ``dodola train-qdm``, and ``dodola apply-qdm``. (PR#70, @brews)
 
 
 0.2.0 (2021-04-23)
