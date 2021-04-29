@@ -18,6 +18,39 @@ logger = logging.getLogger(__name__)
 # Assume data input here is generally clean and valid.
 
 
+def train_quantiledeltamapping(
+    historical, reference, variable, kind, quantiles_n=100, window_n=31
+):
+    """Train quantile delta mapping and return reference to its core Dataset
+
+    Parameters
+    ----------
+    historical : xr.Dataset
+        Dataset to use as historical simulation.
+    reference : xr.Dataset
+        Dataset to use as model reference.
+    variable : str
+        Name of target variable to extract from `historical` and `reference`.
+    kind : {"+", "*"}
+        Kind of variable. Used for QDM scaling.
+    quantiles_n : int, optional
+        Number of quantiles for QDM.
+    window_n : int, optional
+        Centered window size for day-of-year grouping.
+
+    Returns
+    -------
+    xr.Dataset
+    """
+    qdm = sdba.adjustment.QuantileDeltaMapping(
+        kind=str(kind),
+        group=sdba.Grouper("time.dayofyear", window=int(window_n)),
+        nquantiles=int(quantiles_n),
+    )
+    qdm.train(ref=reference[variable], hist=historical[variable])
+    return qdm.ds
+
+
 def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
     """Get the first and last years for QDM of ds with an rolling yearly window
 

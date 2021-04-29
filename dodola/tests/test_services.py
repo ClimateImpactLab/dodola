@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
+from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -16,6 +17,7 @@ from dodola.services import (
     remove_leapdays,
     clean_cmip6,
     find_qdm_rollingyearwindow,
+    train_qdm,
 )
 import dodola.repository as repository
 
@@ -85,6 +87,42 @@ def domain_file(request):
     domain[lon_name] = np.unique(domain[lon_name].values)
 
     return domain
+
+
+@pytest.mark.parametrize("kind", ["precipitation", "temperature"])
+def test_train_qdm(kind):
+    """Test that train_qdm outputs store giving sdba.adjustment.QuantileDeltaMapping
+
+    Checks that output is consistent if we do "temperature" or "precipitation"
+    QDM kinds.
+    """
+    # Setup input data.
+    n_years = 10
+    n = n_years * 365
+
+    model_bias = 2
+    ts = np.sin(np.linspace(-10 * 3.14, 10 * 3.14, n)) * 0.5
+    hist = _datafactory(ts + model_bias)
+    ref = _datafactory(ts)
+
+    output_key = "memory://test_train_qdm/test_output.zarr"
+    hist_key = "memory://test_train_qdm/hist.zarr"
+    ref_key = "memory://test_train_qdm/ref.zarr"
+
+    # Load up a fake repo with our input data in the place of big data and cloud
+    # storage.
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=output_key,
+        variable="fakevariable",
+        kind=kind,
+    )
+
+    assert QuantileDeltaMapping.from_dataset(repository.read(output_key))
 
 
 def test_find_qdm_rollingyearwindow():

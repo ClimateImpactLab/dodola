@@ -44,6 +44,28 @@ def find_qdm_ryw(x, out):
     services.remove_leapdays(x, out)
 
 
+@dodola_cli.command(help="Train quantile delta mapping (QDM)")
+@click.option("--historical", "-h", help="URL to historical simulation store")
+@click.option("--reference", "-r", help="URL to store to use as reference")
+@click.option("--variable", "-v", help="Variable name in data stores")
+@click.option(
+    "--kind",
+    "-k",
+    type=click.Choice(["temperature", "precipitation"], case_sensitive=True),
+    help="Variable kind for mapping",
+)
+@click.option("--out", "-o", help="URL to write QDM model to")
+def train_qdm(historical, reference, out, variable, kind):
+    """Train Quantile Delta Mapping (QDM) and output to storage"""
+    services.train_qdm(
+        historical=historical,
+        reference=reference,
+        out=out,
+        variable=variable,
+        kind=kind,
+    )
+
+
 @dodola_cli.command(help="Clean up and standardize GCM")
 @click.argument("x", required=True)
 @click.argument("out", required=True)

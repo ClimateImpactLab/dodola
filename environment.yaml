@@ -16,7 +16,7 @@ dependencies:
 - xesmf
 - esmpy=8.0.1=nompi_py38h5410a82_2  # Not direct dep. Dep of xesmf.
 - bottleneck
-- xclim
 - zarr
 - pip:
+  - git+https://github.com/Ouranosinc/xclim@sdba-ufunc
   - git+https://github.com/dgergel/xsd@pointwisedownscaler_interimfix

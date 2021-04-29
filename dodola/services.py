@@ -11,6 +11,7 @@ from dodola.core import (
     standardize_gcm,
     xclim_remove_leapdays,
     qdm_rollingyearwindow,
+    train_quantiledeltamapping,
 )
 import dodola.repository as storage
 
@@ -28,6 +29,38 @@ def log_service(func):
         logger.info(f"dodola service {servicename} done")
 
     return service_logger
+
+
+@log_service
+def train_qdm(historical, reference, out, variable, kind):
+    """Train quantile delta mapping and dump to `out`
+
+    Parameters
+    ----------
+    historical : str
+        fsspec-compatible URL to historical simulation store.
+    reference : str
+        fsspec-compatible URL to store to use as model reference.
+    out : str
+        fsspec-compatible URL to store trained model.
+    variable : str
+        Name of target variable in input and output stores.
+    kind : {"precipitation", "temperature"}
+        Kind of variable. Used for QDM scaling.
+    """
+    hist = storage.read(historical)
+    ref = storage.read(reference)
+
+    kind_map = {"temperature": "+", "precipitation": "*"}
+    if kind not in kind_map.keys():
+        # So we get a helpful exception message showing accepted kwargs...
+        ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+
+    qdm = train_quantiledeltamapping(
+        historical=hist, reference=ref, variable=variable, kind=kind_map[kind]
+    )
+
+    storage.write(out, qdm)
 
 
 @log_service
