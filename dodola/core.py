@@ -3,7 +3,6 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
-from datetime import timedelta
 import logging
 import cftime
 from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
