@@ -81,7 +81,7 @@ def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
     # Figure out how many years we need to offset for our 1) year window
     # and 2) 15 day window for the earliest end of the window...
     early_limit = cftime.datetime(
-        year=earliest_year, month=12, day=15, calendar=earliest_dt.calendar
+        year=earliest_year, month=12, day=17, calendar=earliest_dt.calendar
     )
     additional_offset = 1  # +1 yr because we need 15 days from end of the first year:
     if early_limit < earliest_dt:
