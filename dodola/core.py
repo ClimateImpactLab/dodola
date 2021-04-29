@@ -50,12 +50,12 @@ def train_quantiledeltamapping(
     return qdm
 
 
-def adjust_quantiledeltamapping_year(sim, qdm, year, variable, halfyearwindow_n=10):
+def adjust_quantiledeltamapping_year(simulation, qdm, year, variable, halfyearwindow_n=10):
     """Apply QDM to adjust a year within a simulation.
 
     Parameters
     ----------
-    sim : xr.Dataset
+    simulation : xr.Dataset
         Daily simulation data to be adjusted. Must have sufficient observations
         around `year` to adjust.
     qdm : xr.Dataset or sdba.adjustment.QuantileDeltaMapping
@@ -65,7 +65,7 @@ def adjust_quantiledeltamapping_year(sim, qdm, year, variable, halfyearwindow_n=
     year : int
         Target year to adjust, with rolling years and day grouping.
     variable : str
-        Target variable in `sim` to adjust. Adjusted output will share the
+        Target variable in `simulation` to adjust. Adjusted output will share the
         same name.
     halfyearwindow_n : int, optional
         Half-length of the annual rolling window to extract along either
@@ -74,7 +74,7 @@ def adjust_quantiledeltamapping_year(sim, qdm, year, variable, halfyearwindow_n=
     Returns
     -------
     out : xr.Dataset
-        QDM-adjusted values from `sim`. May be a lazy-evaluated future, not
+        QDM-adjusted values from `simulation`. May be a lazy-evaluated future, not
         yet computed.
     """
     year = int(year)
@@ -89,10 +89,10 @@ def adjust_quantiledeltamapping_year(sim, qdm, year, variable, halfyearwindow_n=
     timeslice = slice(
         f"{year - halfyearwindow_n - 1}-12-17", f"{year + halfyearwindow_n + 1}-01-15"
     )
-    sim = sim[variable].sel(
+    simulation = simulation[variable].sel(
         time=timeslice
     )  # TODO: Need a check to ensure we have all the data in this slice!
-    out = qdm.adjust(sim, interp="nearest").sel(time=str(year))
+    out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
 
     return out.to_dataset(name=variable)
 

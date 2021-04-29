@@ -92,9 +92,7 @@ def apply_qdm(simulation, qdm, year, variable, out):
     year = int(year)
     variable = str(variable)
 
-    adjusted_ds = adjust_quantiledeltamapping_year(
-        sim=sim_df, qdm=qdm_df, year=year, variable=variable
-    )
+    adjusted_ds = adjust_quantiledeltamapping_year(simulation=sim_df, qdm=qdm_df, year=year, variable=variable)
 
     # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
     # currently faster and more reliable than Zarr Stores. This logic is handled
