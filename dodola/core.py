@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 # Break this down into a submodule(s) if needed.
 # Assume data input here is generally clean and valid.
 
+
 def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
     """Get the first and last years for QDM of ds with an rolling yearly window
 
@@ -40,11 +41,15 @@ def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
     earliest_year = earliest_dt.year
     latest_year = latest_dt.year
 
-    assert earliest_dt.calendar == latest_dt.calendar, "time values should have the same calendar"
+    assert (
+        earliest_dt.calendar == latest_dt.calendar
+    ), "time values should have the same calendar"
 
     # Figure out how many years we need to offset for our 1) year window
     # and 2) 15 day window for the earliest end of the window...
-    early_limit = cftime.datetime(year=earliest_year, month=12, day=15, calendar=earliest_dt.calendar)
+    early_limit = cftime.datetime(
+        year=earliest_year, month=12, day=15, calendar=earliest_dt.calendar
+    )
     additional_offset = 1  # +1 yr because we need 15 days from end of the first year:
     if early_limit < earliest_dt:
         # Require additional year offset if we have less than 15 days from the
@@ -53,8 +58,12 @@ def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
     firstyear = int(earliest_year + halfyearwindow_n + additional_offset)
 
     # Same as above but to find offset on the latest end of window.
-    late_limit = cftime.datetime(year=latest_year, month=1, day=15, calendar=latest_dt.calendar)
-    additional_offset = 1  # -1 yr because we need 15 days from beginning of the last year:
+    late_limit = cftime.datetime(
+        year=latest_year, month=1, day=15, calendar=latest_dt.calendar
+    )
+    additional_offset = (
+        1  # -1 yr because we need 15 days from beginning of the last year:
+    )
     if latest_dt < late_limit:
         # Use additional year offset if we fewer than 15 days from the
         # at the start of the year in the *last* year...

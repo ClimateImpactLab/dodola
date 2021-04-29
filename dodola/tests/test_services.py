@@ -86,11 +86,14 @@ def domain_file(request):
 
     return domain
 
+
 def test_find_qdm_rollingyearwindow():
     """Basic test that find_qdm_rollingyearwindow output correct time range in JSON"""
     # Create test data
     expected = {"firstyear": 2026, "lastyear": 2088}
-    t = xr.cftime_range(start="2015-01-01", freq="D", end="2100-01-01", calendar="noleap")
+    t = xr.cftime_range(
+        start="2015-01-01", freq="D", end="2100-01-01", calendar="noleap"
+    )
     x = np.ones(len(t))
     in_ds = xr.Dataset({"fakevariable": (["time"], x)}, coords={"time": t})
     in_key = "memory://test_find_qdm_rollingyearwindow/test_in.zarr"
