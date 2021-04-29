@@ -12,6 +12,7 @@ from dodola.core import (
     xclim_remove_leapdays,
     qdm_rollingyearwindow,
     train_quantiledeltamapping,
+    adjust_quantiledeltamapping_year,
 )
 import dodola.repository as storage
 
@@ -61,6 +62,46 @@ def train_qdm(historical, reference, out, variable, kind):
     )
 
     storage.write(out, qdm)
+
+
+@log_service
+def apply_qdm(simulation, qdm, year, variable, out):
+    """Apply trained QDM to adjust a year within a simulation, dump to NetCDF.
+
+    Dumping to NetCDF is a feature likely to change in the near future.
+
+    Parameters
+    ----------
+    simulation : str
+        fsspec-compatible URL containing simulation data to be adjusted.
+    qdm : str
+        fsspec-compatible URL pointing to Zarr Store containing canned
+        ``xclim.sdba.adjustment.QuantileDeltaMapping`` Dataset.
+    year : int
+        Target year to adjust, with rolling years and day grouping.
+    variable : str
+        Target variable in `sim` to adjust. Adjusted output will share the
+        same name.
+    out : str
+        fsspec-compatible path or URL pointing to NetCDF4 file where the
+        QDM-adjusted simulation data will be written.
+    """
+    sim_df = storage.read(simulation)
+    qdm_df = storage.read(qdm)
+
+    year = int(year)
+    variable = str(variable)
+
+    adjusted_ds = adjust_quantiledeltamapping_year(
+        sim=sim_df, qdm=qdm_df, year=year, variable=variable
+    )
+
+    # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
+    # currently faster and more reliable than Zarr Stores. This logic is handled
+    # in workflow and cloud artifact repository.
+    logger.debug(f"Writing to {out}")
+    adjusted_ds.to_netcdf(out, compute=True)
+    logger.info(f"Written {out}")
 
 
 @log_service

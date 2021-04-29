@@ -50,6 +50,53 @@ def train_quantiledeltamapping(
     return qdm.ds
 
 
+def adjust_quantiledeltamapping_year(sim, qdm, year, variable, halfyearwindow_n=10):
+    """Apply QDM to adjust a year within a simulation.
+
+    Parameters
+    ----------
+    sim : xr.Dataset
+        Daily simulation data to be adjusted. Must have sufficient observations
+        around `year` to adjust.
+    qdm : xr.Dataset or sdba.adjustment.QuantileDeltaMapping
+        Trained ``xclim.sdba.adjustment.QuantileDeltaMapping``, or
+        Dataset representation that will be instantiate
+        ``xclim.sdba.adjustment.QuantileDeltaMapping``.
+    year : int
+        Target year to adjust, with rolling years and day grouping.
+    variable : str
+        Target variable in `sim` to adjust. Adjusted output will share the
+        same name.
+    halfyearwindow_n : int, optional
+        Half-length of the annual rolling window to extract along either
+        side of `year`.
+
+    Returns
+    -------
+    out : xr.Dataset
+        QDM-adjusted values from `sim`. May be a lazy-evaluated future, not
+        yet computed.
+    """
+    year = int(year)
+    variable = str(variable)
+    halfyearwindow_n = int(halfyearwindow_n)
+
+    if isinstance(qdm, xr.Dataset):
+        qdm = sdba.adjustment.QuantileDeltaMapping.from_dataset(qdm)
+
+    # Slice to get 15 days before and after our target year. This accounts
+    # for the rolling 31 day rolling window.
+    timeslice = slice(
+        f"{year - halfyearwindow_n - 1}-12-17", f"{year + halfyearwindow_n + 1}-01-15"
+    )
+    sim = sim[variable].sel(
+        time=timeslice
+    )  # TODO: Need a check to ensure we have all the data in this slice!
+    out = qdm.adjust(sim, interp="nearest").sel(time=str(year))
+
+    return out.to_dataset(name=variable)
+
+
 def qdm_rollingyearwindow(ds, halfyearwindow_n=10):
     """Get the first and last years for QDM of ds with an rolling yearly window
 
