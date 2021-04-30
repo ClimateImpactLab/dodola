@@ -32,7 +32,7 @@ def _train_simple_qdm(
 
     ts_ref = np.ones(n_histdays, dtype=np.float64)
     hist = _timeseriesfactory(
-        ts_ref + additive_bias * multiplicative_bias, variable_name=target_variable
+        (ts_ref + additive_bias) * multiplicative_bias, variable_name=target_variable
     )
     ref = _timeseriesfactory(ts_ref, variable_name=target_variable)
 
