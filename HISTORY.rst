@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-*
+* Update buildweights service to add support for regridding to domain file. Not backwards compatible. (PR#67, @dgergel)
 
 
 0.2.0 (2021-04-23)
