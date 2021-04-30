@@ -3,7 +3,6 @@
 
 import numpy as np
 import pytest
-import pandas as pd
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
@@ -374,7 +373,7 @@ def test_downscale(domain_file, method, var):
     ds_bc = ds_bc.rename({"x": lon_name, "y": lat_name})
     ds_bc[lat_name] = np.unique(ds_bc[lat_name].values)
     ds_bc[lon_name] = np.unique(ds_bc[lon_name].values)
-    time = pd.date_range(start_time, end_time, freq="D")
+    time = xr.cftime_range(start_time, end_time, freq="D")
     ds_bc[var] = xr.DataArray(
         np.random.randn(len(time), len(ds_bc["lat"]), len(ds_bc["lon"])),
         dims=("time", "lat", "lon"),
@@ -446,16 +445,17 @@ def test_downscale(domain_file, method, var):
     elif var == "precipitation":
         downscaled_test = af_fine.groupby("time.dayofyear") * climo_fine
 
+    # now actually test downscaling service (everything above was purely setup)
     downscale(
         ds_bc_url,
-        climo_coarse_url,
-        climo_fine_url,
-        downscaled_url,
-        var,
-        var,
-        method,
-        domain_file_url,
-        af_saved_url,
+        y_climo_coarse=climo_coarse_url,
+        y_climo_fine=climo_fine_url,
+        out=downscaled_url,
+        train_variable=var,
+        out_variable=var,
+        method=method,
+        domain_file=domain_file_url,
+        adjustmentfactors=af_saved_url,
         weights_path=None,
     )
     downscaled_ds = repository.read(downscaled_url)[var]

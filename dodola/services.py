@@ -46,8 +46,6 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, method)
         bias-correction model.
     out : str
         Storage URL to write bias-corrected output to.
-    af : str
-        Storage URL to write fine-resolution adjustment factors to.
     out_variable : str
         Variable name used as output variable name.
     method : str
@@ -95,19 +93,19 @@ def downscale(
         Storage URL to input fine-res obs climatology to use for computing adjustment factors.
     out : str
         Storage URL to write downscaled output to.
-    adjustmentfactors : str, optional
+    adjustmentfactors : str or None, optional
         Storage URL to write fine-resolution adjustment factors to.
     train_variable : str
         Variable name used in training and obs data.
     out_variable : str
         Variable name used as output variable name.
-    method : str
+    method : {"BCSD"}
         Downscaling method to be used.
     domain_file : str
         Storage URL to input grid for regridding adjustment factors
     adjustmentfactors : str, optional
         Storage URL to write fine-resolution adjustment factors to.
-    weights_path : str, optional
+    weights_path : str or None, optional
         Storage URL for input weights for regridding
     """
     bc_ds = storage.read(x)
@@ -117,17 +115,18 @@ def downscale(
 
     adjustment_factors, downscaled_ds = apply_downscaling(
         bc_ds,
-        obs_climo_coarse,
-        obs_climo_fine,
-        train_variable,
-        out_variable,
-        method,
-        domain_fine,
+        obs_climo_coarse=obs_climo_coarse,
+        obs_climo_fine=obs_climo_fine,
+        train_variable=train_variable,
+        out_variable=out_variable,
+        method=method,
+        domain_fine=domain_fine,
         weights_path=weights_path,
     )
 
     storage.write(out, downscaled_ds)
-    storage.write(adjustmentfactors, adjustment_factors)
+    if adjustmentfactors is not None:
+        storage.write(adjustmentfactors, adjustment_factors)
 
 
 @log_service

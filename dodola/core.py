@@ -3,8 +3,7 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
-from skdownscale.pointwise_models import PointWiseDownscaler, BcsdTemperature
-from skdownscale.spatial_models import SpatialDisaggregator, apply_weights
+from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
 from xclim import sdba
 from xclim.core.calendar import convert_calendar
@@ -41,8 +40,11 @@ def apply_bias_correction(
         variable name used in downscaled output
     method : {"QDM"}
         method to be used in the applied bias correction
-    ds_predicted : Dataset
-        bias corrected future model data
+
+    Returns
+    -------
+    ds_predicted : xr.Dataset
+        Dataset that has been bias corrected.
     """
 
     if method == "QDM":
@@ -78,26 +80,28 @@ def apply_downscaling(
     Parameters
     ----------
     bc_ds : Dataset
-        bias corrected model data
+        Model data that has already been bias corrected.
     obs_climo_coarse : Dataset
-        observation climatologies at coarse resolution
+        Observation climatologies at coarse resolution.
     obs_climo_fine : Dataset
-        observation climatologies at fine resolution
+        Observation climatologies at fine resolution.
     train_variable : str
-        variable name used in obs data
+        Variable name used in obs data.
     out_variable : str
-        variable name used in downscaled output
+        Variable name used in downscaled output.
     method : {"BCSD"}
-        method to be used in the applied downscaling
+        Vethod to be used in the applied downscaling.
     domain_fine : Dataset
-        domain that specifies the fine resolution grid to downscale to
-    weights_path : str, optional
-        path to the weights file if they will be used in regridding,
-        weights for downscaling to fine resolution
-    ds_downscaled : Dataset
-        downscaled model data
-    adjustment_factors : Dataset
-        adjustment factors produced in downscaling
+        Domain that specifies the fine resolution grid to downscale to.
+    weights_path : str or None, optional
+        Path to the weights file, used for downscaling to fine resolution.
+
+    Returns
+    -------
+    af_fine : xr.Dataset
+        A dataset of adjustment factors at fine resolution used in downscaling.
+    ds_downscaled : xr.Dataset
+        A model dataset that has been downscaled from the bias correction resolution to specified domain file resolution.
     """
 
     if method == "BCSD":
