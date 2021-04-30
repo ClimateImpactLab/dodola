@@ -41,7 +41,7 @@ def dodola_cli(debug):
 @click.option("--out", "-o", required=True, help="URL to write JSON output to")
 def find_qdm_ryw(x, out):
     """Write first and last year of QDM rolling-year window for (x) to JSON (out)"""
-    services.remove_leapdays(x, out)
+    services.find_qdm_rollingyearwindow(x, out)
 
 
 @dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
