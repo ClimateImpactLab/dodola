@@ -78,6 +78,44 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
     )
 
 
+@dodola_cli.command(help="Downscale bias-corrected GCM")
+@click.argument("x", required=True)
+@click.option("--trainvariable", "-tv", required=True)
+@click.option("--yclimocoarse", "-ycc", required=True)
+@click.option("--yclimofine", "-ycf", required=True)
+@click.option("--out", "-o", required=True)
+@click.option("--outvariable", "-ov", required=True)
+@click.option("--method", "-m", required=True)
+@click.option("--domain_file", "-d", required=True)
+@click.option("--adjustmentfactors", "-af", default=None, required=False)
+@click.option("--weightspath", "-w", default=None, required=False)
+def downscale(
+    x,
+    trainvariable,
+    yclimocoarse,
+    yclimofine,
+    out,
+    outvariable,
+    method,
+    domain_file,
+    adjustmentfactors,
+    weightspath,
+):
+    """Downscale bias corrected GCM to 'out' based on obs climo (yclimocoarse, yclimofine) using (method) and (domain_file)"""
+    services.downscale(
+        x,
+        yclimocoarse,
+        yclimofine,
+        out,
+        train_variable=trainvariable,
+        out_variable=outvariable,
+        method=method,
+        domain_file=domain_file,
+        adjustmentfactors=adjustmentfactors,
+        weights_path=weightspath,
+    )
+
+
 @dodola_cli.command(help="Build NetCDF weights file for regridding")
 @click.argument("x", required=True)
 @click.option(

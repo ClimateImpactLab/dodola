@@ -8,6 +8,7 @@ from dodola.core import (
     xesmf_regrid,
     standardize_gcm,
     xclim_remove_leapdays,
+    apply_downscaling,
 )
 import dodola.repository as storage
 
@@ -65,6 +66,67 @@ def bias_correct(x, x_train, train_variable, y_train, out, out_variable, method)
     )
 
     storage.write(out, bias_corrected_ds)
+
+
+@log_service
+def downscale(
+    x,
+    y_climo_coarse,
+    y_climo_fine,
+    out,
+    train_variable,
+    out_variable,
+    method,
+    domain_file,
+    adjustmentfactors=None,
+    weights_path=None,
+):
+    """Downscale bias corrected model data with IO to storage
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to bias corrected input data to downscale.
+    y_climo_coarse : str
+        Storage URL to input coarse-res obs climatology to use for computing adjustment factors.
+    y_climo_fine : str
+        Storage URL to input fine-res obs climatology to use for computing adjustment factors.
+    out : str
+        Storage URL to write downscaled output to.
+    adjustmentfactors : str or None, optional
+        Storage URL to write fine-resolution adjustment factors to.
+    train_variable : str
+        Variable name used in training and obs data.
+    out_variable : str
+        Variable name used as output variable name.
+    method : {"BCSD"}
+        Downscaling method to be used.
+    domain_file : str
+        Storage URL to input grid for regridding adjustment factors
+    adjustmentfactors : str, optional
+        Storage URL to write fine-resolution adjustment factors to.
+    weights_path : str or None, optional
+        Storage URL for input weights for regridding
+    """
+    bc_ds = storage.read(x)
+    obs_climo_coarse = storage.read(y_climo_coarse)
+    obs_climo_fine = storage.read(y_climo_fine)
+    domain_fine = storage.read(domain_file)
+
+    adjustment_factors, downscaled_ds = apply_downscaling(
+        bc_ds,
+        obs_climo_coarse=obs_climo_coarse,
+        obs_climo_fine=obs_climo_fine,
+        train_variable=train_variable,
+        out_variable=out_variable,
+        method=method,
+        domain_fine=domain_fine,
+        weights_path=weights_path,
+    )
+
+    storage.write(out, downscaled_ds)
+    if adjustmentfactors is not None:
+        storage.write(adjustmentfactors, adjustment_factors)
 
 
 @log_service
