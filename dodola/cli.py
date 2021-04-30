@@ -133,6 +133,44 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
     )
 
 
+@dodola_cli.command(help="Downscale bias-corrected GCM")
+@click.argument("x", required=True)
+@click.option("--trainvariable", "-tv", required=True)
+@click.option("--yclimocoarse", "-ycc", required=True)
+@click.option("--yclimofine", "-ycf", required=True)
+@click.option("--out", "-o", required=True)
+@click.option("--outvariable", "-ov", required=True)
+@click.option("--method", "-m", required=True)
+@click.option("--domain_file", "-d", required=True)
+@click.option("--adjustmentfactors", "-af", default=None, required=False)
+@click.option("--weightspath", "-w", default=None, required=False)
+def downscale(
+    x,
+    trainvariable,
+    yclimocoarse,
+    yclimofine,
+    out,
+    outvariable,
+    method,
+    domain_file,
+    adjustmentfactors,
+    weightspath,
+):
+    """Downscale bias corrected GCM to 'out' based on obs climo (yclimocoarse, yclimofine) using (method) and (domain_file)"""
+    services.downscale(
+        x,
+        yclimocoarse,
+        yclimofine,
+        out,
+        train_variable=trainvariable,
+        out_variable=outvariable,
+        method=method,
+        domain_file=domain_file,
+        adjustmentfactors=adjustmentfactors,
+        weights_path=weightspath,
+    )
+
+
 @dodola_cli.command(help="Build NetCDF weights file for regridding")
 @click.argument("x", required=True)
 @click.option(
@@ -141,11 +179,9 @@ def biascorrect(x, xtrain, trainvariable, ytrain, out, outvariable, method):
     required=True,
     help="Regridding method - 'bilinear' or 'conservative'",
 )
-@click.option(
-    "--targetresolution", "-r", default=1.0, help="Global-grid resolution to regrid to"
-)
+@click.option("--domain-file", "-d", help="Domain file to regrid to")
 @click.option("--outpath", "-o", default=None, help="Local path to write weights file")
-def buildweights(x, method, targetresolution, outpath):
+def buildweights(x, method, domain_file, outpath):
     """Generate local NetCDF weights file for regridding a target climate dataset
 
     Note, the output weights file is only written to the local disk. See
@@ -156,7 +192,7 @@ def buildweights(x, method, targetresolution, outpath):
     services.build_weights(
         str(x),
         str(method),
-        target_resolution=float(targetresolution),
+        domain_file,
         outpath=str(outpath),
     )
 

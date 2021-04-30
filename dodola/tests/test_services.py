@@ -17,6 +17,7 @@ from dodola.services import (
     regrid,
     remove_leapdays,
     clean_cmip6,
+    downscale,
     find_qdm_rollingyearwindow,
     train_qdm,
     apply_qdm,
@@ -75,7 +76,6 @@ def _gcmfactory(x, start_time="1950-01-01"):
             "time_bnds": (["time_bnds"], [1.0]),
         },
     )
-    # out['time'] = out['time'].assign_attrs({'calendar': 'standard'})
     return out
 
 
@@ -218,12 +218,6 @@ def test_find_qdm_rollingyearwindow():
             ),
             id="QDM head/tail",
         ),
-        pytest.param(
-            "BCSD",
-            np.array([-0.08129293, -0.07613746, -0.0709855, -0.0658377, -0.0606947]),
-            np.array([0.0520793, 0.06581804, 0.07096781, 0.07612168, 0.08127902]),
-            id="BCSD head/tail",
-        ),
     ],
 )
 def test_bias_correct_basic_call(method, expected_head, expected_tail):
@@ -275,8 +269,12 @@ def test_bias_correct_basic_call(method, expected_head, expected_tail):
     )
 
 
-@pytest.mark.parametrize("regrid_method", ["bilinear", "conservative"])
-def test_build_weights(regrid_method, tmpdir):
+@pytest.mark.parametrize(
+    "domain_file, regrid_method",
+    [pytest.param(1.0, "bilinear"), pytest.param(1.0, "conservative")],
+    indirect=["domain_file"],
+)
+def test_build_weights(domain_file, regrid_method, tmpdir):
     """Test that services.build_weights produces a weights file"""
     # Output to tmp dir so we cleanup & don't clobber existing files...
     weightsfile = tmpdir.join("a_file_path_weights.nc")
@@ -285,10 +283,13 @@ def test_build_weights(regrid_method, tmpdir):
     ds_in = grid_global(30, 20)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
 
+    domain_file_url = "memory://test_regrid_methods/a/domainfile/path.zarr"
+    repository.write(domain_file_url, domain_file)
+
     url = "memory://test_build_weights/a_file_path.zarr"
     repository.write(url, ds_in)
 
-    build_weights(url, method=regrid_method, outpath=weightsfile)
+    build_weights(url, regrid_method, domain_file_url, outpath=weightsfile)
     # Test that weights file is actually created where we asked.
     assert weightsfile.exists()
 
@@ -413,7 +414,9 @@ def test_regrid_weights_integration(domain_file, tmpdir):
     repository.write(domain_file_url, domain_file)
 
     # First, use service to pre-build regridding weights files, then read-in to regrid.
-    build_weights(in_url, method="bilinear", outpath=weightsfile)
+    build_weights(
+        in_url, method="bilinear", domain_file=domain_file_url, outpath=weightsfile
+    )
     regrid(
         in_url,
         out=out_url,
@@ -461,3 +464,114 @@ def test_remove_leapdays():
 
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
+
+
+@pytest.mark.parametrize(
+    "domain_file, method, var",
+    [
+        pytest.param(30, "BCSD", "temperature"),
+        pytest.param(30, "BCSD", "precipitation"),
+    ],
+    indirect=["domain_file"],
+)
+def test_downscale(domain_file, method, var):
+    """Simple test of downscaling service"""
+    # set up test data
+    start_time = "1950-01-01"
+    end_time = "1951-12-31"
+
+    # make fake bias corrected data
+    res = 36
+    lat_name = "lat"
+    lon_name = "lon"
+    ds_bc = grid_global(res, res)
+    ds_bc = ds_bc.rename({"x": lon_name, "y": lat_name})
+    ds_bc[lat_name] = np.unique(ds_bc[lat_name].values)
+    ds_bc[lon_name] = np.unique(ds_bc[lon_name].values)
+    time = xr.cftime_range(start_time, end_time, freq="D")
+    ds_bc[var] = xr.DataArray(
+        np.random.randn(len(time), len(ds_bc["lat"]), len(ds_bc["lon"])),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": ds_bc["lat"], "lon": ds_bc["lon"]},
+    )
+    ds_bc = ds_bc.drop(["lon_b", "lat_b"])
+
+    # make fake climatology at coarse res
+    ds_for_climo = grid_global(res, res)
+    ds_for_climo = ds_for_climo.rename({"x": lon_name, "y": lat_name})
+    ds_for_climo[lat_name] = np.unique(ds_for_climo[lat_name].values)
+    ds_for_climo[lon_name] = np.unique(ds_for_climo[lon_name].values)
+    ds_for_climo[var] = xr.DataArray(
+        np.random.randn(len(time), len(ds_for_climo["lat"]), len(ds_for_climo["lon"])),
+        dims=("time", "lat", "lon"),
+        coords={"time": time, "lat": ds_for_climo["lat"], "lon": ds_for_climo["lon"]},
+    )
+    climo_coarse = (
+        ds_for_climo.groupby("time.dayofyear").mean().drop(["lon_b", "lat_b"])
+    )
+
+    # compute adjustment factor
+    if var == "temperature":
+        af_coarse = ds_bc.groupby("time.dayofyear") - climo_coarse
+    elif var == "precipitation":
+        af_coarse = ds_bc.groupby("time.dayofyear") / climo_coarse
+
+    ds_bc_url = "memory://test_downscale/a/biascorrected/path.zarr"
+    repository.write(ds_bc_url, ds_bc)
+
+    domain_file_url = "memory://test_downscale/a/domainfile/path.zarr"
+    repository.write(domain_file_url, domain_file)
+
+    climo_coarse_url = "memory://test_downscale/a/coarseclimo/path.zarr"
+    repository.write(climo_coarse_url, climo_coarse)
+
+    af_coarse_url = "memory://test_downscale/a/coarseaf/path.zarr"
+    repository.write(af_coarse_url, af_coarse)
+
+    climo_fine_url = "memory://test_downscale/a/fineclimo/path.zarr"
+
+    af_fine_url = "memory://test_downscale/a/fineaf/path.zarr"
+
+    downscaled_url = "memory://test_downscale/a/downscaled/path.zarr"
+
+    af_saved_url = "memory://test_downscale/a/afsaved/path.zarr"
+
+    # regrid climatology to fine resolution
+    regrid(
+        climo_coarse_url,
+        out=climo_fine_url,
+        method="bilinear",
+        domain_file=domain_file_url,
+    )
+    climo_fine = repository.read(climo_fine_url)[var]
+
+    # regrid adjustment factor
+    regrid(
+        af_coarse_url,
+        af_fine_url,
+        method="bilinear",
+        domain_file=domain_file_url,
+    )
+    af_fine = repository.read(af_fine_url)[var]
+
+    # compute test downscaled values
+    if var == "temperature":
+        downscaled_test = af_fine.groupby("time.dayofyear") + climo_fine
+    elif var == "precipitation":
+        downscaled_test = af_fine.groupby("time.dayofyear") * climo_fine
+
+    # now actually test downscaling service (everything above was purely setup)
+    downscale(
+        ds_bc_url,
+        y_climo_coarse=climo_coarse_url,
+        y_climo_fine=climo_fine_url,
+        out=downscaled_url,
+        train_variable=var,
+        out_variable=var,
+        method=method,
+        domain_file=domain_file_url,
+        adjustmentfactors=af_saved_url,
+        weights_path=None,
+    )
+    downscaled_ds = repository.read(downscaled_url)[var]
+    np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
