@@ -118,7 +118,7 @@ def test_adjust_quantiledeltamapping_year_output_time():
     # Setup input data.
     target_variable = "fakevariable"
     variable_kind = "+"
-    n_simdays = 100 * 365  # 100 years of daily simulation.
+    n_simdays = 85 * 365
 
     model_bias = 2.0
     ts_sim = np.ones(n_simdays, dtype=np.float64)
