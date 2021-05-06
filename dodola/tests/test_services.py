@@ -98,7 +98,7 @@ def test_apply_qdm(tmpdir):
     """
     # Setup input data.
     target_variable = "fakevariable"
-    variable_kind = "temperature"
+    variable_kind = "additive"
     n_histdays = 10 * 365  # 10 years of daily historical.
     n_simdays = 50 * 365  # 50 years of daily simulation.
 
@@ -142,11 +142,11 @@ def test_apply_qdm(tmpdir):
     assert target_variable in adjusted_ds.variables
 
 
-@pytest.mark.parametrize("kind", ["precipitation", "temperature"])
+@pytest.mark.parametrize("kind", ["multiplicative", "additive"])
 def test_train_qdm(kind):
     """Test that train_qdm outputs store giving sdba.adjustment.QuantileDeltaMapping
 
-    Checks that output is consistent if we do "temperature" or "precipitation"
+    Checks that output is consistent if we do "additive" or "multiplicative"
     QDM kinds.
     """
     # Setup input data.

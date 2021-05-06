@@ -74,7 +74,7 @@ def apply_qdm(simulation, qdm, year, variable, out):
     "--kind",
     "-k",
     required=True,
-    type=click.Choice(["temperature", "precipitation"], case_sensitive=True),
+    type=click.Choice(["additive", "multiplicative"], case_sensitive=False),
     help="Variable kind for mapping",
 )
 @click.option("--out", "-o", required=True, help="URL to write QDM model to")

@@ -47,13 +47,13 @@ def train_qdm(historical, reference, out, variable, kind):
         fsspec-compatible URL to store trained model.
     variable : str
         Name of target variable in input and output stores.
-    kind : {"precipitation", "temperature"}
-        Kind of variable. Used for QDM scaling.
+    kind : {"additive", "multiplicative"}
+        Kind of QDM scaling.
     """
     hist = storage.read(historical)
     ref = storage.read(reference)
 
-    kind_map = {"temperature": "+", "precipitation": "*"}
+    kind_map = {"additive": "+", "multiplicative": "*"}
     if kind not in kind_map.keys():
         # So we get a helpful exception message showing accepted kwargs...
         ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
