@@ -58,7 +58,7 @@ def find_qdm_ryw(x, out):
     help="URL to write NetCDF4 with adjusted simulation year to",
 )
 def apply_qdm(simulation, qdm, year, variable, out):
-    """Adjust simulation year with QDM, outputting to local NetCDF4 file"""
+    """Adjust simulation year with QDM bias correction method, outputting to local NetCDF4 file"""
     services.apply_qdm(
         simulation=simulation, qdm=qdm, year=year, variable=variable, out=out
     )
