@@ -59,7 +59,7 @@ def train_qdm(historical, reference, out, variable, kind):
         ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     qdm = train_quantiledeltamapping(
-        historical=hist, reference=ref, variable=variable, kind=kind_map[kind]
+        reference=ref, historical=hist, variable=variable, kind=kind_map[kind]
     )
 
     storage.write(out, qdm.ds)

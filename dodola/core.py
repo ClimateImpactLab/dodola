@@ -18,16 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 def train_quantiledeltamapping(
-    historical, reference, variable, kind, quantiles_n=100, window_n=31
+    reference, historical, variable, kind, quantiles_n=100, window_n=31
 ):
     """Train quantile delta mapping
 
     Parameters
     ----------
-    historical : xr.Dataset
-        Dataset to use as historical simulation.
     reference : xr.Dataset
         Dataset to use as model reference.
+    historical : xr.Dataset
+        Dataset to use as historical simulation.
     variable : str
         Name of target variable to extract from `historical` and `reference`.
     kind : {"+", "*"}
