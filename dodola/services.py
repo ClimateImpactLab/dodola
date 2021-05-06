@@ -87,14 +87,14 @@ def apply_qdm(simulation, qdm, year, variable, out):
         fsspec-compatible path or URL pointing to NetCDF4 file where the
         QDM-adjusted simulation data will be written.
     """
-    sim_df = storage.read(simulation)
-    qdm_df = storage.read(qdm)
+    sim_ds = storage.read(simulation)
+    qdm_ds = storage.read(qdm)
 
     year = int(year)
     variable = str(variable)
 
     adjusted_ds = adjust_quantiledeltamapping_year(
-        simulation=sim_df, qdm=qdm_df, year=year, variable=variable
+        simulation=sim_ds, qdm=qdm_ds, year=year, variable=variable
     )
 
     # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
