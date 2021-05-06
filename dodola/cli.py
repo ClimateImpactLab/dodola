@@ -79,7 +79,7 @@ def apply_qdm(simulation, qdm, year, variable, out):
 )
 @click.option("--out", "-o", required=True, help="URL to write QDM model to")
 def train_qdm(historical, reference, out, variable, kind):
-    """Train Quantile Delta Mapping (QDM) and output to storage"""
+    """Train Quantile Delta Mapping (QDM) model and output to storage"""
     services.train_qdm(
         historical=historical,
         reference=reference,
