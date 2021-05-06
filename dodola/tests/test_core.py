@@ -57,6 +57,7 @@ def _train_simple_qdm(
         pytest.param(
             ("2015-01-01", "2100-02-01"), (2026, 2089), id="early start, late end"
         ),
+        pytest.param(("2004-12-15", "2111-01-15"), (2015, 2100), id="ideal time"),
     ],
 )
 def test_qdm_rollingyearwindow(in_dts, goalyears):
