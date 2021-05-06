@@ -48,7 +48,7 @@ def find_qdm_ryw(x, out):
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
 )
-@click.option("--qdm", "-q", required=True, help="URL to trained QDM store")
+@click.option("--qdm", "-q", required=True, help="URL to trained QDM model store")
 @click.option("--year", "-y", required=True, help="Year of simulation to adjust")
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
