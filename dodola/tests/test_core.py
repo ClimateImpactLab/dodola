@@ -60,7 +60,7 @@ def _train_simple_qdm(
     ],
 )
 def test_qdm_rollingyearwindow(in_dts, goalyears):
-    """Test qdm_rollingyearwindow ensures account for have 15 day buffer in edge years"""
+    """Test qdm_rollingyearwindow accounts for ± 15 day buffer at time edges"""
     # Create test data
     t = xr.cftime_range(start=in_dts[0], end=in_dts[1], freq="D", calendar="noleap")
     x = np.ones(len(t))
