@@ -69,7 +69,7 @@ def apply_qdm(simulation, qdm, year, variable, out):
     "--historical", "-h", required=True, help="URL to historical simulation store"
 )
 @click.option(
-    "--reference", "-r", required=True, help="URL to store to use as reference"
+    "--reference", "-r", required=True, help="URL to reference data store"
 )
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
