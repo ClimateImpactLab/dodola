@@ -12,7 +12,7 @@ dependencies:
 - pytest
 - python=3.8
 - s3fs
-- xarray=0.17.0 # Pinned for bug in dodola.services.rechunk
+- xarray
 - xesmf
 - bottleneck
 - xclim
