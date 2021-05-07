@@ -2,10 +2,10 @@ name: base
 channels:
 - conda-forge
 dependencies:
-- adlfs=0.6
+- adlfs
 - click
 - cftime
-- fsspec=0.8.7 # Pinned req. for adlfs < 0.7
+- fsspec
 - gcsfs
 - numpy
 - pip
