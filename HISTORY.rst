@@ -7,6 +7,7 @@ History
 ------------------
 * Update buildweights service to add support for regridding to domain file. Not backwards compatible. (PR#67, @dgergel)
 * Add downscaling service. Currently support BCSD spatial disaggregation as implemented in scikit-downscale. (PR#65, @dgergel)
+* Remove stdout buffering from container runs, add IO debug logging. (PR#72, @brews)
 
 0.2.0 (2021-04-23)
 ------------------
