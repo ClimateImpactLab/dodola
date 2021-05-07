@@ -1,6 +1,7 @@
 FROM continuumio/miniconda3:4.9.2
 
 ENV PATH /opt/conda/bin:$PATH
+ENV PYTHONUNBUFFERED TRUE
 RUN conda install mamba -c conda-forge && conda clean --all
 
 # Copy only app requirements to cache dependencies
