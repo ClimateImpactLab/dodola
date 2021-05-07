@@ -20,6 +20,7 @@ def read(url_or_path):
     -------
     xr.Dataset
     """
+    logger.debug(f"Reading {url_or_path}")
     x = open_zarr(url_or_path)
     logger.info(f"Read {url_or_path}")
     return x
@@ -37,5 +38,6 @@ def write(url_or_path, x):
         Location to write Zarr store to.
     x : xr.Dataset
     """
+    logger.debug(f"Writing {url_or_path}")
     x.to_zarr(url_or_path, mode="w", compute=True)
     logger.info(f"Written {url_or_path}")
