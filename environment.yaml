@@ -2,19 +2,18 @@ name: base
 channels:
 - conda-forge
 dependencies:
-- adlfs=0.6
+- adlfs
 - click
 - cftime
-- fsspec=0.8.7 # Pinned req. for adlfs < 0.7
+- fsspec
 - gcsfs
 - numpy
 - pip
 - pytest
-- python=3.8
+- python=3.9
 - s3fs
-- xarray=0.17.0 # Pinned for bug in dodola.services.rechunk
+- xarray
 - xesmf
-- esmpy=8.0.1=nompi_py38h5410a82_2  # Not direct dep. Dep of xesmf.
 - bottleneck
 - zarr
 - pip:
