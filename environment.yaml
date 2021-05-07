@@ -10,7 +10,7 @@ dependencies:
 - numpy
 - pip
 - pytest
-- python=3.8
+- python=3.9
 - s3fs
 - xarray
 - xesmf
