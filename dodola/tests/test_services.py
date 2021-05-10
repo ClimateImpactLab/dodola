@@ -14,6 +14,7 @@ from dodola.services import (
     remove_leapdays,
     clean_cmip6,
     downscale,
+    correct_wet_day_frequency,
 )
 import dodola.repository as repository
 
@@ -349,6 +350,47 @@ def test_remove_leapdays():
 
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
+
+
+@pytest.mark.parametrize(
+    "process", [pytest.param("pre-process"), pytest.param("post-process")]
+)
+def test_correct_wet_day_frequency(process):
+    """Test that wet day frequency correction corrects the frequency of wet days"""
+    # Make some fake precip data
+    n = 1500
+    threshold = 0.05
+    ts = np.linspace(0.0, 10, num=n)
+    ds_precip = _datafactory(ts, start_time="1950-01-01")
+    in_url = "memory://test_correct_wet_day_frequency/an/input/path.zarr"
+    out_url = "memory://test_correct_wet_day_frequency/an/output/path.zarr"
+    repository.write(in_url, ds_precip)
+
+    correct_wet_day_frequency(in_url, out=out_url, process=process)
+    ds_precip_corrected = repository.read(out_url)
+
+    if process == "pre-process":
+        # all 0 values should have been set to a random uniform value below 0.05
+        assert (
+            ds_precip_corrected["fakevariable"].where(
+                ds_precip["fakevariable"] == 0, drop=True
+            )
+            != 0.0
+        )
+        assert (
+            ds_precip_corrected["fakevariable"].where(
+                ds_precip["fakevariable"] == 0, drop=True
+            )
+            < threshold
+        )
+    elif process == "post-process":
+        # all values below 0.05 should be reset to 0
+        assert (
+            ds_precip_corrected["fakevariable"]
+            .where(ds_precip["fakevariable"] < 0.05, drop=True)
+            .all()
+            == 0.0
+        )
 
 
 @pytest.mark.parametrize(

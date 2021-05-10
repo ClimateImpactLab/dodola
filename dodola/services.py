@@ -9,6 +9,7 @@ from dodola.core import (
     standardize_gcm,
     xclim_remove_leapdays,
     apply_downscaling,
+    apply_wet_day_frequency_correction,
 )
 import dodola.repository as storage
 
@@ -242,6 +243,24 @@ def remove_leapdays(x, out):
     ds = storage.read(x)
     noleap_ds = xclim_remove_leapdays(ds)
     storage.write(out, noleap_ds)
+
+
+@log_service
+def correct_wet_day_frequency(x, out, process):
+    """Corrects wet day frequency in a dataset
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be regridded.
+    out : str
+        Storage URL to write regridded output to.
+    process : {"pre-process", "post-process"}
+        Step in pipeline, used in determining how to correct.
+    """
+    ds = storage.read(x)
+    ds_corrected = apply_wet_day_frequency_correction(ds, process=process)
+    storage.write(out, ds_corrected)
 
 
 @log_service

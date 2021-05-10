@@ -3,6 +3,7 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
+import numpy as np
 from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
 from xclim import sdba
@@ -231,3 +232,26 @@ def xclim_remove_leapdays(ds):
     """
     ds_noleap = convert_calendar(ds, target="noleap")
     return ds_noleap
+
+
+def apply_wet_day_frequency_correction(ds, process):
+    """
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    process : str
+
+    Returns
+    -------
+    xr.Dataset
+    """
+    threshold = 0.05  # mm/day
+    low = 1e-16
+    if process == "pre-process":
+        ds_corrected = ds.where(ds != 0.0, np.random.uniform(low=low, high=threshold))
+    elif process == "post-process":
+        ds_corrected = ds.where(ds >= threshold, 0.0)
+    else:
+        raise ValueError("this processing option is not implemented")
+    return ds_corrected
