@@ -3,7 +3,6 @@ import pytest
 import xarray as xr
 import cftime
 from dodola.core import (
-    qdm_rollingyearwindow,
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
 )
@@ -46,34 +45,6 @@ def _train_simple_qdm(
 
 
 @pytest.mark.parametrize(
-    "in_dts, goalyears",
-    [
-        pytest.param(
-            ("2015-01-01", "2100-01-01"), (2026, 2088), id="early start, early end"
-        ),
-        pytest.param(
-            ("2015-12-25", "2100-01-01"), (2027, 2088), id="late start, early end"
-        ),
-        pytest.param(
-            ("2015-01-01", "2100-02-01"), (2026, 2089), id="early start, late end"
-        ),
-        pytest.param(("2004-12-15", "2111-01-15"), (2015, 2100), id="ideal time"),
-    ],
-)
-def test_qdm_rollingyearwindow(in_dts, goalyears):
-    """Test qdm_rollingyearwindow accounts for ± 15 day buffer at time edges"""
-    # Create test data
-    t = xr.cftime_range(start=in_dts[0], end=in_dts[1], freq="D", calendar="noleap")
-    x = np.ones(len(t))
-    in_ds = xr.Dataset({"fakevariable": (["time"], x)}, coords={"time": t})
-
-    actual_first, actual_last = qdm_rollingyearwindow(in_ds)
-
-    assert actual_first == goalyears[0]
-    assert actual_last == goalyears[1]
-
-
-@pytest.mark.parametrize(
     "variable_kind, expected",
     [
         pytest.param("+", -1.0, id="additive kind"),
@@ -92,8 +63,7 @@ def test_adjust_quantiledeltamapping_year_kind(variable_kind, expected):
         ts_sim * model_bias, start_dt="2015-01-01", variable_name=target_variable
     )
 
-    # Target the earliest year we can:
-    target_year, _ = qdm_rollingyearwindow(sim)
+    target_year = 2026
 
     # Yes, I'm intentionally training the QDM to a different bias. This is to
     # spurn a difference between "kind" adjustments...
@@ -127,8 +97,7 @@ def test_adjust_quantiledeltamapping_year_output_time():
         ts_sim + model_bias, start_dt="2015-01-01", variable_name=target_variable
     )
 
-    # Target the earliest year we can:
-    _, target_year = qdm_rollingyearwindow(sim)
+    target_year = 2088
 
     qdm = _train_simple_qdm(
         target_variable="fakevariable", kind=variable_kind, additive_bias=model_bias
