@@ -1,15 +1,12 @@
 """Test application services
 """
 
-import json
 import numpy as np
 import pytest
-import fsspec
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
 from xclim.sdba.adjustment import QuantileDeltaMapping
-from dodola.core import qdm_rollingyearwindow
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -18,7 +15,6 @@ from dodola.services import (
     remove_leapdays,
     clean_cmip6,
     downscale,
-    find_qdm_rollingyearwindow,
     train_qdm,
     apply_qdm,
 )
@@ -121,8 +117,7 @@ def test_apply_qdm(tmpdir):
     repository.write(hist_key, hist)
     repository.write(ref_key, ref)
 
-    # Target the earliest year we can:
-    target_year, _ = qdm_rollingyearwindow(sim)
+    target_year = 1995
 
     train_qdm(
         historical=hist_key,
@@ -176,27 +171,6 @@ def test_train_qdm(kind):
     )
 
     assert QuantileDeltaMapping.from_dataset(repository.read(output_key))
-
-
-def test_find_qdm_rollingyearwindow():
-    """Basic test that find_qdm_rollingyearwindow output correct time range in JSON"""
-    # Create test data
-    expected = {"firstyear": 2026, "lastyear": 2088}
-    t = xr.cftime_range(
-        start="2015-01-01", freq="D", end="2100-01-01", calendar="noleap"
-    )
-    x = np.ones(len(t))
-    in_ds = xr.Dataset({"fakevariable": (["time"], x)}, coords={"time": t})
-    in_key = "memory://test_find_qdm_rollingyearwindow/test_in.zarr"
-    out_key = "memory://test_find_qdm_rollingyearwindow/test_out.json"
-    repository.write(in_key, in_ds)
-
-    find_qdm_rollingyearwindow(in_key, out_key)
-
-    # Can't use repository read because output is JSON...
-    with fsspec.open(out_key) as fl:
-        actual = json.load(fl)
-    assert actual == expected
 
 
 @pytest.mark.parametrize(
