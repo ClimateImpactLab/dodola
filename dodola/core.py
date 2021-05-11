@@ -3,14 +3,99 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
+import logging
 from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
 from xclim import sdba
 from xclim.core.calendar import convert_calendar
 import xesmf as xe
 
+logger = logging.getLogger(__name__)
+
 # Break this down into a submodule(s) if needed.
 # Assume data input here is generally clean and valid.
+
+
+def train_quantiledeltamapping(
+    reference, historical, variable, kind, quantiles_n=100, window_n=31
+):
+    """Train quantile delta mapping
+
+    Parameters
+    ----------
+    reference : xr.Dataset
+        Dataset to use as model reference.
+    historical : xr.Dataset
+        Dataset to use as historical simulation.
+    variable : str
+        Name of target variable to extract from `historical` and `reference`.
+    kind : {"+", "*"}
+        Kind of variable. Used for QDM scaling.
+    quantiles_n : int, optional
+        Number of quantiles for QDM.
+    window_n : int, optional
+        Centered window size for day-of-year grouping.
+
+    Returns
+    -------
+    xclim.sdba.adjustment.QuantileDeltaMapping
+    """
+    qdm = sdba.adjustment.QuantileDeltaMapping(
+        kind=str(kind),
+        group=sdba.Grouper("time.dayofyear", window=int(window_n)),
+        nquantiles=int(quantiles_n),
+    )
+    qdm.train(ref=reference[variable], hist=historical[variable])
+    return qdm
+
+
+def adjust_quantiledeltamapping_year(
+    simulation, qdm, year, variable, halfyearwindow_n=10
+):
+    """Apply QDM to adjust a year within a simulation.
+
+    Parameters
+    ----------
+    simulation : xr.Dataset
+        Daily simulation data to be adjusted. Must have sufficient observations
+        around `year` to adjust.
+    qdm : xr.Dataset or sdba.adjustment.QuantileDeltaMapping
+        Trained ``xclim.sdba.adjustment.QuantileDeltaMapping``, or
+        Dataset representation that will be instantiate
+        ``xclim.sdba.adjustment.QuantileDeltaMapping``.
+    year : int
+        Target year to adjust, with rolling years and day grouping.
+    variable : str
+        Target variable in `simulation` to adjust. Adjusted output will share the
+        same name.
+    halfyearwindow_n : int, optional
+        Half-length of the annual rolling window to extract along either
+        side of `year`.
+
+    Returns
+    -------
+    out : xr.Dataset
+        QDM-adjusted values from `simulation`. May be a lazy-evaluated future, not
+        yet computed.
+    """
+    year = int(year)
+    variable = str(variable)
+    halfyearwindow_n = int(halfyearwindow_n)
+
+    if isinstance(qdm, xr.Dataset):
+        qdm = sdba.adjustment.QuantileDeltaMapping.from_dataset(qdm)
+
+    # Slice to get 15 days before and after our target year. This accounts
+    # for the rolling 31 day rolling window.
+    timeslice = slice(
+        f"{year - halfyearwindow_n - 1}-12-17", f"{year + halfyearwindow_n + 1}-01-15"
+    )
+    simulation = simulation[variable].sel(
+        time=timeslice
+    )  # TODO: Need a check to ensure we have all the data in this slice!
+    out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
+
+    return out.to_dataset(name=variable)
 
 
 def apply_bias_correction(
