@@ -268,7 +268,7 @@ def standardize_gcm(ds, leapday_removal=True):
 
     Parameters
     ----------
-    x : xr.Dataset
+    ds : xr.Dataset
     leapday_removal : bool, optional
 
     Returns
