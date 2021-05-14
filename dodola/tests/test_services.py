@@ -417,7 +417,6 @@ def test_clean_cmip6():
     clean_cmip6(in_url, out_url, leapday_removal=True)
     ds_cleaned = repository.read(out_url)
 
-
     assert "height" not in ds_cleaned.coords
     assert "member_id" not in ds_cleaned.coords
     assert "time_bnds" not in ds_cleaned.coords
