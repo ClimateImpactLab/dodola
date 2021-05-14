@@ -10,7 +10,7 @@ History
 * Add downscaling service. Currently support BCSD spatial disaggregation as implemented in scikit-downscale. (PR #65, @dgergel)
 * Remove stdout buffering from container runs, add IO debug logging. (PR #72, @brews)
 * Add bias-correction quantile delta mapping (QDM) components to support Argo Workflows. New commands added: ``dodola train-qdm`` and ``dodola apply-qdm``. (PR #70, @brews)
-
+* Fix CMIP6 clean to better handle coords vs dims. (PR #81, @brews)
 
 0.2.0 (2021-04-23)
 ------------------
