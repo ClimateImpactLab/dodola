@@ -65,11 +65,12 @@ def _gcmfactory(x, start_time="1950-01-01"):
         coords={
             "index": time,
             "time": time,
+            "bnds": [0, 1],
             "lon": (["lon"], [1.0]),
             "lat": (["lat"], [1.0]),
             "member_id": (["member_id"], [1.0]),
             "height": (["height"], [1.0]),
-            "time_bnds": (["time_bnds"], [1.0]),
+            "time_bnds": (["time", "bnds"], np.ones((len(x), 2))),
         },
     )
     return out
@@ -416,9 +417,10 @@ def test_clean_cmip6():
     clean_cmip6(in_url, out_url, leapday_removal=True)
     ds_cleaned = repository.read(out_url)
 
-    assert "height" not in ds_cleaned.dims
-    assert "member_id" not in ds_cleaned.dims
-    assert "time_bnds" not in ds_cleaned.dims
+
+    assert "height" not in ds_cleaned.coords
+    assert "member_id" not in ds_cleaned.coords
+    assert "time_bnds" not in ds_cleaned.coords
 
 
 def test_remove_leapdays():
