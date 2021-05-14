@@ -275,19 +275,22 @@ def standardize_gcm(ds, leapday_removal=True):
     -------
     xr.Dataset
     """
-    dims_to_drop = []
-    if "height" in ds.dims:
-        dims_to_drop.append("height")
-    if "member_id" in ds.dims:
-        dims_to_drop.append("member_id")
-    if "time_bnds" in ds.dims:
-        dims_to_drop.append("time_bnds")
+    # Remove cruft coordinates, variables, dims.
+    cruft_vars = ("height", "member_id", "time_bnds")
 
-    if "member_id" in ds.dims:
-        ds_cleaned = ds.isel(member_id=0).drop(dims_to_drop)
-    else:
-        ds_cleaned = ds.drop(dims_to_drop)
+    dims_to_squeeze = []
+    coords_to_drop = []
+    for v in cruft_vars:
+        if v in ds.dims:
+            dims_to_squeeze.append(v)
+        elif v in ds.coords:
+            coords_to_drop.append(v)
 
+    ds_cleaned = ds.squeeze(dims_to_squeeze, drop=True).reset_coords(
+        coords_to_drop, drop=True
+    )
+
+    # Cleanup time.
     if leapday_removal:
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":
