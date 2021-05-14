@@ -299,7 +299,7 @@ def standardize_gcm(ds, leapday_removal=True):
         ds_noleap = xclim_remove_leapdays(ds_cleaned)
 
         # rechunk, otherwise chunks are different sizes
-        ds_out = ds_noleap.chunk(730, len(ds.lat), len(ds.lon))
+        ds_out = ds_noleap.chunk({"time": 730, "lat": len(ds.lat), "lon": len(ds.lon)})
     else:
         ds_out = ds_cleaned
 
