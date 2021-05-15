@@ -3,6 +3,7 @@ channels:
 - conda-forge
 dependencies:
 - adlfs
+- dask=2021.4.1  # We don't directly depend on this, pinning so it doesn't break xarray=v0.18.0
 - click
 - cftime
 - fsspec
