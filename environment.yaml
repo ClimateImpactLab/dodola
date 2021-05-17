@@ -3,6 +3,7 @@ channels:
 - conda-forge
 dependencies:
 - adlfs
+- dask=2021.4.1  # We don't directly depend on this, pinning so it doesn't break xarray=v0.18.0
 - click
 - cftime
 - fsspec
@@ -15,7 +16,7 @@ dependencies:
 - xarray
 - xesmf
 - bottleneck
-- xclim
 - zarr
 - pip:
   - git+https://github.com/dgergel/xsd@feature/add_spatial_disaggregation_recipe
+  - git+https://github.com/Ouranosinc/xclim@6bfb8028a148f11afab954e5138f7de820f8860e  #spec commit from @sdba-ufunc

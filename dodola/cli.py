@@ -36,6 +36,51 @@ def dodola_cli(debug):
     logging.basicConfig(level=loglevel)
 
 
+@dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
+@click.option(
+    "--simulation", "-s", required=True, help="URL to simulation store to adjust"
+)
+@click.option("--qdm", "-q", required=True, help="URL to trained QDM model store")
+@click.option("--year", "-y", required=True, help="Year of simulation to adjust")
+@click.option("--variable", "-v", required=True, help="Variable name in data stores")
+@click.option(
+    "--out",
+    "-o",
+    required=True,
+    help="URL to write NetCDF4 with adjusted simulation year to",
+)
+def apply_qdm(simulation, qdm, year, variable, out):
+    """Adjust simulation year with QDM bias correction method, outputting to local NetCDF4 file"""
+    services.apply_qdm(
+        simulation=simulation, qdm=qdm, year=year, variable=variable, out=out
+    )
+
+
+@dodola_cli.command(help="Train quantile delta mapping (QDM)")
+@click.option(
+    "--historical", "-h", required=True, help="URL to historical simulation store"
+)
+@click.option("--reference", "-r", required=True, help="URL to reference data store")
+@click.option("--variable", "-v", required=True, help="Variable name in data stores")
+@click.option(
+    "--kind",
+    "-k",
+    required=True,
+    type=click.Choice(["additive", "multiplicative"], case_sensitive=False),
+    help="Variable kind for mapping",
+)
+@click.option("--out", "-o", required=True, help="URL to write QDM model to")
+def train_qdm(historical, reference, out, variable, kind):
+    """Train Quantile Delta Mapping (QDM) model and output to storage"""
+    services.train_qdm(
+        historical=historical,
+        reference=reference,
+        out=out,
+        variable=variable,
+        kind=kind,
+    )
+
+
 @dodola_cli.command(help="Clean up and standardize GCM")
 @click.argument("x", required=True)
 @click.argument("out", required=True)

@@ -6,6 +6,7 @@ import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
+from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -15,11 +16,13 @@ from dodola.services import (
     clean_cmip6,
     downscale,
     correct_wet_day_frequency,
+    train_qdm,
+    apply_qdm,
 )
 import dodola.repository as repository
 
 
-def _datafactory(x, start_time="1950-01-01"):
+def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
     """Populate xr.Dataset with synthetic data for testing"""
     start_time = str(start_time)
     if x.ndim != 1:
@@ -30,7 +33,7 @@ def _datafactory(x, start_time="1950-01-01"):
     )
 
     out = xr.Dataset(
-        {"fakevariable": (["time", "lon", "lat"], x[:, np.newaxis, np.newaxis])},
+        {variable_name: (["time", "lon", "lat"], x[:, np.newaxis, np.newaxis])},
         coords={
             "index": time,
             "time": time,
@@ -63,11 +66,12 @@ def _gcmfactory(x, start_time="1950-01-01"):
         coords={
             "index": time,
             "time": time,
+            "bnds": [0, 1],
             "lon": (["lon"], [1.0]),
             "lat": (["lat"], [1.0]),
             "member_id": (["member_id"], [1.0]),
             "height": (["height"], [1.0]),
-            "time_bnds": (["time_bnds"], [1.0]),
+            "time_bnds": (["time", "bnds"], np.ones((len(x), 2))),
         },
     )
     return out
@@ -83,6 +87,92 @@ def domain_file(request):
     domain[lon_name] = np.unique(domain[lon_name].values)
 
     return domain
+
+
+def test_apply_qdm(tmpdir):
+    """Test to apply a trained QDM to input data and read the output.
+
+    This is an integration test between train_qdm, apply_qdm.
+    """
+    # Setup input data.
+    target_variable = "fakevariable"
+    variable_kind = "additive"
+    n_histdays = 10 * 365  # 10 years of daily historical.
+    n_simdays = 50 * 365  # 50 years of daily simulation.
+
+    model_bias = 2
+    ts_ref = np.ones(n_histdays, dtype=np.float64)
+    ts_sim = np.ones(n_simdays, dtype=np.float64)
+    hist = _datafactory(ts_ref + model_bias, variable_name=target_variable)
+    ref = _datafactory(ts_ref, variable_name=target_variable)
+    sim = _datafactory(ts_sim + model_bias, variable_name=target_variable)
+
+    # Load up a fake repo with our input data in the place of big data and cloud
+    # storage.
+    qdm_key = "memory://test_apply_qdm/qdm.zarr"
+    hist_key = "memory://test_apply_qdm/hist.zarr"
+    ref_key = "memory://test_apply_qdm/ref.zarr"
+    sim_key = "memory://test_apply_qdm/sim.zarr"
+    # Writes NC to local disk, so dif format here:
+    sim_adjusted_key = tmpdir.join("sim_adjusted.nc")
+    repository.write(sim_key, sim)
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    target_year = 1995
+
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=qdm_key,
+        variable=target_variable,
+        kind=variable_kind,
+    )
+    apply_qdm(
+        simulation=sim_key,
+        qdm=qdm_key,
+        year=target_year,
+        variable=target_variable,
+        out=sim_adjusted_key,
+    )
+    adjusted_ds = xr.open_dataset(str(sim_adjusted_key))
+    assert target_variable in adjusted_ds.variables
+
+
+@pytest.mark.parametrize("kind", ["multiplicative", "additive"])
+def test_train_qdm(kind):
+    """Test that train_qdm outputs store giving sdba.adjustment.QuantileDeltaMapping
+
+    Checks that output is consistent if we do "additive" or "multiplicative"
+    QDM kinds.
+    """
+    # Setup input data.
+    n_years = 10
+    n = n_years * 365
+
+    model_bias = 2
+    ts = np.sin(np.linspace(-10 * 3.14, 10 * 3.14, n)) * 0.5
+    hist = _datafactory(ts + model_bias)
+    ref = _datafactory(ts)
+
+    output_key = "memory://test_train_qdm/test_output.zarr"
+    hist_key = "memory://test_train_qdm/hist.zarr"
+    ref_key = "memory://test_train_qdm/ref.zarr"
+
+    # Load up a fake repo with our input data in the place of big data and cloud
+    # storage.
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=output_key,
+        variable="fakevariable",
+        kind=kind,
+    )
+
+    assert QuantileDeltaMapping.from_dataset(repository.read(output_key))
 
 
 @pytest.mark.parametrize(
@@ -328,9 +418,9 @@ def test_clean_cmip6():
     clean_cmip6(in_url, out_url, leapday_removal=True)
     ds_cleaned = repository.read(out_url)
 
-    assert "height" not in ds_cleaned.dims
-    assert "member_id" not in ds_cleaned.dims
-    assert "time_bnds" not in ds_cleaned.dims
+    assert "height" not in ds_cleaned.coords
+    assert "member_id" not in ds_cleaned.coords
+    assert "time_bnds" not in ds_cleaned.coords
 
 
 def test_remove_leapdays():

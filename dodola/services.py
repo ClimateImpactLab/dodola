@@ -10,6 +10,8 @@ from dodola.core import (
     xclim_remove_leapdays,
     apply_downscaling,
     apply_wet_day_frequency_correction,
+    train_quantiledeltamapping,
+    adjust_quantiledeltamapping_year,
 )
 import dodola.repository as storage
 
@@ -27,6 +29,78 @@ def log_service(func):
         logger.info(f"dodola service {servicename} done")
 
     return service_logger
+
+
+@log_service
+def train_qdm(historical, reference, out, variable, kind):
+    """Train quantile delta mapping and dump to `out`
+
+    Parameters
+    ----------
+    historical : str
+        fsspec-compatible URL to historical simulation store.
+    reference : str
+        fsspec-compatible URL to store to use as model reference.
+    out : str
+        fsspec-compatible URL to store trained model.
+    variable : str
+        Name of target variable in input and output stores.
+    kind : {"additive", "multiplicative"}
+        Kind of QDM scaling.
+    """
+    hist = storage.read(historical)
+    ref = storage.read(reference)
+
+    kind_map = {"additive": "+", "multiplicative": "*"}
+    if kind not in kind_map.keys():
+        # So we get a helpful exception message showing accepted kwargs...
+        ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+
+    qdm = train_quantiledeltamapping(
+        reference=ref, historical=hist, variable=variable, kind=kind_map[kind]
+    )
+
+    storage.write(out, qdm.ds)
+
+
+@log_service
+def apply_qdm(simulation, qdm, year, variable, out):
+    """Apply trained QDM to adjust a year within a simulation, dump to NetCDF.
+
+    Dumping to NetCDF is a feature likely to change in the near future.
+
+    Parameters
+    ----------
+    simulation : str
+        fsspec-compatible URL containing simulation data to be adjusted.
+    qdm : str
+        fsspec-compatible URL pointing to Zarr Store containing canned
+        ``xclim.sdba.adjustment.QuantileDeltaMapping`` Dataset.
+    year : int
+        Target year to adjust, with rolling years and day grouping.
+    variable : str
+        Target variable in `sim` to adjust. Adjusted output will share the
+        same name.
+    out : str
+        fsspec-compatible path or URL pointing to NetCDF4 file where the
+        QDM-adjusted simulation data will be written.
+    """
+    sim_ds = storage.read(simulation)
+    qdm_ds = storage.read(qdm)
+
+    year = int(year)
+    variable = str(variable)
+
+    adjusted_ds = adjust_quantiledeltamapping_year(
+        simulation=sim_ds, qdm=qdm_ds, year=year, variable=variable
+    )
+
+    # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
+    # currently faster and more reliable than Zarr Stores. This logic is handled
+    # in workflow and cloud artifact repository.
+    logger.debug(f"Writing to {out}")
+    adjusted_ds.to_netcdf(out, compute=True)
+    logger.info(f"Written {out}")
 
 
 @log_service
