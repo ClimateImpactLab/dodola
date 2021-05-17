@@ -329,7 +329,7 @@ def apply_wet_day_frequency_correction(ds, process):
     Parameters
     ----------
     ds : xr.Dataset
-    process : str
+    process : {"pre-process", "post-process"}
 
     Returns
     -------

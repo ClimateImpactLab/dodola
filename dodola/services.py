@@ -330,7 +330,7 @@ def correct_wet_day_frequency(x, out, process):
     out : str
         Storage URL to write regridded output to.
     process : {"pre-process", "post-process"}
-        Step in pipeline, used in determining how to correct.
+        Step in pipeline, used in determining how to correct. If pre-process, replaces all zero values with a uniform random value below a threshold. If post-process, replaces all values below a threshold with zeroes. Pre-process occurs before bias correction and downscaling, post-process occurs after.
     """
     ds = storage.read(x)
     ds_corrected = apply_wet_day_frequency_correction(ds, process=process)

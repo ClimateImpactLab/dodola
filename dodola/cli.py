@@ -245,7 +245,7 @@ def regrid(x, out, method, domain_file, weightspath):
     "--process",
     "-p",
     required=True,
-    type=click.Choice(["pre-process", "post-process"], case_sensitive=False),
+    type=click.Choice(["pre", "post"], case_sensitive=False),
     help="Whether to pre or post process wet day frequency",
 )
 def correct_wetday_frequency(x, out, process):
