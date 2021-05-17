@@ -358,7 +358,7 @@ def test_remove_leapdays():
 def test_correct_wet_day_frequency(process):
     """Test that wet day frequency correction corrects the frequency of wet days"""
     # Make some fake precip data
-    n = 1500
+    n = 700
     threshold = 0.05
     ts = np.linspace(0.0, 10, num=n)
     ds_precip = _datafactory(ts, start_time="1950-01-01")
