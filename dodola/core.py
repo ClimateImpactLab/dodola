@@ -334,6 +334,10 @@ def apply_wet_day_frequency_correction(ds, process):
     Returns
     -------
     xr.Dataset
+
+    Notes
+    -------
+    [1] A.J. Cannon, S.R. Sobie, & T.Q. Murdock, "Bias correction of GCM precipitation by quantile mapping: How well do methods preserve changes in quantiles and extremes?", Journal of Climate, vol. 28, Issue 7, pp. 6938-6959.
     """
     threshold = 0.05  # mm/day
     low = 1e-16
