@@ -19,4 +19,4 @@ dependencies:
 - zarr
 - pip:
   - git+https://github.com/dgergel/xsd@feature/add_spatial_disaggregation_recipe
-  - git+https://github.com/Ouranosinc/xclim@6bfb8028a148f11afab954e5138f7de820f8860e  #spec commit from @sdba-ufunc
+  - git+https://github.com/Ouranosinc/xclim@d1e654cf59a5d5761f5586bca1102a1590ae6e32
