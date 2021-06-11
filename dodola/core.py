@@ -329,7 +329,7 @@ def apply_wet_day_frequency_correction(ds, process):
     Parameters
     ----------
     ds : xr.Dataset
-    process : {"pre-process", "post-process"}
+    process : {"pre", "post"}
 
     Returns
     -------
@@ -341,9 +341,9 @@ def apply_wet_day_frequency_correction(ds, process):
     """
     threshold = 0.05  # mm/day
     low = 1e-16
-    if process == "pre-process":
+    if process == "pre":
         ds_corrected = ds.where(ds != 0.0, np.random.uniform(low=low, high=threshold))
-    elif process == "post-process":
+    elif process == "post":
         ds_corrected = ds.where(ds >= threshold, 0.0)
     else:
         raise ValueError("this processing option is not implemented")

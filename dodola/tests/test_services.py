@@ -442,9 +442,7 @@ def test_remove_leapdays():
     assert len(ds_leapyear.time) == 365
 
 
-@pytest.mark.parametrize(
-    "process", [pytest.param("pre-process"), pytest.param("post-process")]
-)
+@pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):
     """Test that wet day frequency correction corrects the frequency of wet days"""
     # Make some fake precip data
@@ -459,7 +457,7 @@ def test_correct_wet_day_frequency(process):
     correct_wet_day_frequency(in_url, out=out_url, process=process)
     ds_precip_corrected = repository.read(out_url)
 
-    if process == "pre-process":
+    if process == "pre":
         # all 0 values should have been set to a random uniform value below 0.05
         assert (
             ds_precip_corrected["fakevariable"].where(
@@ -473,7 +471,7 @@ def test_correct_wet_day_frequency(process):
             )
             < threshold
         )
-    elif process == "post-process":
+    elif process == "post":
         # all values below 0.05 should be reset to 0
         assert (
             ds_precip_corrected["fakevariable"]
