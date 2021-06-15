@@ -2,11 +2,11 @@ name: base
 channels:
 - conda-forge
 dependencies:
-- adlfs
+- adlfs=0.7.5  # Prevent azure blob errors, not hard req.
 - dask
 - click
 - cftime
-- fsspec
+- fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
 - gcsfs
 - numpy
 - pip
