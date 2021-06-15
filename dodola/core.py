@@ -3,6 +3,8 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
+
+import numpy as np
 import logging
 from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
@@ -319,3 +321,30 @@ def xclim_remove_leapdays(ds):
     """
     ds_noleap = convert_calendar(ds, target="noleap")
     return ds_noleap
+
+
+def apply_wet_day_frequency_correction(ds, process):
+    """
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    process : {"pre", "post"}
+
+    Returns
+    -------
+    xr.Dataset
+
+    Notes
+    -------
+    [1] A.J. Cannon, S.R. Sobie, & T.Q. Murdock, "Bias correction of GCM precipitation by quantile mapping: How well do methods preserve changes in quantiles and extremes?", Journal of Climate, vol. 28, Issue 7, pp. 6938-6959.
+    """
+    threshold = 0.05  # mm/day
+    low = 1e-16
+    if process == "pre":
+        ds_corrected = ds.where(ds != 0.0, np.random.uniform(low=low, high=threshold))
+    elif process == "post":
+        ds_corrected = ds.where(ds >= threshold, 0.0)
+    else:
+        raise ValueError("this processing option is not implemented")
+    return ds_corrected

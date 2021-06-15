@@ -14,6 +14,7 @@ import dodola.services
         "regrid",
         "train-qdm",
         "apply-qdm",
+        "correct-wetday-frequency",
     ],
     ids=(
         "--help",
@@ -23,6 +24,7 @@ import dodola.services
         "regrid --help",
         "train-qdm --help",
         "apply-qdm --help",
+        "correct-wetday-frequency --help",
     ),
 )
 def test_cli_helpflags(subcmd):

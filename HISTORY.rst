@@ -11,6 +11,7 @@ History
 * Remove stdout buffering from container runs, add IO debug logging. (PR #72, @brews)
 * Add bias-correction quantile delta mapping (QDM) components to support Argo Workflows. New commands added: ``dodola train-qdm`` and ``dodola apply-qdm``. (PR #70, @brews)
 * Fix CMIP6 clean to better handle coords vs dims. (PR #81, @brews)
+* Add wet day frequency correction service. Wet day frequency implemented as described in Cannon et al., 2015. New command added: ``dodola correct-wetday-frequency``. (PR #78, @dgergel)
 
 0.2.0 (2021-04-23)
 ------------------

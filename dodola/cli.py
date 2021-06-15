@@ -236,3 +236,18 @@ def regrid(x, out, method, domain_file, weightspath):
         domain_file=domain_file,
         weights_path=weightspath,
     )
+
+
+@dodola_cli.command(help="Correct wet day frequency in a dataset")
+@click.argument("x", required=True)
+@click.option("--out", "-o", required=True)
+@click.option(
+    "--process",
+    "-p",
+    required=True,
+    type=click.Choice(["pre", "post"], case_sensitive=False),
+    help="Whether to pre or post process wet day frequency",
+)
+def correct_wetday_frequency(x, out, process):
+    """Correct wet day frequency in a dataset"""
+    services.correct_wet_day_frequency(str(x), out=str(out), process=str(process))
