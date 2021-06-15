@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* Significant updates to container environment: Python 3.9, ``xarray``, ``adlfs``, ``xesmf``, and ``fsspec``. (PR #74, PR #75, PR #76, PR #77, @brews)
+* Significant updates to container environment: Python 3.9, ``xarray``, ``adlfs``, ``xesmf``, ``dask``, and ``fsspec``. (PR #74, PR #75, PR #76, PR #77, PR #84 @brews)
 * Update buildweights service to add support for regridding to domain file. Not backwards compatible. (PR #67, @dgergel)
 * Add downscaling service. Currently support BCSD spatial disaggregation as implemented in scikit-downscale. (PR #65, @dgergel)
 * Remove stdout buffering from container runs, add IO debug logging. (PR #72, @brews)
