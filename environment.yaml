@@ -3,20 +3,20 @@ channels:
 - conda-forge
 dependencies:
 - adlfs=0.7.5  # Prevent azure blob errors, not hard req.
-- dask
-- click
-- cftime
+- dask=2021.6.0
+- click=8.0.1
+- cftime=1.5.0
 - fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
-- gcsfs
-- numpy
-- pip
-- pytest
+- gcsfs=2021.5.0
+- numpy=1.20.3
+- pip=21.1.2
+- pytest=6.2.4
 - python=3.9
-- s3fs
-- xarray
-- xesmf
-- bottleneck
-- zarr
+- s3fs=2021.5.0
+- xarray=0.18.2
+- xesmf=0.5.3
+- bottleneck=1.3.2
+- zarr=2.8.3
 - pip:
-  - git+https://github.com/dgergel/xsd@feature/add_spatial_disaggregation_recipe
+  - git+https://github.com/dgergel/xsd@458f292dab6e8a6584659e97a66c37e028da2b7a
   - git+https://github.com/Ouranosinc/xclim@d1e654cf59a5d5761f5586bca1102a1590ae6e32
