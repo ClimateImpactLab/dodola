@@ -3,7 +3,7 @@ History
 =======
 
 
-0.X.X (XXXX-XX-XX)
+0.3.0 (2021-06-16)
 ------------------
 * Significant updates to container environment: Python 3.9, ``xarray``, ``adlfs``, ``xesmf``, ``dask``, and ``fsspec``. (PR #74, PR #75, PR #76, PR #77, PR #84 @brews)
 * Update buildweights service to add support for regridding to domain file. Not backwards compatible. (PR #67, @dgergel)
@@ -12,6 +12,7 @@ History
 * Add bias-correction quantile delta mapping (QDM) components to support Argo Workflows. New commands added: ``dodola train-qdm`` and ``dodola apply-qdm``. (PR #70, @brews)
 * Fix CMIP6 clean to better handle coords vs dims. (PR #81, @brews)
 * Add wet day frequency correction service. Wet day frequency implemented as described in Cannon et al., 2015. New command added: ``dodola correct-wetday-frequency``. (PR #78, @dgergel)
+
 
 0.2.0 (2021-04-23)
 ------------------
