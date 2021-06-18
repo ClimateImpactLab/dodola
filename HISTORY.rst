@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-*
+* Fix bug in train_quantiledeltamapping accounting for endpoints. (#87, @brews)
 
 
 0.3.0 (2021-06-16)
