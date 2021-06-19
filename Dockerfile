@@ -12,3 +12,6 @@ RUN mamba env update -n base -f /opt/dodola/environment.yaml \
 
 COPY . /opt/dodola
 RUN bash -c "pip install -e /opt/dodola"
+
+# For graceful children and death.
+ENTRYPOINT ["tini", "-g", "--"]

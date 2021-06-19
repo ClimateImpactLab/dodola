@@ -5,7 +5,8 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-*
+* Add ``dask-kubernetes``, ``distributed`` to container environment.
+* Improve subprocess and death handling in Docker container.
 
 
 0.3.0 (2021-06-16)
