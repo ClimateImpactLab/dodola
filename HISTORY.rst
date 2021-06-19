@@ -5,6 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
+* Make ``dodola`` container's default CMD.
 * Add ``dask-kubernetes``, ``distributed`` to container environment.
 * Improve subprocess and death handling in Docker container.
 
