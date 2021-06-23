@@ -1,4 +1,4 @@
-name: Build, Push Container on Release
+name: Build, push release
 
 on:
   release:
