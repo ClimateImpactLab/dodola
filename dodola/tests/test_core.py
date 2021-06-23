@@ -44,8 +44,8 @@ def _train_simple_qdm(
     return qdm
 
 
-def test_train_quantiledeltamapping_quantiles():
-    """Test that the quantile endpoints are handled correctly in trained QDM model"""
+def test_train_quantiledeltamapping_quantiles_excludeendpoints():
+    """Test that "endpoints" are not included in trained QDM models"""
     n_quantiles = 100
     n_days = 365
     n_years = 20
@@ -53,11 +53,11 @@ def test_train_quantiledeltamapping_quantiles():
     # Make up some data to training on...
     variable_kind = "+"
     target_variable = "fakevariable"
-    ts_ref = np.ones(
+    ts_ref = np.arange(
         n_years * n_days, dtype=np.float64  # 20 years of daily historical.
     )
     hist = _timeseriesfactory(ts_ref, variable_name=target_variable)
-    ref = _timeseriesfactory(ts_ref, variable_name=target_variable)
+    ref = _timeseriesfactory(ts_ref[::-1], variable_name=target_variable)
 
     qdm = train_quantiledeltamapping(
         historical=hist,
@@ -67,10 +67,11 @@ def test_train_quantiledeltamapping_quantiles():
         quantiles_n=n_quantiles,
     )
 
-    # qdm.ds.hist_q.shape[1] Should NOT be n_quantiles+2 if xclim's arg `eps` is handled correctly!
+    # qdm.ds.hist_q.shape[1] should NOT be n_quantiles+2.
     assert qdm.ds.hist_q.shape[1] == n_quantiles
-    # TODO: Not confident this assert below is good, or what it does:
-    # assert (1 not in qdm.ds.hist_q) and (0 not in qdm.ds.hist_q)
+    # Check that 0, 1 are literally excluded:
+    assert 1.0 not in qdm.ds.hist_q
+    assert 0.0 not in qdm.ds.hist_q
 
 
 @pytest.mark.parametrize(
