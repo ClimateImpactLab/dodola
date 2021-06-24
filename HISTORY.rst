@@ -8,6 +8,7 @@ History
 * Make ``dodola`` container's default CMD. (PR #90, @brews)
 * Add ``dask-kubernetes``, ``distributed`` to container environment. (PR #90, @brews)
 * Improve subprocess and death handling in Docker container. (PR #90, @brews)
+* Fix bug in train_quantiledeltamapping accounting for endpoints. (#87, @brews)
 
 
 0.3.0 (2021-06-16)

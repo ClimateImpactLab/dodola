@@ -9,6 +9,7 @@ import logging
 from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
 from xclim import sdba
+from xclim.sdba.utils import equally_spaced_nodes
 from xclim.core.calendar import convert_calendar
 import xesmf as xe
 
@@ -45,7 +46,7 @@ def train_quantiledeltamapping(
     qdm = sdba.adjustment.QuantileDeltaMapping(
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
-        nquantiles=int(quantiles_n),
+        nquantiles=equally_spaced_nodes(int(quantiles_n), eps=None),
     )
     qdm.train(ref=reference[variable], hist=historical[variable])
     return qdm
