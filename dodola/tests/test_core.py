@@ -44,14 +44,20 @@ def _train_simple_qdm(
     return qdm
 
 
-def test_train_quantiledeltamapping_quantiles_excludeendpoints():
+@pytest.mark.parametrize(
+    "variable_kind",
+    [
+        pytest.param("+", id="additive kind"),
+        pytest.param("*", id="multiplicative kind"),
+    ],
+)
+def test_train_quantiledeltamapping_quantiles_excludeendpoints(variable_kind):
     """Test that "endpoints" are not included in trained QDM models"""
     n_quantiles = 100
     n_days = 365
     n_years = 20
 
     # Make up some data to training on...
-    variable_kind = "+"
     target_variable = "fakevariable"
     ts_ref = np.arange(
         n_years * n_days, dtype=np.float64  # 20 years of daily historical.
