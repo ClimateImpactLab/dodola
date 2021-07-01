@@ -351,8 +351,7 @@ def test_regrid_methods(domain_file, regrid_method, expected_shape):
     indirect=["domain_file"],
 )
 def test_regrid_dtype(domain_file, expected_dtype):
-    """Tests that services.regrid casts output to different dtypes
-    """
+    """Tests that services.regrid casts output to different dtypes"""
     # Make fake input data.
     ds_in = grid_global(5, 10)
     ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
@@ -363,7 +362,13 @@ def test_regrid_dtype(domain_file, expected_dtype):
     repository.write(in_url, ds_in)
     repository.write(domain_file_url, domain_file)
 
-    regrid(in_url, out=out_url, method="bilinear", domain_file=domain_file_url, astype=expected_dtype)
+    regrid(
+        in_url,
+        out=out_url,
+        method="bilinear",
+        domain_file=domain_file_url,
+        astype=expected_dtype,
+    )
     actual_dtype = repository.read(out_url)["fakevariable"].dtype
     assert actual_dtype == expected_dtype
 
