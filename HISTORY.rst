@@ -5,6 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
+* Add ``astype`` argument to ``regrid``. (#91, @brews)
 * Make ``dodola`` container's default CMD. (PR #90, @brews)
 * Add ``dask-kubernetes``, ``distributed`` to container environment. (PR #90, @brews)
 * Improve subprocess and death handling in Docker container. (PR #90, @brews)
