@@ -12,6 +12,8 @@ from dodola.core import (
     apply_wet_day_frequency_correction,
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
+    train_analogdownscaling,
+    adjust_analogdownscaling_year,
 )
 import dodola.repository as storage
 
@@ -102,6 +104,76 @@ def apply_qdm(simulation, qdm, year, variable, out):
     adjusted_ds.to_netcdf(out, compute=True)
     logger.info(f"Written {out}")
 
+
+@log_service
+def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
+    """Train analog-inspired quantile preserving downscaling and dump to `out`
+
+    Parameters
+    ----------
+    coarse_reference : str
+        fsspec-compatible URL to resampled coarse reference store.
+    fine_reference : str
+        fsspec-compatible URL to fine resolution reference store.
+    out : str
+        fsspec-compatible URL to store adjustment factors.
+    variable : str
+        Name of target variable in input and output stores.
+    kind : {"additive", "multiplicative"}
+        Kind of AIQPD downscaling.
+    """
+    ref_coarse = storage.read(coarse_reference)
+    ref_fine = storage.read(fine_reference)
+
+    kind_map = {"additive": "+", "multiplicative": "*"}
+    if kind not in kind_map.keys():
+        # So we get a helpful exception message showing accepted kwargs...
+        ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+
+    aiqpd = train_analogdownscaling(
+        coarse_reference=ref_coarse, fine_reference=ref_fine, variable=variable, kind=kind_map[kind]
+    )
+
+    storage.write(out, aiqpd.ds)
+
+@log_service
+def apply_aiqpd(simulation, aiqpd, year, variable, out):
+    """Apply AIQPD adjustment factors to downscale a year within a simulation, dump to NetCDF.
+
+    Dumping to NetCDF is a feature likely to change in the near future.
+
+    Parameters
+    ----------
+    simulation : str
+        fsspec-compatible URL containing simulation data to be adjusted.
+    aiqpd : str
+        fsspec-compatible URL pointing to Zarr Store containing canned
+        ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling`` Dataset.
+    year : int
+        Target year to adjust, with rolling years and day grouping.
+    variable : str
+        Target variable in `sim` to downscale. Downscaled output will share the
+        same name.
+    out : str
+        fsspec-compatible path or URL pointing to NetCDF4 file where the
+        AIQPD-downscaled simulation data will be written.
+    """
+    sim_ds = storage.read(simulation)
+    qdm_ds = storage.read(aiqpd)
+
+    year = int(year)
+    variable = str(variable)
+
+    downscaled_ds = adjust_analogdownscaling_year(
+        simulation=sim_ds, aiqpd=aiqpd_ds, year=year, variable=variable
+    )
+
+    # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
+    # currently faster and more reliable than Zarr Stores. This logic is handled
+    # in workflow and cloud artifact repository.
+    logger.debug(f"Writing to {out}")
+    downscaled_ds.to_netcdf(out, compute=True)
+    logger.info(f"Written {out}")
 
 @log_service
 def bias_correct(x, x_train, train_variable, y_train, out, out_variable, method):
