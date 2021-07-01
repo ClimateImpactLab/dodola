@@ -74,6 +74,11 @@ def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01"):
             "time_bnds": (["time", "bnds"], np.ones((len(x), 2))),
         },
     )
+
+    if gcm_variable == "pr":
+        # assign units to typical GCM pr units so they can be cleaned
+        out["pr"].attrs["units"] = "kg m-2 s-1"
+
     return out
 
 
@@ -442,10 +447,13 @@ def test_regrid_weights_integration(domain_file, tmpdir):
     actual_shape = repository.read(out_url)["fakevariable"].shape
     assert actual_shape == expected_shape
 
-@pytest.mark.parametrize("gcm_variable", [pytest.param("tasmax"), pytest.param("tasmin"), pytest.param("pr")])
+
+@pytest.mark.parametrize(
+    "gcm_variable", [pytest.param("tasmax"), pytest.param("tasmin"), pytest.param("pr")]
+)
 def test_clean_cmip6(gcm_variable):
     """Tests that cmip6 cleanup removes extra dimensions on dataset
-       and that precip units are converted if variable is precip"""
+    and that precip units are converted if variable is precip"""
     # Setup input data
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
@@ -462,7 +470,7 @@ def test_clean_cmip6(gcm_variable):
     assert "member_id" not in ds_cleaned.coords
     assert "time_bnds" not in ds_cleaned.coords
 
-    if "pr" in ds_cleaned.variables: 
+    if "pr" in ds_cleaned.variables:
         assert ds_cleaned["pr"].units == "mm/day"
 
 
