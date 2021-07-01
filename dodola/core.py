@@ -239,7 +239,7 @@ def build_xesmf_weights_file(x, domain, method, filename=None):
     return str(out.filename)
 
 
-def xesmf_regrid(x, domain, method, weights_path=None):
+def xesmf_regrid(x, domain, method, weights_path=None, astype=None):
     """
 
     Parameters
@@ -251,18 +251,21 @@ def xesmf_regrid(x, domain, method, weights_path=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     weights_path : str, optional
         Local path to netCDF file of pre-calculated XESMF regridding weights.
+    astype : str, numpy.dtype, or None, optional
+        Typecode or data-type to which the regridded output is cast.
 
     Returns
     -------
     xr.Dataset
     """
-
     regridder = xe.Regridder(
         x,
         domain,
         method=method,
         filename=weights_path,
     )
+    if astype:
+        return regridder(x).astype(astype)
     return regridder(x)
 
 

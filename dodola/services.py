@@ -255,7 +255,7 @@ def rechunk(x, target_chunks, out):
 
 
 @log_service
-def regrid(x, out, method, domain_file, weights_path=None):
+def regrid(x, out, method, domain_file, weights_path=None, astype=None):
     """Regrid climate data
 
     Parameters
@@ -270,6 +270,8 @@ def regrid(x, out, method, domain_file, weights_path=None):
         Storage URL to input xr.Dataset domain file to regrid to.
     weights_path : optional
         Local file path name to write regridding weights file to.
+    astype : str, numpy.dtype, or None, optional
+        Typecode or data-type to which the regridded output is cast.
     """
     ds = storage.read(x)
 
@@ -280,6 +282,7 @@ def regrid(x, out, method, domain_file, weights_path=None):
         ds_domain,
         method=method,
         weights_path=weights_path,
+        astype=astype,
     )
 
     storage.write(out, regridded_ds)
