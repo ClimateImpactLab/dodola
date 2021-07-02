@@ -5,6 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
+* Add ``include-quantiles`` flag to ``apply_qdm`` to allow for including quantile information in bias corrected output. (PR #95, @dgergel)
 * Add ``astype`` argument to ``regrid``. (PR #92, @brews)
 * Make ``dodola`` container's default CMD. (PR #90, @brews)
 * Add ``dask-kubernetes``, ``distributed`` to container environment. (PR #90, @brews)
