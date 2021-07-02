@@ -114,9 +114,10 @@ def test_adjust_quantiledeltamapping_year_kind(variable_kind, expected):
     )
     assert all(adjusted_ds[target_variable] == expected)
 
+
 def test_adjust_quantiledeltamapping_include_quantiles():
-    """Test that include-quantiles flag results in bias corrected quantiles 
-       included in output"""
+    """Test that include-quantiles flag results in bias corrected quantiles
+    included in output"""
     target_variable = "fakevariable"
     n_simdays = 100 * 365  # 100 years of daily simulation.
 
@@ -131,16 +132,18 @@ def test_adjust_quantiledeltamapping_include_quantiles():
     # Yes, I'm intentionally training the QDM to a different bias. This is to
     # spurn a difference between "kind" adjustments...
     qdm = _train_simple_qdm(
-        target_variable="fakevariable", kind=variable_kind, additive_bias=model_bias + 1
+        target_variable="fakevariable", kind="+", additive_bias=model_bias + 1
     )
     adjusted_ds = adjust_quantiledeltamapping_year(
         simulation=sim,
         qdm=qdm,
         year=target_year,
-        variable=target_variable, include-quantiles=True
+        variable=target_variable,
+        include_quantiles=True,
     )
-    # check that quantiles are contained in output 
+    # check that quantiles are contained in output
     assert "sim_q" in adjusted_ds["scen"].coords
+
 
 def test_adjust_quantiledeltamapping_year_output_time():
     """Check 'time' year and edges of QDM adjusted output
