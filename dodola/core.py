@@ -53,7 +53,7 @@ def train_quantiledeltamapping(
 
 
 def adjust_quantiledeltamapping_year(
-    simulation, qdm, year, variable, halfyearwindow_n=10
+    simulation, qdm, year, variable, halfyearwindow_n=10, include-quantiles=False
 ):
     """Apply QDM to adjust a year within a simulation.
 
@@ -74,6 +74,8 @@ def adjust_quantiledeltamapping_year(
     halfyearwindow_n : int, optional
         Half-length of the annual rolling window to extract along either
         side of `year`.
+    include-quantiles : bool, optional
+        Whether or not to output quantiles in bias corrected output. 
 
     Returns
     -------
@@ -96,7 +98,14 @@ def adjust_quantiledeltamapping_year(
     simulation = simulation[variable].sel(
         time=timeslice
     )  # TODO: Need a check to ensure we have all the data in this slice!
-    out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
+    if include-quantiles: 
+        # include quantile information in output 
+        with set_options(sdba_extra_output=True):
+            out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
+            # make quantiles a coordinate of bias corrected output variable 
+            out = out['scen'].assign_coords(sim_q=out.sim_q).to_dataset()
+    else:
+        out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
 
     return out.to_dataset(name=variable)
 
