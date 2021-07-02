@@ -64,7 +64,7 @@ def train_qdm(historical, reference, out, variable, kind):
 
 
 @log_service
-def apply_qdm(simulation, qdm, year, variable, out, include_quantiles):
+def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
     """Apply trained QDM to adjust a year within a simulation, dump to NetCDF.
 
     Dumping to NetCDF is a feature likely to change in the near future.
