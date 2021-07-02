@@ -44,7 +44,7 @@ def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
     return out
 
 
-def _gcmfactory(x, start_time="1950-01-01"):
+def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01"):
     """Populate xr.Dataset with synthetic GCM data for testing
     that includes extra dimensions and leap days to be removed.
     """
@@ -58,7 +58,7 @@ def _gcmfactory(x, start_time="1950-01-01"):
 
     out = xr.Dataset(
         {
-            "fakevariable": (
+            gcm_variable: (
                 ["time", "lon", "lat", "member_id"],
                 x[:, np.newaxis, np.newaxis, np.newaxis],
             )
@@ -74,6 +74,7 @@ def _gcmfactory(x, start_time="1950-01-01"):
             "time_bnds": (["time", "bnds"], np.ones((len(x), 2))),
         },
     )
+
     return out
 
 
@@ -460,6 +461,35 @@ def test_clean_cmip6():
     assert "height" not in ds_cleaned.coords
     assert "member_id" not in ds_cleaned.coords
     assert "time_bnds" not in ds_cleaned.coords
+
+
+@pytest.mark.parametrize(
+    "gcm_variable", [pytest.param("tasmax"), pytest.param("tasmin"), pytest.param("pr")]
+)
+def test_cmip6_precip_unitconversion(gcm_variable):
+    """Tests that precip units are converted in CMIP6 cleanup if variable is precip"""
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_gcm = _gcmfactory(ts, gcm_variable=gcm_variable, start_time="1950-01-01")
+
+    if gcm_variable == "pr":
+        # assign units to typical GCM pr units so they can be cleaned
+        ds_gcm["pr"].attrs["units"] = "kg m-2 s-1"
+
+    in_url = "memory://test_clean_cmip6/an/input/path.zarr"
+    out_url = "memory://test_clean_cmip6/an/output/path.zarr"
+    repository.write(in_url, ds_gcm)
+
+    clean_cmip6(in_url, out_url, leapday_removal=True)
+    ds_cleaned = repository.read(out_url)
+
+    assert "height" not in ds_cleaned.coords
+    assert "member_id" not in ds_cleaned.coords
+    assert "time_bnds" not in ds_cleaned.coords
+
+    if "pr" in ds_cleaned.variables:
+        assert ds_cleaned["pr"].units == "mm day-1"
 
 
 def test_remove_leapdays():
