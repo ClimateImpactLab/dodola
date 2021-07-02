@@ -75,10 +75,6 @@ def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01"):
         },
     )
 
-    if gcm_variable == "pr":
-        # assign units to typical GCM pr units so they can be cleaned
-        out["pr"].attrs["units"] = "kg m-2 s-1"
-
     return out
 
 
@@ -448,16 +444,38 @@ def test_regrid_weights_integration(domain_file, tmpdir):
     assert actual_shape == expected_shape
 
 
+def test_clean_cmip6():
+    """Tests that cmip6 cleanup removes extra dimensions on dataset"""
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
+
+    in_url = "memory://test_clean_cmip6/an/input/path.zarr"
+    out_url = "memory://test_clean_cmip6/an/output/path.zarr"
+    repository.write(in_url, ds_gcm)
+
+    clean_cmip6(in_url, out_url, leapday_removal=True)
+    ds_cleaned = repository.read(out_url)
+
+    assert "height" not in ds_cleaned.coords
+    assert "member_id" not in ds_cleaned.coords
+    assert "time_bnds" not in ds_cleaned.coords
+
+
 @pytest.mark.parametrize(
     "gcm_variable", [pytest.param("tasmax"), pytest.param("tasmin"), pytest.param("pr")]
 )
-def test_clean_cmip6(gcm_variable):
-    """Tests that cmip6 cleanup removes extra dimensions on dataset
-    and that precip units are converted if variable is precip"""
+def test_cmip6_precip_unitconversion(gcm_variable):
+    """Tests that precip units are converted in CMIP6 cleanup if variable is precip"""
     # Setup input data
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
     ds_gcm = _gcmfactory(ts, gcm_variable=gcm_variable, start_time="1950-01-01")
+
+    if gcm_variable == "pr":
+        # assign units to typical GCM pr units so they can be cleaned
+        ds_gcm["pr"].attrs["units"] = "kg m-2 s-1"
 
     in_url = "memory://test_clean_cmip6/an/input/path.zarr"
     out_url = "memory://test_clean_cmip6/an/output/path.zarr"
@@ -471,7 +489,7 @@ def test_clean_cmip6(gcm_variable):
     assert "time_bnds" not in ds_cleaned.coords
 
     if "pr" in ds_cleaned.variables:
-        assert ds_cleaned["pr"].units == "mm/day"
+        assert ds_cleaned["pr"].units == "mm day-1"
 
 
 def test_remove_leapdays():

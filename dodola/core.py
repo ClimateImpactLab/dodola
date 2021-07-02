@@ -298,7 +298,7 @@ def standardize_gcm(ds, leapday_removal=True):
 
     # Cleanup time.
 
-    # if variable is precip, need to update units to mm/day
+    # if variable is precip, need to update units to mm day-1
     if "pr" in ds_cleaned.variables:
         # units should be kg/m2/s in CMIP6 output
         if ds_cleaned["pr"].units == "kg m-2 s-1":
@@ -306,10 +306,10 @@ def standardize_gcm(ds, leapday_removal=True):
             mmday_conversion = 24 * 60 * 60
             ds_cleaned["pr"] = ds_cleaned["pr"] * mmday_conversion
             # update units attribute
-            ds_cleaned["pr"].attrs["units"] = "mm/day"
+            ds_cleaned["pr"].attrs["units"] = "mm day-1"
         else:
             # we want this to fail, as pr units are something we don't expect
-            raise AssertionError("check units: pr units attribute is not kg m-2 s-1")
+            raise ValueError("check units: pr units attribute is not kg m-2 s-1")
 
     if leapday_removal:
         # if calendar is just integers, xclim cannot understand it
