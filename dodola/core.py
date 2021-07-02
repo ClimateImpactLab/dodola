@@ -104,7 +104,7 @@ def adjust_quantiledeltamapping_year(
         with set_options(sdba_extra_output=True):
             out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
             # make quantiles a coordinate of bias corrected output variable
-            out = out.assign_coords(sim_q=out.sim_q)
+            out = out["scen"].assign_coords(sim_q=out.sim_q)
     else:
         out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
 
