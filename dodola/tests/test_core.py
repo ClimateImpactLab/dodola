@@ -142,7 +142,7 @@ def test_adjust_quantiledeltamapping_include_quantiles():
         include_quantiles=True,
     )
     # check that quantiles are contained in output
-    assert "sim_q" in adjusted_ds["scen"].coords
+    assert "sim_q" in adjusted_ds[target_variable].coords
 
 
 def test_adjust_quantiledeltamapping_year_output_time():
