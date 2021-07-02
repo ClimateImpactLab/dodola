@@ -85,7 +85,7 @@ def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
         fsspec-compatible path or URL pointing to NetCDF4 file where the
         QDM-adjusted simulation data will be written.
     include_quantiles : bool
-        flag to indicate whether or not bias corrected quantiles should be
+        Flag to indicate whether bias-corrected quantiles should be
         included in the QDM-adjusted output.
     """
     sim_ds = storage.read(simulation)

@@ -75,7 +75,8 @@ def adjust_quantiledeltamapping_year(
         Half-length of the annual rolling window to extract along either
         side of `year`.
     include_quantiles : bool, optional
-        Whether or not to output quantiles in bias corrected output.
+        Whether or not to output quantiles (sim_q) as a coordinate on
+        the bias corrected data variable in output.
 
     Returns
     -------

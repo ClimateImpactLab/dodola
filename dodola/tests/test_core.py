@@ -119,7 +119,7 @@ def test_adjust_quantiledeltamapping_include_quantiles():
     """Test that include-quantiles flag results in bias corrected quantiles
     included in output"""
     target_variable = "fakevariable"
-    n_simdays = 100 * 365  # 100 years of daily simulation.
+    n_simdays = 5 * 365  # 100 years of daily simulation.
 
     model_bias = 2.0
     ts_sim = np.ones(n_simdays, dtype=np.float64)

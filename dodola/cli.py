@@ -50,10 +50,9 @@ def dodola_cli(debug):
     help="URL to write NetCDF4 with adjusted simulation year to",
 )
 @click.option(
-    "--include_quantiles",
-    "-q",
-    required=False,
-    help="Option to include simulation quantiles in output",
+    "--include-quantiles",
+    is_flag=True,
+    help="Include simulation quantiles in output",
 )
 def apply_qdm(simulation, qdm, year, variable, out, include_quantiles):
     """Adjust simulation year with QDM bias correction method, outputting to local NetCDF4 file"""
