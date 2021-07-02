@@ -64,7 +64,7 @@ def train_qdm(historical, reference, out, variable, kind):
 
 
 @log_service
-def apply_qdm(simulation, qdm, year, variable, out):
+def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
     """Apply trained QDM to adjust a year within a simulation, dump to NetCDF.
 
     Dumping to NetCDF is a feature likely to change in the near future.
@@ -84,6 +84,9 @@ def apply_qdm(simulation, qdm, year, variable, out):
     out : str
         fsspec-compatible path or URL pointing to NetCDF4 file where the
         QDM-adjusted simulation data will be written.
+    include_quantiles : bool
+        Flag to indicate whether bias-corrected quantiles should be
+        included in the QDM-adjusted output.
     """
     sim_ds = storage.read(simulation)
     qdm_ds = storage.read(qdm)
@@ -92,7 +95,11 @@ def apply_qdm(simulation, qdm, year, variable, out):
     variable = str(variable)
 
     adjusted_ds = adjust_quantiledeltamapping_year(
-        simulation=sim_ds, qdm=qdm_ds, year=year, variable=variable
+        simulation=sim_ds,
+        qdm=qdm_ds,
+        year=year,
+        variable=variable,
+        include_quantiles=include_quantiles,
     )
 
     # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is

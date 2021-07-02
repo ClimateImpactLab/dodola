@@ -11,6 +11,7 @@ dependencies:
 - fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
 - gcsfs=2021.5.0
 - numpy=1.20.3
+- pandas=1.2.5
 - pip=21.1.2
 - pytest=6.2.4
 - python=3.9
@@ -21,4 +22,4 @@ dependencies:
 - zarr=2.8.3
 - pip:
   - git+https://github.com/dgergel/xsd@458f292dab6e8a6584659e97a66c37e028da2b7a
-  - git+https://github.com/Ouranosinc/xclim@d1e654cf59a5d5761f5586bca1102a1590ae6e32
+  - xclim 
