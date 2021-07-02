@@ -5,6 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
+* Add precipitation unit conversion to ``standardize_gcm``. (PR #94, @dgergel)
 * Add ``astype`` argument to ``regrid``. (PR #92, @brews)
 * Make ``dodola`` container's default CMD. (PR #90, @brews)
 * Add ``dask-kubernetes``, ``distributed`` to container environment. (PR #90, @brews)
