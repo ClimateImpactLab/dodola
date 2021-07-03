@@ -242,6 +242,6 @@ def test_analoginspired_quantilepreserving_downscaling():
     bias_corrected_value = biascorrected.isel(time=100).values[0][0]
     downscaled_average = aiqpd_downscaled.isel(time=100).mean().values
 
-    assert assert_approx_equal(
+    assert_approx_equal(
         bias_corrected_value, downscaled_average, significant=5, verbose=True
     )
