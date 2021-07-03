@@ -8,7 +8,7 @@ import numpy as np
 import logging
 from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
-from xclim import sdba
+from xclim import sdba, set_options
 from xclim.sdba.utils import equally_spaced_nodes
 from xclim.core.calendar import convert_calendar
 import xesmf as xe
@@ -53,7 +53,7 @@ def train_quantiledeltamapping(
 
 
 def adjust_quantiledeltamapping_year(
-    simulation, qdm, year, variable, halfyearwindow_n=10
+    simulation, qdm, year, variable, halfyearwindow_n=10, include_quantiles=False
 ):
     """Apply QDM to adjust a year within a simulation.
 
@@ -74,6 +74,9 @@ def adjust_quantiledeltamapping_year(
     halfyearwindow_n : int, optional
         Half-length of the annual rolling window to extract along either
         side of `year`.
+    include_quantiles : bool, optional
+        Whether or not to output quantiles (sim_q) as a coordinate on
+        the bias corrected data variable in output.
 
     Returns
     -------
@@ -96,7 +99,14 @@ def adjust_quantiledeltamapping_year(
     simulation = simulation[variable].sel(
         time=timeslice
     )  # TODO: Need a check to ensure we have all the data in this slice!
-    out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
+    if include_quantiles:
+        # include quantile information in output
+        with set_options(sdba_extra_output=True):
+            out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
+            # make quantiles a coordinate of bias corrected output variable
+            out = out["scen"].assign_coords(sim_q=out.sim_q)
+    else:
+        out = qdm.adjust(simulation, interp="nearest").sel(time=str(year))
 
     return out.to_dataset(name=variable)
 
@@ -314,7 +324,7 @@ def build_xesmf_weights_file(x, domain, method, filename=None):
     return str(out.filename)
 
 
-def xesmf_regrid(x, domain, method, weights_path=None):
+def xesmf_regrid(x, domain, method, weights_path=None, astype=None):
     """
 
     Parameters
@@ -326,18 +336,21 @@ def xesmf_regrid(x, domain, method, weights_path=None):
         Method of regridding. Passed to ``xesmf.Regridder``.
     weights_path : str, optional
         Local path to netCDF file of pre-calculated XESMF regridding weights.
+    astype : str, numpy.dtype, or None, optional
+        Typecode or data-type to which the regridded output is cast.
 
     Returns
     -------
     xr.Dataset
     """
-
     regridder = xe.Regridder(
         x,
         domain,
         method=method,
         filename=weights_path,
     )
+    if astype:
+        return regridder(x).astype(astype)
     return regridder(x)
 
 
@@ -369,6 +382,20 @@ def standardize_gcm(ds, leapday_removal=True):
     )
 
     # Cleanup time.
+
+    # if variable is precip, need to update units to mm day-1
+    if "pr" in ds_cleaned.variables:
+        # units should be kg/m2/s in CMIP6 output
+        if ds_cleaned["pr"].units == "kg m-2 s-1":
+            # convert to mm/day
+            mmday_conversion = 24 * 60 * 60
+            ds_cleaned["pr"] = ds_cleaned["pr"] * mmday_conversion
+            # update units attribute
+            ds_cleaned["pr"].attrs["units"] = "mm day-1"
+        else:
+            # we want this to fail, as pr units are something we don't expect
+            raise ValueError("check units: pr units attribute is not kg m-2 s-1")
+
     if leapday_removal:
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":

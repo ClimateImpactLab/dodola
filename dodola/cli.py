@@ -49,10 +49,20 @@ def dodola_cli(debug):
     required=True,
     help="URL to write NetCDF4 with adjusted simulation year to",
 )
-def apply_qdm(simulation, qdm, year, variable, out):
+@click.option(
+    "--include-quantiles",
+    is_flag=True,
+    help="Include simulation quantiles in output",
+)
+def apply_qdm(simulation, qdm, year, variable, out, include_quantiles):
     """Adjust simulation year with QDM bias correction method, outputting to local NetCDF4 file"""
     services.apply_qdm(
-        simulation=simulation, qdm=qdm, year=year, variable=variable, out=out
+        simulation=simulation,
+        qdm=qdm,
+        year=year,
+        variable=variable,
+        out=out,
+        include_quantiles=include_quantiles,
     )
 
 
@@ -264,7 +274,8 @@ def rechunk(x, chunk, out):
     default=None,
     help="Local path to existing regrid weights file",
 )
-def regrid(x, out, method, domain_file, weightspath):
+@click.option("--astype", "-t", default=None, help="Type to recast output to")
+def regrid(x, out, method, domain_file, weightspath, astype):
     """Regrid a target climate dataset
 
     Note, the weightspath only accepts paths to NetCDF files on the local disk. See
@@ -278,6 +289,7 @@ def regrid(x, out, method, domain_file, weightspath):
         method=str(method),
         domain_file=domain_file,
         weights_path=weightspath,
+        astype=astype,
     )
 
 

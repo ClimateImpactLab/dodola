@@ -11,6 +11,7 @@ dependencies:
 - fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
 - gcsfs=2021.5.0
 - numpy=1.20.3
+- pandas=1.2.5
 - pip=21.1.2
 - pytest=6.2.4
 - python=3.9
