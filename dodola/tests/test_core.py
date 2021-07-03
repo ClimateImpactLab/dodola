@@ -224,8 +224,8 @@ def test_analoginspired_quantilepreserving_downscaling():
         )
 
     # now downscale
-    # note that we are testing with 62 quantiles because we 
-    # only have two years of data 
+    # note that we are testing with 62 quantiles because we
+    # only have two years of data
     aiqpd = train_analogdownscaling(
         temp_slice_mean_resampled.to_dataset(name="scen"),
         temp_slice.to_dataset(name="scen"),
