@@ -140,9 +140,7 @@ def train_analogdownscaling(
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=equally_spaced_nodes(int(quantiles_n), eps=None),
     )
-    aiqpd.train(
-        coarse_reference[variable], fine_reference[variable]
-    )
+    aiqpd.train(coarse_reference[variable], fine_reference[variable])
     return aiqpd
 
 
