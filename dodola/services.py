@@ -138,10 +138,14 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
         ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     aiqpd = train_analogdownscaling(
-        coarse_reference=ref_coarse, fine_reference=ref_fine, variable=variable, kind=kind_map[kind]
+        coarse_reference=ref_coarse,
+        fine_reference=ref_fine,
+        variable=variable,
+        kind=kind_map[kind],
     )
 
     storage.write(out, aiqpd.ds)
+
 
 @log_service
 def apply_aiqpd(simulation, aiqpd, year, variable, out):
@@ -166,7 +170,7 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
         AIQPD-downscaled simulation data will be written.
     """
     sim_ds = storage.read(simulation)
-    qdm_ds = storage.read(aiqpd)
+    aiqpd_ds = storage.read(aiqpd)
 
     year = int(year)
     variable = str(variable)
@@ -181,6 +185,7 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
     logger.debug(f"Writing to {out}")
     downscaled_ds.to_netcdf(out, compute=True)
     logger.info(f"Written {out}")
+
 
 @log_service
 def bias_correct(x, x_train, train_variable, y_train, out, out_variable, method):

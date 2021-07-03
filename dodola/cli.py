@@ -91,11 +91,18 @@ def train_qdm(historical, reference, out, variable, kind):
     )
 
 
-@dodola_cli.command(help="Adjust (downscale) simulation year with analog-inspired quantile preserving downscaling (AIQPD)")
+@dodola_cli.command(
+    help="Adjust (downscale) simulation year with analog-inspired quantile preserving downscaling (AIQPD)"
+)
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
 )
-@click.option("--aiqpd", "-d", required=True, help="URL to trained AIQPD store of adjustment factors")
+@click.option(
+    "--aiqpd",
+    "-d",
+    required=True,
+    help="URL to trained AIQPD store of adjustment factors",
+)
 @click.option("--year", "-y", required=True, help="Year of simulation to adjust")
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
@@ -110,11 +117,16 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
         simulation=simulation, aiqpd=aiqpd, year=year, variable=variable, out=out
     )
 
-@dodola_cli.command(help="Train analog-inspired quantile preserving downscaling (AIQPD)")
+
+@dodola_cli.command(
+    help="Train analog-inspired quantile preserving downscaling (AIQPD)"
+)
 @click.option(
     "--coarse_reference", "-cr", required=True, help="URL to coarse reference store"
 )
-@click.option("--fine_reference", "-fr", required=True, help="URL to fine reference store")
+@click.option(
+    "--fine_reference", "-fr", required=True, help="URL to fine reference store"
+)
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
     "--kind",
@@ -133,6 +145,7 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
         variable=variable,
         kind=kind,
     )
+
 
 @dodola_cli.command(help="Clean up and standardize GCM")
 @click.argument("x", required=True)
