@@ -1,10 +1,17 @@
 import numpy as np
+from numpy.testing import assert_approx_equal
 import pytest
 import xarray as xr
 import cftime
+from xclim.core.calendar import convert_calendar
+from xclim.sdba.adjustment import QuantileDeltaMapping
+from xclim.sdba.utils import equally_spaced_nodes
+from xclim import sdba, set_options
 from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
+    train_analogdownscaling,
+    adjust_analogdownscaling_year,
 )
 
 
@@ -180,4 +187,57 @@ def test_adjust_quantiledeltamapping_year_output_time():
     )
     assert max(adjusted_ds["time"].values) == cftime.DatetimeNoLeap(
         2088, 12, 31, 0, 0, 0, 0
+    )
+
+
+def test_analoginspired_quantilepreserving_downscaling():
+    """Tests that analog-inspired quantile-preserving downscaling
+    method produces downscaled values for a fine-res grid such
+    that the average of the downscaled values equals the bias
+    corrected value for that timestep"""
+    # load test data - using xarray's air temperature tutorial dataset
+    # resample to daily
+    ds = xr.tutorial.load_dataset("air_temperature").resample(time="D").mean()
+    # remove leap days and only use four gridcells
+    temp_slice = convert_calendar(ds["air"][:, :2, :2], target="noleap")
+
+    # take the mean across space to represent coarse reference data for AFs
+    temp_slice_mean = temp_slice.mean(["lat", "lon"])
+    # then tile it to be on the same grid as the fine reference data
+    temp_slice_mean_resampled = temp_slice_mean.broadcast_like(temp_slice)
+
+    # need to create some fake bias corrected data so that we can use it to downscale
+    with set_options(sdba_extra_output=True):
+        quantiles = equally_spaced_nodes(620, eps=None)
+        QDM = QuantileDeltaMapping(
+            kind="+",
+            nquantiles=quantiles,
+            group=sdba.Grouper("time.dayofyear", window=31),
+        )
+        QDM.train(temp_slice_mean + 2, temp_slice_mean)
+        fake_biascorrected = QDM.adjust(temp_slice_mean + 4)
+        # this is necessary to make sim_q a coordinate on 'scen'
+        fake_biascorrected = (
+            fake_biascorrected["scen"]
+            .assign_coords(sim_q=fake_biascorrected.sim_q)
+            .to_dataset()
+        )
+
+    # now downscale
+    aiqpd = train_analogdownscaling(
+        temp_slice_mean_resampled, temp_slice, nquantiles=62
+    )
+
+    # make bias corrected data on the fine resolution grid
+    biascorrected = fake_biascorrected["scen"].broadcast_like(temp_slice)
+    # downscale the bias corrected data
+    aiqpd_downscaled = aiqpd.adjust(biascorrected)
+
+    # check that bias corrected value at a given timestep equals the average
+    # of the downscaled values that correspond to the bias corrected value
+    bias_corrected_value = biascorrected.isel(time=100).values[0][0]
+    downscaled_average = aiqpd_downscaled.isel(time=100).mean().values
+
+    assert assert_approx_equal(
+        bias_corrected_value, downscaled_average, significant=5, verbose=True
     )
