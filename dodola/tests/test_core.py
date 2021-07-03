@@ -225,7 +225,7 @@ def test_analoginspired_quantilepreserving_downscaling():
 
     # now downscale
     aiqpd = train_analogdownscaling(
-        temp_slice_mean_resampled, temp_slice, nquantiles=62
+        temp_slice_mean_resampled, temp_slice, quantiles_n=62
     )
 
     # make bias corrected data on the fine resolution grid
