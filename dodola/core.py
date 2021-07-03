@@ -141,7 +141,7 @@ def train_analogdownscaling(
         nquantiles=equally_spaced_nodes(int(quantiles_n), eps=None),
     )
     aiqpd.train(
-        ref_coarse=coarse_reference[variable], ref_fine=fine_reference[variable]
+        coarse_reference[variable], fine_reference[variable]
     )
     return aiqpd
 
