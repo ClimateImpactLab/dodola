@@ -3,7 +3,7 @@ History
 =======
 
 
-0.X.X (XXXX-XX-XX)
+0.4.1 (2021-07-13)
 ------------------
 * Fix application logging to stdout. (PR #104, @brews)
 * Bump xclim to v0.28.0, improve environment notes. (PR #105, @brews)
