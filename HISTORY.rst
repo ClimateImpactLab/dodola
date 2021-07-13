@@ -3,6 +3,11 @@ History
 =======
 
 
+0.x.x (xxxx-xx-xx)
+------------------
+* 
+
+
 0.4.1 (2021-07-13)
 ------------------
 * Fix application logging to stdout. (PR #104, @brews)
