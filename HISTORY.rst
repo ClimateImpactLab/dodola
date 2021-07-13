@@ -6,7 +6,7 @@ History
 0.X.X (XXXX-XX-XX)
 ------------------
 * Fix application logging to stdout. (PR #104, @brews)
-* Bump environment `xclim` to v0.28.0. (PR #105, @brews)
+* Bump xclim to v0.28.0, improve environment notes. (PR #105, @brews)
 
 
 0.4.0 (2021-07-09)
