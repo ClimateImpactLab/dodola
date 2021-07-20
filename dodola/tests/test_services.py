@@ -615,7 +615,7 @@ def test_analoginspired_quantilepreserving_downscaling():
     adjust_out_url = "memory://test_aiqpd_downscaling/a/adjust_output/path.zarr"
     repository.write(ref_coarse_url, temp_slice_mean_resampled.to_dataset(name="scen"))
     repository.write(ref_fine_url, temp_slice.to_dataset(name="scen"))
-    repository.write(bc_url, biascorrected)
+    repository.write(bc_url, biascorrected.to_dataset(name="scen"))
 
     # now downscale
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "+")
