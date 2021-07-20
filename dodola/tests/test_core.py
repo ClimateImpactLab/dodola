@@ -11,7 +11,6 @@ from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
     train_analogdownscaling,
-    adjust_analogdownscaling_year,
 )
 
 
@@ -193,11 +192,28 @@ def test_adjust_quantiledeltamapping_year_output_time():
 def test_analoginspired_quantilepreserving_downscaling():
     """Tests that the average of AIQPD values equals the bias corrected
     value for the corresponding coarse-res gridcells"""
-    # load test data - using xarray's air temperature tutorial dataset
-    # resample to daily
-    ds = xr.tutorial.load_dataset("air_temperature").resample(time="D").mean()
+    # make test data 
+    np.random.seed(0)
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    # TO-DO: update time range to include +/- 15 days 
+    time = pd.date_range(start='1995-01-01', end='2014-12-31')
+    temperature = 15 + 8 * np.random.randn(len(time), 4, 4)
+
+    ds = xr.Dataset(
+     data_vars=dict(
+         air=(["time", "lat", "lon"], temperature),
+     ),
+     coords=dict(
+         time=time,
+         lon=(["lon"], lon),
+         lat=(["lat"], lat),
+     ),
+     attrs=dict(description="Weather related data."),
+     )    
+
     # remove leap days and only use four gridcells
-    temp_slice = convert_calendar(ds["air"][:, :2, :2], target="noleap")
+    temp_slice = convert_calendar(ds["air"], target="noleap")
 
     # take the mean across space to represent coarse reference data for AFs
     temp_slice_mean = temp_slice.mean(["lat", "lon"])
@@ -229,7 +245,7 @@ def test_analoginspired_quantilepreserving_downscaling():
         temp_slice.to_dataset(name="scen"),
         variable="scen",
         kind="+",
-        quantiles_n=62,
+        quantiles_n=620,
     )
 
     # make bias corrected data on the fine resolution grid
