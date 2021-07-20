@@ -4,14 +4,12 @@ channels:
 dependencies:
 - adlfs=0.7.5  # Prevent azure blob errors, not hard req.
 - dask=2021.6.0
-- distributed=2021.6.0  # Not direct dodola dependency. Used in prototypes.
-- dask-kubernetes=2021.3.1  # Not direct dodola dependency. Used in prototypes.
 - click=8.0.1
 - cftime=1.5.0
 - fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
 - gcsfs=2021.5.0
 - numpy=1.20.3
-- pandas=1.2.5
+- pandas=1.2.5  # Not direct dependency, workaround to time slice bug in #96
 - pip=21.1.2
 - pytest=6.2.4
 - python=3.9

@@ -3,13 +3,23 @@ History
 =======
 
 
-0.X.X (XXXX-XX-XX)
+0.x.x (xxxx-xx-xx)
+------------------
+* 
+
+
+0.4.1 (2021-07-13)
+------------------
+* Fix application logging to stdout. (PR #104, @brews)
+* Bump xclim to v0.28.0, improve environment notes. (PR #105, @brews)
+
+
+0.4.0 (2021-07-09)
 ------------------
 * Add ``include-quantiles`` flag to ``apply_qdm`` to allow for including quantile information in bias corrected output. (PR #95, @dgergel)
 * Add precipitation unit conversion to ``standardize_gcm``. (PR #94, @dgergel)
 * Add ``astype`` argument to ``regrid``. (PR #92, @brews)
 * Make ``dodola`` container's default CMD. (PR #90, @brews)
-* Add ``dask-kubernetes``, ``distributed`` to container environment. (PR #90, @brews)
 * Improve subprocess and death handling in Docker container. (PR #90, @brews)
 * Fix bug in train_quantiledeltamapping accounting for endpoints. (#87, @brews)
 

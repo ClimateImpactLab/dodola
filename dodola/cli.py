@@ -7,6 +7,7 @@ import dodola.services as services
 
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 # Main entry point
@@ -22,6 +23,7 @@ def dodola_cli(debug):
         "azure.core.pipeline.policies.http_logging_policy",
         "asyncio",
         "adlfs.spec",
+        "gcsfs",
         "chardet.universaldetector",
         "fsspec",
     ]
@@ -29,11 +31,10 @@ def dodola_cli(debug):
         nl = logging.getLogger(logger_name)
         nl.setLevel(logging.WARNING)
 
-    loglevel = logging.INFO
     if debug:
-        loglevel = logging.DEBUG
-
-    logging.basicConfig(level=loglevel)
+        logging.root.setLevel(logging.DEBUG)
+    else:
+        logging.root.setLevel(logging.INFO)
 
 
 @dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
