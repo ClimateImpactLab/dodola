@@ -191,10 +191,8 @@ def test_adjust_quantiledeltamapping_year_output_time():
 
 
 def test_analoginspired_quantilepreserving_downscaling():
-    """Tests that analog-inspired quantile-preserving downscaling
-    method produces downscaled values for a fine-res grid such
-    that the average of the downscaled values equals the bias
-    corrected value for that timestep"""
+    """Tests that the average of AIQPD values equals the bias corrected
+    value for the corresponding coarse-res gridcells"""
     # load test data - using xarray's air temperature tutorial dataset
     # resample to daily
     ds = xr.tutorial.load_dataset("air_temperature").resample(time="D").mean()

@@ -54,12 +54,14 @@ def train_qdm(historical, reference, out, variable, kind):
     ref = storage.read(reference)
 
     kind_map = {"additive": "+", "multiplicative": "*"}
-    if kind not in kind_map.keys():
+    try:
+        k = kind_map[kind]
+    except KeyError:
         # So we get a helpful exception message showing accepted kwargs...
-        ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+        raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     qdm = train_quantiledeltamapping(
-        reference=ref, historical=hist, variable=variable, kind=kind_map[kind]
+        reference=ref, historical=hist, variable=variable, kind=k
     )
 
     storage.write(out, qdm.ds)
@@ -81,7 +83,7 @@ def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
     year : int
         Target year to adjust, with rolling years and day grouping.
     variable : str
-        Target variable in `sim` to adjust. Adjusted output will share the
+        Target variable in `simulation` to adjust. Adjusted output will share the
         same name.
     out : str
         fsspec-compatible path or URL pointing to NetCDF4 file where the
@@ -121,7 +123,7 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
     coarse_reference : str
         fsspec-compatible URL to resampled coarse reference store.
     fine_reference : str
-        fsspec-compatible URL to fine resolution reference store.
+        fsspec-compatible URL to fine-resolution reference store.
     out : str
         fsspec-compatible URL to store adjustment factors.
     variable : str
@@ -163,7 +165,7 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
     year : int
         Target year to adjust, with rolling years and day grouping.
     variable : str
-        Target variable in `sim` to downscale. Downscaled output will share the
+        Target variable in `simulation` to downscale. Downscaled output will share the
         same name.
     out : str
         fsspec-compatible path or URL pointing to NetCDF4 file where the

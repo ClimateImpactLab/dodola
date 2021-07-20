@@ -122,10 +122,10 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
     help="Train analog-inspired quantile preserving downscaling (AIQPD)"
 )
 @click.option(
-    "--coarse_reference", "-cr", required=True, help="URL to coarse reference store"
+    "--coarse-reference", "-cr", required=True, help="URL to coarse reference store"
 )
 @click.option(
-    "--fine_reference", "-fr", required=True, help="URL to fine reference store"
+    "--fine-reference", "-fr", required=True, help="URL to fine reference store"
 )
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
