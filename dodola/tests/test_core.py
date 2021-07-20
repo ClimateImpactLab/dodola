@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.testing import assert_approx_equal
 import pytest
+import pandas as pd
 import xarray as xr
 import cftime
 from xclim.core.calendar import convert_calendar
@@ -192,25 +193,25 @@ def test_adjust_quantiledeltamapping_year_output_time():
 def test_analoginspired_quantilepreserving_downscaling():
     """Tests that the average of AIQPD values equals the bias corrected
     value for the corresponding coarse-res gridcells"""
-    # make test data 
+    # make test data
     np.random.seed(0)
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
-    # TO-DO: update time range to include +/- 15 days 
-    time = pd.date_range(start='1995-01-01', end='2014-12-31')
+    # TO-DO: update time range to include +/- 15 days
+    time = pd.date_range(start="1995-01-01", end="2014-12-31")
     temperature = 15 + 8 * np.random.randn(len(time), 4, 4)
 
     ds = xr.Dataset(
-     data_vars=dict(
-         air=(["time", "lat", "lon"], temperature),
-     ),
-     coords=dict(
-         time=time,
-         lon=(["lon"], lon),
-         lat=(["lat"], lat),
-     ),
-     attrs=dict(description="Weather related data."),
-     )    
+        data_vars=dict(
+            air=(["time", "lat", "lon"], temperature),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
 
     # remove leap days and only use four gridcells
     temp_slice = convert_calendar(ds["air"], target="noleap")
