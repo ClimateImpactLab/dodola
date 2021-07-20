@@ -2,11 +2,16 @@
 """
 
 import numpy as np
+from numpy.testing import assert_approx_equal
 import pytest
 import xarray as xr
+import pandas as pd
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
+from xclim.sdba.utils import equally_spaced_nodes
+from xclim import sdba, set_options
 from xclim.sdba.adjustment import QuantileDeltaMapping
+from xclim.core.calendar import convert_calendar
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -18,6 +23,8 @@ from dodola.services import (
     correct_wet_day_frequency,
     train_qdm,
     apply_qdm,
+    train_aiqpd,
+    apply_aiqpd,
 )
 import dodola.repository as repository
 
@@ -548,6 +555,83 @@ def test_correct_wet_day_frequency(process):
             .all()
             == 0.0
         )
+
+
+def test_analoginspired_quantilepreserving_downscaling():
+    """Tests that the average of AIQPD values equals the bias corrected
+    value for the corresponding coarse-res gridcells"""
+    # make test data
+    np.random.seed(0)
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    # TO-DO: update time range to include +/- 15 days
+    time = pd.date_range(start="1995-01-01", end="2014-12-31")
+    temperature = 15 + 8 * np.random.randn(len(time), 4, 4)
+
+    ds = xr.Dataset(
+        data_vars=dict(
+            air=(["time", "lat", "lon"], temperature),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
+
+    # remove leap days
+    temp_slice = convert_calendar(ds["air"], target="noleap")
+
+    # take the mean across space to represent coarse reference data for AFs
+    temp_slice_mean = temp_slice.mean(["lat", "lon"])
+    # then tile it to be on the same grid as the fine reference data
+    temp_slice_mean_resampled = temp_slice_mean.broadcast_like(temp_slice)
+
+    # need to create some fake bias corrected data so that we can use it to downscale
+    with set_options(sdba_extra_output=True):
+        quantiles = equally_spaced_nodes(620, eps=None)
+        QDM = QuantileDeltaMapping(
+            kind="+",
+            nquantiles=quantiles,
+            group=sdba.Grouper("time.dayofyear", window=31),
+        )
+        QDM.train(temp_slice_mean + 2, temp_slice_mean)
+        fake_biascorrected = QDM.adjust(temp_slice_mean + 4)
+        # this is necessary to make sim_q a coordinate on 'scen'
+        fake_biascorrected = (
+            fake_biascorrected["scen"]
+            .assign_coords(sim_q=fake_biascorrected.sim_q)
+            .to_dataset()
+        )
+    # make bias corrected data on the fine resolution grid
+    biascorrected = fake_biascorrected["scen"].broadcast_like(temp_slice)
+
+    # write test data
+    ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
+    bc_url = "memory://test_aiqpd_downscaling/a/bias_corrected/path.zarr"
+    train_out_url = "memory://test_aiqpd_downscaling/a/train_output/path.zarr"
+    adjust_out_url = "memory://test_aiqpd_downscaling/a/adjust_output/path.zarr"
+    repository.write(ref_coarse_url, temp_slice_mean_resampled.to_dataset(name="scen"))
+    repository.write(ref_fine_url, temp_slice.to_dataset(name="scen"))
+    repository.write(bc_url, biascorrected)
+
+    # now downscale
+    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "+")
+
+    # downscale the bias corrected data
+    apply_aiqpd(bc_url, train_out_url, 2000, "scen", adjust_out_url)
+    aiqpd_downscaled = repository.read(adjust_out_url)
+
+    # check that bias corrected value at a given timestep equals the average
+    # of the downscaled values that correspond to the bias corrected value
+    bias_corrected_value = biascorrected.isel(time=100).values[0][0]
+    downscaled_average = aiqpd_downscaled.isel(time=100).mean().values
+
+    assert_approx_equal(
+        bias_corrected_value, downscaled_average, significant=5, verbose=True
+    )
 
 
 @pytest.mark.parametrize(
