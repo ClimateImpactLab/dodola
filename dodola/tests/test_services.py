@@ -618,7 +618,7 @@ def test_analoginspired_quantilepreserving_downscaling():
     repository.write(bc_url, biascorrected.to_dataset(name="scen"))
 
     # now downscale
-    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "+")
+    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
 
     # downscale the bias corrected data
     apply_aiqpd(bc_url, train_out_url, 2000, "scen", adjust_out_url)
