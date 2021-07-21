@@ -557,7 +557,7 @@ def test_correct_wet_day_frequency(process):
         )
 
 
-def test_analoginspired_quantilepreserving_downscaling():
+def test_analoginspired_quantilepreserving_downscaling(tmpdir):
     """Tests that the average of AIQPD values equals the bias corrected
     value for the corresponding coarse-res gridcells"""
     # make test data
@@ -612,7 +612,10 @@ def test_analoginspired_quantilepreserving_downscaling():
     ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
     bc_url = "memory://test_aiqpd_downscaling/a/bias_corrected/path.zarr"
     train_out_url = "memory://test_aiqpd_downscaling/a/train_output/path.zarr"
-    adjust_out_url = "memory://test_aiqpd_downscaling/a/adjust_output/path.zarr"
+
+    # Writes NC to local disk, so diff format here:
+    downscaled_key = tmpdir.join("downscaled.nc")
+
     repository.write(
         ref_coarse_url,
         temp_slice_mean_resampled.to_dataset(name="scen").chunk({"time": -1}),
@@ -626,13 +629,14 @@ def test_analoginspired_quantilepreserving_downscaling():
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
 
     # downscale the bias corrected data
-    apply_aiqpd(bc_url, train_out_url, 2000, "scen", adjust_out_url)
-    aiqpd_downscaled = repository.read(adjust_out_url)
+    apply_aiqpd(bc_url, train_out_url, 2000, "scen", downscaled_key)
+
+    aiqpd_downscaled = xr.open_dataset(str(downscaled_key))
 
     # check that bias corrected value at a given timestep equals the average
     # of the downscaled values that correspond to the bias corrected value
-    bias_corrected_value = biascorrected.isel(time=100).values[0][0]
-    downscaled_average = aiqpd_downscaled.isel(time=100).mean().values
+    bias_corrected_value = biascorrected["scen"].isel(time=100).values[0][0]
+    downscaled_average = aiqpd_downscaled["scen"].isel(time=100).mean().values
 
     assert_approx_equal(
         bias_corrected_value, downscaled_average, significant=5, verbose=True
