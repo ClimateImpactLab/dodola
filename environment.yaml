@@ -6,10 +6,13 @@ dependencies:
 - dask=2021.6.0
 - click=8.0.1
 - cftime=1.5.0
+- intake=0.6.2  # Not direct dependency. Used in docker environment.
+- intake-esm=2021.1.15  # Not direct dependency. Used in docker environment.
 - fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
 - gcsfs=2021.5.0
 - numpy=1.20.3
 - pandas=1.2.5  # Not direct dependency, workaround to time slice bug in #96
+- papermill=2.3.3  # Not direct dependency. Used in docker environment.
 - pip=21.1.2
 - pytest=6.2.4
 - python=3.9
