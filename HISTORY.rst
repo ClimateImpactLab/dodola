@@ -5,7 +5,7 @@ History
 
 0.x.x (xxxx-xx-xx)
 ------------------
-* Add ``intake-esm`` to Docker environment (PR #106, @brews).
+* Add ``papermill``, ``intake-esm`` to Docker environment. (PR #106, @brews)
 
 
 0.4.1 (2021-07-13)
