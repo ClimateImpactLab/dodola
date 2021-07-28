@@ -185,7 +185,7 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
     # currently faster and more reliable than Zarr Stores. This logic is handled
     # in workflow and cloud artifact repository.
     logger.debug(f"Writing to {out}")
-    downscaled_ds.to_netcdf(out, compute=True)
+    downscaled_ds.to_netcdf(out, compute=True, engine="netcdf4")
     logger.info(f"Written {out}")
 
 

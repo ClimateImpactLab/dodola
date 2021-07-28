@@ -557,9 +557,12 @@ def test_correct_wet_day_frequency(process):
         )
 
 
-def test_analoginspired_quantilepreserving_downscaling(tmpdir):
+def test_analoginspired_quantilepreserving_downscaling(tmpdir, monkeypatch):
     """Tests that the average of AIQPD values equals the bias corrected
     value for the corresponding coarse-res gridcells"""
+    monkeypatch.setenv(
+        "HDF5_USE_FILE_LOCKING", "FALSE"
+    )  # Avoid thread lock conflicts with dask scheduler
     # make test data
     np.random.seed(0)
     lon = [-99.83, -99.32, -99.79, -99.23]
@@ -623,7 +626,9 @@ def test_analoginspired_quantilepreserving_downscaling(tmpdir):
     repository.write(
         ref_fine_url, temp_slice.to_dataset(name="scen").chunk({"time": -1})
     )
-    repository.write(bc_url, biascorrected.to_dataset(name="scen"))
+    # repository.write(bc_url, biascorrected.to_dataset(name="scen"))
+    biascorrected = biascorrected.to_dataset(name="scen")
+    repository.write(bc_url, biascorrected)
 
     # now downscale
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
