@@ -5,6 +5,7 @@ import cftime
 from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
+    _add_cyclic
 )
 
 
@@ -181,3 +182,14 @@ def test_adjust_quantiledeltamapping_year_output_time():
     assert max(adjusted_ds["time"].values) == cftime.DatetimeNoLeap(
         2088, 12, 31, 0, 0, 0, 0
     )
+
+
+def test_add_cyclic():
+    """Test _add_cyclic adds wraparound values"""
+    in_da = xr.DataArray(
+        np.ones([5, 6]) * np.arange(6),
+        coords=[np.arange(5) + 1, np.arange(6) + 1],
+        dims=["lat", "lon"],
+    )
+    out_ds = _add_cyclic(ds=in_da.to_dataset(name="fakevariable"), dim="lon")
+    assert all(out_ds["fakevariable"].isel(lon=0) == out_ds["fakevariable"].isel(lon=-1))
