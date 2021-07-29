@@ -249,8 +249,22 @@ def build_xesmf_weights_file(x, domain, method, filename=None):
     return str(out.filename)
 
 
-def xesmf_regrid(x, domain, method, weights_path=None, astype=None):
+def _add_cyclic(ds, dim):
     """
+    Adds wrap-around, appending first value to end of data for named dimension.
+
+    Basically an xarray version of ``cartopy.util.add_cyclic_point()``.
+    """
+    return ds.map(
+        lambda x, d: xr.concat([x, x.isel({d: 0})], dim=d),
+        keep_attrs=True,
+        d=str(dim),
+    )
+
+
+def xesmf_regrid(x, domain, method, weights_path=None, astype=None, add_cyclic=None):
+    """
+    Regrid a Dataset.
 
     Parameters
     ----------
@@ -263,11 +277,18 @@ def xesmf_regrid(x, domain, method, weights_path=None, astype=None):
         Local path to netCDF file of pre-calculated XESMF regridding weights.
     astype : str, numpy.dtype, or None, optional
         Typecode or data-type to which the regridded output is cast.
+    add_cyclic : str, or None, optional
+        Add cyclic point (aka wrap-around pixel) to given dimension before
+        regridding. Useful for avoiding dateline artifacts along longitude
+        in global datasets.
 
     Returns
     -------
     xr.Dataset
     """
+    if add_cyclic:
+        x = _add_cyclic(x, add_cyclic)
+
     regridder = xe.Regridder(
         x,
         domain,

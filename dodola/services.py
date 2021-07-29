@@ -262,7 +262,7 @@ def rechunk(x, target_chunks, out):
 
 
 @log_service
-def regrid(x, out, method, domain_file, weights_path=None, astype=None):
+def regrid(x, out, method, domain_file, weights_path=None, astype=None, add_cyclic=None):
     """Regrid climate data
 
     Parameters
@@ -279,9 +279,12 @@ def regrid(x, out, method, domain_file, weights_path=None, astype=None):
         Local file path name to write regridding weights file to.
     astype : str, numpy.dtype, or None, optional
         Typecode or data-type to which the regridded output is cast.
+    add_cyclic : str, or None, optional
+        Add cyclic (aka wrap-around values) to dimension before regridding.
+         Useful for avoiding dateline artifacts along longitude in global
+         datasets.
     """
     ds = storage.read(x)
-
     ds_domain = storage.read(domain_file)
 
     regridded_ds = xesmf_regrid(
@@ -290,6 +293,7 @@ def regrid(x, out, method, domain_file, weights_path=None, astype=None):
         method=method,
         weights_path=weights_path,
         astype=astype,
+        add_cyclic=add_cyclic,
     )
 
     storage.write(out, regridded_ds)
