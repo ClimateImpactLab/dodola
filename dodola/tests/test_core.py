@@ -5,7 +5,7 @@ import cftime
 from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
-    _add_cyclic
+    _add_cyclic,
 )
 
 
@@ -192,4 +192,6 @@ def test_add_cyclic():
         dims=["lat", "lon"],
     )
     out_ds = _add_cyclic(ds=in_da.to_dataset(name="fakevariable"), dim="lon")
-    assert all(out_ds["fakevariable"].isel(lon=0) == out_ds["fakevariable"].isel(lon=-1))
+    assert all(
+        out_ds["fakevariable"].isel(lon=0) == out_ds["fakevariable"].isel(lon=-1)
+    )

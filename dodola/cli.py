@@ -233,7 +233,9 @@ def rechunk(x, chunk, out):
     help="Local path to existing regrid weights file",
 )
 @click.option("--astype", "-t", default=None, help="Type to recast output to")
-@click.option("--cyclic", default=None, help="Add wrap-around values to dim before regridding")
+@click.option(
+    "--cyclic", default=None, help="Add wrap-around values to dim before regridding"
+)
 def regrid(x, out, method, domain_file, weightspath, astype, addcyclic):
     """Regrid a target climate dataset
 

@@ -262,7 +262,9 @@ def rechunk(x, target_chunks, out):
 
 
 @log_service
-def regrid(x, out, method, domain_file, weights_path=None, astype=None, add_cyclic=None):
+def regrid(
+    x, out, method, domain_file, weights_path=None, astype=None, add_cyclic=None
+):
     """Regrid climate data
 
     Parameters
