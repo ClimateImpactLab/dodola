@@ -5,6 +5,7 @@ History
 
 0.x.x (xxxx-xx-xx)
 ------------------
+* Add ``--cyclic`` option to regrid cli and services. (PR #108, @brews)
 * Add ``papermill``, ``intake-esm`` to Docker environment. (PR #106, @brews)
 
 

@@ -233,7 +233,10 @@ def rechunk(x, chunk, out):
     help="Local path to existing regrid weights file",
 )
 @click.option("--astype", "-t", default=None, help="Type to recast output to")
-def regrid(x, out, method, domain_file, weightspath, astype):
+@click.option(
+    "--cyclic", default=None, help="Add wrap-around values to dim before regridding"
+)
+def regrid(x, out, method, domain_file, weightspath, astype, cyclic):
     """Regrid a target climate dataset
 
     Note, the weightspath only accepts paths to NetCDF files on the local disk. See
@@ -248,6 +251,7 @@ def regrid(x, out, method, domain_file, weightspath, astype):
         domain_file=domain_file,
         weights_path=weightspath,
         astype=astype,
+        add_cyclic=cyclic,
     )
 
 
