@@ -7,7 +7,7 @@ History
 ------------------
 * Add ``--cyclic`` option to regrid cli and services. (PR #108, @brews)
 * Add ``papermill``, ``intake-esm`` to Docker environment. (PR #106, @brews)
-* Bump environment `xarray` to v0.19.0. (PR #109, @brews)
+* Bump environment ``xarray`` to v0.19.0. (PR #109, @brews)
 
 
 0.4.1 (2021-07-13)
