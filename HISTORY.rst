@@ -3,7 +3,7 @@ History
 =======
 
 
-0.x.x (xxxx-xx-xx)
+0.5.0 (2021-08-04)
 ------------------
 * Add ``--cyclic`` option to regrid cli and services. (PR #108, @brews)
 * Add ``papermill``, ``intake-esm`` to Docker environment. (PR #106, @brews)
