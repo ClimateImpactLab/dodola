@@ -626,7 +626,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
     biascorrected = biascorrected.to_dataset(name="scen")
     repository.write(bc_url, biascorrected)
 
-    # now downscale
+    # now train AIQPD model
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
 
     # load adjustment factors
@@ -634,7 +634,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
     af_expected_shape = (len(lon), len(lat), 365, 620)
 
-    assert aiqpd_model.ds.af.shape == af_expected_shape
+    assert aiqpd_model.af.shape == af_expected_shape
 
 
 @pytest.mark.parametrize(
