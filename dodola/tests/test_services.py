@@ -557,9 +557,8 @@ def test_correct_wet_day_frequency(process):
         )
 
 
-def test_analoginspired_quantilepreserving_downscaling(tmpdir, monkeypatch):
-    """Tests that the average of AIQPD values equals the bias corrected
-    value for the corresponding coarse-res gridcells"""
+def test_aiqpd_train(tmpdir, monkeypatch):
+    """Tests that the shape of adjustment factors matches the expected shape"""
     monkeypatch.setenv(
         "HDF5_USE_FILE_LOCKING", "FALSE"
     )  # Avoid thread lock conflicts with dask scheduler
@@ -616,9 +615,6 @@ def test_analoginspired_quantilepreserving_downscaling(tmpdir, monkeypatch):
     bc_url = "memory://test_aiqpd_downscaling/a/bias_corrected/path.zarr"
     train_out_url = "memory://test_aiqpd_downscaling/a/train_output/path.zarr"
 
-    # Writes NC to local disk, so diff format here:
-    downscaled_key = tmpdir.join("downscaled.nc")
-
     repository.write(
         ref_coarse_url,
         temp_slice_mean_resampled.to_dataset(name="scen").chunk({"time": -1}),
@@ -633,19 +629,12 @@ def test_analoginspired_quantilepreserving_downscaling(tmpdir, monkeypatch):
     # now downscale
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
 
-    # downscale the bias corrected data
-    apply_aiqpd(bc_url, train_out_url, 2000, "scen", downscaled_key)
+    # load adjustment factors
+    aiqpd_model = repository.read(train_out_url)
 
-    aiqpd_downscaled = xr.open_dataset(str(downscaled_key))
+    af_expected_shape = (len(lon), len(lat), 365, 620)
 
-    # check that bias corrected value at a given timestep equals the average
-    # of the downscaled values that correspond to the bias corrected value
-    bias_corrected_value = biascorrected["scen"].isel(time=100).values[0][0]
-    downscaled_average = aiqpd_downscaled["scen"].isel(time=100).mean().values
-
-    assert_approx_equal(
-        bias_corrected_value, downscaled_average, significant=5, verbose=True
-    )
+    assert aiqpd_model.ds.af.shape == af_expected_shape
 
 
 @pytest.mark.parametrize(
