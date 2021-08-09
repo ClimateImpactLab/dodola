@@ -5,7 +5,7 @@ History
 
 0.x.x (xxxx-xx-xx)
 ------------------
-* 
+* Add AIQPD downscaling method to options. This supersedes the BCSD downscaling service. (PR #98, @dgergel) 
 
 
 0.4.1 (2021-07-13)
