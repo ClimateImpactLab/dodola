@@ -566,8 +566,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
     np.random.seed(0)
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
-    # TO-DO: update time range to include +/- 15 days
-    time = pd.date_range(start="1995-01-01", end="2014-12-31")
+    time = pd.date_range(start="1994-12-17", end="2015-01-15")
     temperature = 15 + 8 * np.random.randn(len(time), 4, 4)
 
     ds = xr.Dataset(
