@@ -135,6 +135,24 @@ def train_analogdownscaling(
     -------
     xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling
     """
+
+    # AIQPD method requires that the number of quantiles equals
+    # the number of days in each day group
+    # e.g. 20 years of data and a window of 31 = 620 quantiles
+
+    # check that lengths of input data are the same, then only check years for one
+    if len(coarse_reference.time) != len(fine_reference.time):
+        raise ValueError("coarse and fine reference data inputs have different lengths")
+
+    # check number of years in input data (subtract 2 for the +/- 15 days on each end)
+    num_years = len(np.unique(fine_reference.time.dt.year)) - 2
+    if (num_years * int(window_n)) != quantiles_n:
+        raise ValueError(
+            "number of quantiles {} must equal # of years {} * window length {}, day groups must {} days".format(
+                quantiles_n, num_years, int(window_n), quantiles_n
+            )
+        )
+
     aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling(
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
