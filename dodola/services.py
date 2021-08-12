@@ -135,15 +135,17 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
     ref_fine = storage.read(fine_reference)
 
     kind_map = {"additive": "+", "multiplicative": "*"}
-    if kind not in kind_map.keys():
+    try:
+        k = kind_map[kind]
+    except KeyError:
         # So we get a helpful exception message showing accepted kwargs...
-        ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+        raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     aiqpd = train_analogdownscaling(
         coarse_reference=ref_coarse,
         fine_reference=ref_fine,
         variable=variable,
-        kind=kind_map[kind],
+        kind=k,
     )
 
     storage.write(out, aiqpd.ds)
