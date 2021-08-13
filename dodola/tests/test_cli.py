@@ -15,6 +15,8 @@ import dodola.services
         "train-qdm",
         "apply-qdm",
         "correct-wetday-frequency",
+        "train-aiqpd",
+        "apply-aiqpd",
     ],
     ids=(
         "--help",
@@ -25,6 +27,8 @@ import dodola.services
         "train-qdm --help",
         "apply-qdm --help",
         "correct-wetday-frequency --help",
+        "train-aiqpd --help",
+        "apply-aiqpd --help",
     ),
 )
 def test_cli_helpflags(subcmd):

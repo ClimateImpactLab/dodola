@@ -5,7 +5,8 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* 
+* Add AIQPD downscaling method to options. Also updates xclim dependency to the CIL forked branch "add_analog_downscaling", with 0.28.1 of xclim merged in. 
+  This supersedes the BCSD downscaling service. (PR #98, @dgergel) 
 
 
 0.5.0 (2021-08-04)

@@ -111,6 +111,95 @@ def adjust_quantiledeltamapping_year(
     return out.to_dataset(name=variable)
 
 
+def train_analogdownscaling(
+    coarse_reference, fine_reference, variable, kind, quantiles_n=620, window_n=31
+):
+    """Train analog-inspired quantile-preserving downscaling
+
+    Parameters
+    ----------
+    coarse_reference : xr.Dataset
+        Dataset to use as resampled (to fine resolution) coarse reference.
+    fine_reference : xr.Dataset
+        Dataset to use as fine-resolution reference.
+    variable : str
+        Name of target variable to extract from `coarse_reference` and `fine_reference`.
+    kind : {"+", "*"}
+        Kind of variable. Used for creating AIQPD adjustment factors.
+    quantiles_n : int, optional
+        Number of quantiles for AIQPD.
+    window_n : int, optional
+        Centered window size for day-of-year grouping.
+
+    Returns
+    -------
+    xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling
+    """
+
+    # AIQPD method requires that the number of quantiles equals
+    # the number of days in each day group
+    # e.g. 20 years of data and a window of 31 = 620 quantiles
+
+    # check that lengths of input data are the same, then only check years for one
+    if len(coarse_reference.time) != len(fine_reference.time):
+        raise ValueError("coarse and fine reference data inputs have different lengths")
+
+    # check number of years in input data (subtract 2 for the +/- 15 days on each end)
+    num_years = len(np.unique(fine_reference.time.dt.year)) - 2
+    if (num_years * int(window_n)) != quantiles_n:
+        raise ValueError(
+            "number of quantiles {} must equal # of years {} * window length {}, day groups must {} days".format(
+                quantiles_n, num_years, int(window_n), quantiles_n
+            )
+        )
+
+    aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling(
+        kind=str(kind),
+        group=sdba.Grouper("time.dayofyear", window=int(window_n)),
+        nquantiles=quantiles_n,
+    )
+    aiqpd.train(coarse_reference[variable], fine_reference[variable])
+    return aiqpd
+
+
+def adjust_analogdownscaling_year(simulation, aiqpd, year, variable):
+    """Apply AIQPD to downscale a year of bias corrected output.
+
+    Parameters
+    ----------
+    simulation : xr.Dataset
+        Daily bias corrected data to be downscaled.
+    aiqpd : xr.Dataset or sdba.adjustment.AnalogQuantilePreservingDownscaling
+        Trained ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``, or
+        Dataset representation that will instantiate
+        ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``.
+    year : int
+        Target year to downscale, with day grouping.
+    variable : str
+        Target variable in `simulation` to downscale. Downscaled output will share the
+        same name.
+
+    Returns
+    -------
+    out : xr.Dataset
+        AIQPD-downscaled values from `simulation`. May be a lazy-evaluated future, not
+        yet computed.
+    """
+    year = int(year)
+    variable = str(variable)
+
+    if isinstance(aiqpd, xr.Dataset):
+        aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(aiqpd)
+
+    # Slice to get 15 days before and after our target year. This accounts
+    # for the rolling 31 day rolling window.
+    timeslice = slice(f"{year}-01-01", f"{year}-12-31")
+    simulation = simulation[variable].sel(time=timeslice)
+    out = aiqpd.adjust(simulation)
+
+    return out.to_dataset(name=variable)
+
+
 def apply_bias_correction(
     gcm_training_ds,
     obs_training_ds,

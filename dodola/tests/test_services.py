@@ -2,11 +2,16 @@
 """
 
 import numpy as np
+from numpy.testing import assert_approx_equal
 import pytest
 import xarray as xr
+import pandas as pd
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
+from xclim.sdba.utils import equally_spaced_nodes
+from xclim import sdba, set_options
 from xclim.sdba.adjustment import QuantileDeltaMapping
+from xclim.core.calendar import convert_calendar
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -18,6 +23,8 @@ from dodola.services import (
     correct_wet_day_frequency,
     train_qdm,
     apply_qdm,
+    train_aiqpd,
+    apply_aiqpd,
 )
 import dodola.repository as repository
 
@@ -548,6 +555,85 @@ def test_correct_wet_day_frequency(process):
             .all()
             == 0.0
         )
+
+
+def test_aiqpd_train(tmpdir, monkeypatch):
+    """Tests that the shape of adjustment factors matches the expected shape"""
+    monkeypatch.setenv(
+        "HDF5_USE_FILE_LOCKING", "FALSE"
+    )  # Avoid thread lock conflicts with dask scheduler
+    # make test data
+    np.random.seed(0)
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    time = pd.date_range(start="1994-12-17", end="2015-01-15")
+    temperature = 15 + 8 * np.random.randn(len(time), 4, 4)
+
+    ds = xr.Dataset(
+        data_vars=dict(
+            air=(["time", "lat", "lon"], temperature),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
+
+    # remove leap days
+    temp_slice = convert_calendar(ds["air"], target="noleap")
+
+    # take the mean across space to represent coarse reference data for AFs
+    temp_slice_mean = temp_slice.mean(["lat", "lon"])
+    # then tile it to be on the same grid as the fine reference data
+    temp_slice_mean_resampled = temp_slice_mean.broadcast_like(temp_slice)
+
+    # need to create some fake bias corrected data so that we can use it to downscale
+    with set_options(sdba_extra_output=True):
+        quantiles = equally_spaced_nodes(620, eps=None)
+        QDM = QuantileDeltaMapping(
+            kind="+",
+            nquantiles=quantiles,
+            group=sdba.Grouper("time.dayofyear", window=31),
+        )
+        QDM.train(temp_slice_mean + 2, temp_slice_mean)
+        fake_biascorrected = QDM.adjust(temp_slice_mean + 4)
+        # this is necessary to make sim_q a coordinate on 'scen'
+        fake_biascorrected = (
+            fake_biascorrected["scen"]
+            .assign_coords(sim_q=fake_biascorrected.sim_q)
+            .to_dataset()
+        )
+    # make bias corrected data on the fine resolution grid
+    biascorrected = fake_biascorrected["scen"].broadcast_like(temp_slice)
+
+    # write test data
+    ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
+    bc_url = "memory://test_aiqpd_downscaling/a/bias_corrected/path.zarr"
+    train_out_url = "memory://test_aiqpd_downscaling/a/train_output/path.zarr"
+
+    repository.write(
+        ref_coarse_url,
+        temp_slice_mean_resampled.to_dataset(name="scen").chunk({"time": -1}),
+    )
+    repository.write(
+        ref_fine_url, temp_slice.to_dataset(name="scen").chunk({"time": -1})
+    )
+    # repository.write(bc_url, biascorrected.to_dataset(name="scen"))
+    biascorrected = biascorrected.to_dataset(name="scen")
+    repository.write(bc_url, biascorrected)
+
+    # now train AIQPD model
+    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
+
+    # load adjustment factors
+    aiqpd_model = repository.read(train_out_url)
+
+    af_expected_shape = (len(lon), len(lat), 365, 620)
+
+    assert aiqpd_model.af.shape == af_expected_shape
 
 
 @pytest.mark.parametrize(
