@@ -113,9 +113,7 @@ def train_qdm(historical, reference, out, variable, kind):
 )
 def apply_aiqpd(simulation, aiqpd, variable, out):
     """Adjust simulation year with AIQPD downscaling method, outputting to local NetCDF4 file"""
-    services.apply_aiqpd(
-        simulation=simulation, aiqpd=aiqpd, variable=variable, out=out
-    )
+    services.apply_aiqpd(simulation=simulation, aiqpd=aiqpd, variable=variable, out=out)
 
 
 @dodola_cli.command(
