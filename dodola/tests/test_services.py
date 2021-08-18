@@ -691,12 +691,19 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
 
     repository.write(
-        ref_coarse_url, ref_coarse.to_dataset(name="scen").chunk({"time": -1})
+        ref_coarse_url,
+        ref_coarse.to_dataset(name="scen").chunk({"time": -1, "lat": -1, "lon": -1}),
     )
-    repository.write(ref_fine_url, ref_fine.to_dataset(name="scen").chunk({"time": -1}))
+    repository.write(
+        ref_fine_url,
+        ref_fine.to_dataset(name="scen").chunk({"time": -1, "lat": -1, "lon": -1}),
+    )
 
     repository.write(
-        bc_url, biascorrected_year.to_dataset(name="scen").chunk({"time": -1})
+        bc_url,
+        biascorrected_year.to_dataset(name="scen").chunk(
+            {"time": -1, "lat": -1, "lon": -1}
+        ),
     )
 
     # now train AIQPD model
