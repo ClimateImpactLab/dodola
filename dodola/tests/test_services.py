@@ -571,7 +571,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
     ref_fine = xr.Dataset(
         data_vars=dict(
-            air=(["time", "lat", "lon"], temperature_ref),
+            temperature=(["time", "lat", "lon"], temperature_ref),
         ),
         coords=dict(
             time=time,
@@ -623,7 +623,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
 
     ref_fine = xr.Dataset(
         data_vars=dict(
-            air=(["time", "lat", "lon"], temperature_ref),
+            temperature=(["time", "lat", "lon"], temperature_ref),
         ),
         coords=dict(
             time=time,
@@ -635,7 +635,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
 
     ds_train = xr.Dataset(
         data_vars=dict(
-            air=(["time", "lat", "lon"], temperature_train),
+            temperature=(["time", "lat", "lon"], temperature_train),
         ),
         coords=dict(
             time=time,
