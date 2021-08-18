@@ -696,7 +696,9 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     )
     repository.write(ref_fine_url, ref_fine.to_dataset(name="scen").chunk({"time": -1}))
 
-    repository.write(bc_url, biascorrected_year.to_dataset(name="scen").chunk({"time": -1}))
+    repository.write(
+        bc_url, biascorrected_year.to_dataset(name="scen").chunk({"time": -1})
+    )
 
     # now train AIQPD model
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
