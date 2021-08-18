@@ -690,10 +690,14 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # Writes NC to local disk, so diff format here:
     sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
 
-    repository.write(ref_coarse_url, ref_coarse.to_dataset(name="scen"))
-    repository.write(ref_fine_url, ref_fine.to_dataset(name="scen"))
+    repository.write(
+        ref_coarse_url, ref_coarse.to_dataset(name="scen").chunk({"time": -1})
+    )
+    repository.write(ref_fine_url, ref_fine.to_dataset(name="scen").chunk({"time": -1}))
 
-    repository.write(bc_url, biascorrected_year.to_dataset(name="scen"))
+    repository.write(
+        bc_url, biascorrected_year.to_dataset(name="scen").chunk({"time": -1})
+    )
 
     # now train AIQPD model
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
