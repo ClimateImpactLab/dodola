@@ -722,7 +722,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
 
     # now train AIQPD model
-    train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, "scen", "additive")
+    train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, variable, "additive")
 
     # downscale
     apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_key)
@@ -731,8 +731,13 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
 
     downscaled_shape = (len(lon), len(lat), 365)
-
+    # check that output is correct size
     assert downscaled_ds[variable].shape == downscaled_shape
+
+    # check that downscaled average equals bias corrected value
+    bc_timestep = biascorrected_fine.isel(time=100).values[0][0]
+    aiqpd_downscaled_mean = downscaled_ds[variable].isel(time=100).mean().values
+    np.testing.assert_almost_equal(bc_timestep, aiqpd_downscaled_mean)
 
 
 @pytest.mark.parametrize(
