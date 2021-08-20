@@ -620,10 +620,11 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     time = pd.date_range(start="1994-12-17", end="2015-01-15")
     temperature_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
     temperature_train = 15 + 8 * np.random.randn(len(time), 4, 4)
+    variable = "scen"
 
     ref_fine = xr.Dataset(
         data_vars=dict(
-            temperature=(["time", "lat", "lon"], temperature_ref),
+            scen=(["time", "lat", "lon"], temperature_ref),
         ),
         coords=dict(
             time=time,
@@ -635,7 +636,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
 
     ds_train = xr.Dataset(
         data_vars=dict(
-            temperature=(["time", "lat", "lon"], temperature_train),
+            scen=(["time", "lat", "lon"], temperature_train),
         ),
         coords=dict(
             time=time,
@@ -646,8 +647,8 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     )
 
     # remove leap days
-    ref_fine = convert_calendar(ref_fine["temperature"], target="noleap")
-    ds_train = convert_calendar(ds_train["temperature"], target="noleap")
+    ref_fine = convert_calendar(ref_fine[variable], target="noleap")
+    ds_train = convert_calendar(ds_train[variable], target="noleap")
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
@@ -655,69 +656,90 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
     ds_bc = ds_train + 3
 
-    # need to create some fake bias corrected data so that we can use it to downscale
-    with set_options(sdba_extra_output=True):
-        quantiles = equally_spaced_nodes(620, eps=None)
-        QDM = QuantileDeltaMapping(
-            kind="+",
-            nquantiles=quantiles,
-            group=sdba.Grouper("time.dayofyear", window=31),
-        )
-        QDM.train(ds_ref_coarse, ds_train)
-        fake_biascorrected = QDM.adjust(ds_bc)
-        # this is necessary to make sim_q a coordinate on 'scen'
-        fake_biascorrected = (
-            fake_biascorrected["scen"]
-            .assign_coords(sim_q=fake_biascorrected.sim_q)
-            .to_dataset()
-        )
-    # make bias corrected data on the fine resolution grid
-    biascorrected = fake_biascorrected["scen"].broadcast_like(ref_fine)
+    # write test data
+    ref_coarse_coarse_url = (
+        "memory://test_aiqpd_downscaling/a/ref_coarse_coarse/path.zarr"
+    )
+    ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
+    qdm_train_url = "memory://test_aiqpd_downscaling/a/qdm_train/path.zarr"
+    sim_url = "memory://test_aiqpd_downscaling/a/sim/path.zarr"
+    qdm_train_out_url = "memory://test_aiqpd_downscaling/a/qdm_train_out/path.zarr"
+    biascorrected_url = "memory://test_aiqpd_downscaling/a/biascorrected/path.zarr"
+    # write bias corrected data differently because it's a NetCDF, not a zarr
+    sim_biascorrected_key = tmpdir.join("sim_biascorrected.nc")
 
-    # select year that will be downscaled from bias corrected output
-    year = 2005
-    biascorrected_year = biascorrected.sel(
-        time=slice("{}-01-01".format(year), "{}-12-31".format(year))
+    repository.write(
+        ref_coarse_coarse_url,
+        ds_ref_coarse.to_dataset(name=variable).chunk(
+            {"time": -1, "lat": -1, "lon": -1}
+        ),
+    )
+    repository.write(
+        ref_coarse_url,
+        ref_coarse.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
+    )
+    repository.write(
+        ref_fine_url,
+        ref_fine.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
+    )
+    repository.write(
+        qdm_train_url,
+        ds_train.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
+    )
+    repository.write(
+        sim_url,
+        ds_bc.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
+    )
+
+    # this is an integration test between QDM and AIQPD, so use QDM services
+    # for bias correction
+    target_year = 2005
+
+    train_qdm(
+        historical=qdm_train_url,
+        reference=ref_coarse_coarse_url,
+        out=qdm_train_out_url,
+        variable=variable,
+        kind="additive",
+    )
+    apply_qdm(
+        simulation=sim_url,
+        qdm=qdm_train_out_url,
+        year=target_year,
+        variable=variable,
+        out=sim_biascorrected_key,
+    )
+    biascorrected_coarse = xr.open_dataset(str(sim_biascorrected_key))
+    # make bias corrected data on the fine resolution grid
+    biascorrected_fine = biascorrected_coarse[variable].broadcast_like(ref_fine)
+    repository.write(
+        biascorrected_url,
+        biascorrected_fine.to_dataset(name=variable).chunk(
+            {"time": -1, "lat": -1, "lon": -1}
+        ),
     )
 
     # write test data
-    ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
-    ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
     bc_url = "memory://test_aiqpd_downscaling/a/bias_corrected/path.zarr"
-    train_out_url = "memory://test_aiqpd_downscaling/a/train_output/path.zarr"
+    aiqpd_afs_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/path.zarr"
 
     # sim_key = "memory://test_apply_aiqpd/sim.zarr"
     # Writes NC to local disk, so diff format here:
     sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
 
-    repository.write(
-        ref_coarse_url,
-        ref_coarse.to_dataset(name="scen").chunk({"time": -1, "lat": -1, "lon": -1}),
-    )
-    repository.write(
-        ref_fine_url,
-        ref_fine.to_dataset(name="scen").chunk({"time": -1, "lat": -1, "lon": -1}),
-    )
-
-    repository.write(
-        bc_url,
-        biascorrected_year.to_dataset(name="scen").chunk(
-            {"time": -1, "lat": -1, "lon": -1}
-        ),
-    )
-
     # now train AIQPD model
-    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
+    train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, "scen", "additive")
 
     # downscale
-    apply_aiqpd(bc_url, train_out_url, "scen", sim_downscaled_key)
+    apply_aiqpd(bc_url, aiqpd_afs_url, variable, sim_downscaled_key)
 
     # check output
     downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
 
     downscaled_shape = (len(lon), len(lat), 365)
 
-    assert downscaled_ds["scen"].shape == downscaled_shape
+    assert downscaled_ds[variable].shape == downscaled_shape
 
 
 @pytest.mark.parametrize(
