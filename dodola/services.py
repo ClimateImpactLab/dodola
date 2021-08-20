@@ -174,6 +174,14 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
     sim_ds = storage.read(simulation)
     aiqpd_ds = storage.read(aiqpd)
 
+    # zarr dimensions can be garbled, and if dim order
+    # is not lat, lon, dayofyear, quantile, cannot broadcast
+    aiqpd_ds = aiqpd_ds.transpose("lon", "lat", "dayofyear", "quantiles")
+
+    # also needs to not be chunked
+    sim_ds = sim_ds.chunk({"time": -1, "lat": -1, "lon": -1})
+    aiqpd_ds = aiqpd_ds.chunk({"dayofyear": -1, "lat": -1, "lon": -1})
+
     variable = str(variable)
 
     downscaled_ds = adjust_analogdownscaling_year(
