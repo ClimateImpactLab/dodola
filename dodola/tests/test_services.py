@@ -669,12 +669,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # write bias corrected data differently because it's a NetCDF, not a zarr
     sim_biascorrected_key = tmpdir.join("sim_biascorrected.nc")
 
-    repository.write(
-        ref_coarse_coarse_url,
-        ds_ref_coarse.to_dataset(name=variable).chunk(
-            {"time": -1, "lat": -1, "lon": -1}
-        ),
-    )
+    repository.write(ref_coarse_coarse_url, ds_ref_coarse.to_dataset(name=variable))
     repository.write(
         ref_coarse_url,
         ref_coarse.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
@@ -683,14 +678,8 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
         ref_fine_url,
         ref_fine.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
     )
-    repository.write(
-        qdm_train_url,
-        ds_train.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
-    )
-    repository.write(
-        sim_url,
-        ds_bc.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
-    )
+    repository.write(qdm_train_url, ds_train.to_dataset(name=variable))
+    repository.write(sim_url, ds_bc.to_dataset(name=variable))
 
     # this is an integration test between QDM and AIQPD, so use QDM services
     # for bias correction
@@ -709,10 +698,15 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
         year=target_year,
         variable=variable,
         out=sim_biascorrected_key,
+        include_quantiles=True,
     )
     biascorrected_coarse = xr.open_dataset(str(sim_biascorrected_key))
     # make bias corrected data on the fine resolution grid
-    biascorrected_fine = biascorrected_coarse[variable].broadcast_like(ref_fine)
+    biascorrected_fine = biascorrected_coarse[variable].broadcast_like(
+        ref_fine.sel(
+            time=slice("{}-01-01".format(target_year), "{}-12-31".format(target_year))
+        )
+    )
     repository.write(
         biascorrected_url,
         biascorrected_fine.to_dataset(name=variable).chunk(
@@ -721,7 +715,6 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     )
 
     # write test data
-    bc_url = "memory://test_aiqpd_downscaling/a/bias_corrected/path.zarr"
     aiqpd_afs_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/path.zarr"
 
     # sim_key = "memory://test_apply_aiqpd/sim.zarr"
@@ -732,7 +725,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, "scen", "additive")
 
     # downscale
-    apply_aiqpd(bc_url, aiqpd_afs_url, variable, sim_downscaled_key)
+    apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_key)
 
     # check output
     downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
