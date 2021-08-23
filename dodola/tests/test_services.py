@@ -729,10 +729,6 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # check output
     downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
 
-    # downscaled_shape = (365, len(lon), len(lat))
-    # check that output is correct size
-    # assert downscaled_ds[variable].shape == downscaled_shape
-
     # check that downscaled average equals bias corrected value
     bc_timestep = biascorrected_fine.isel(time=100).values[0][0]
     aiqpd_downscaled_mean = downscaled_ds[variable].isel(time=100).mean().values
