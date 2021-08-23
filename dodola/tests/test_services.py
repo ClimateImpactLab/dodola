@@ -717,7 +717,6 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # write test data
     aiqpd_afs_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/path.zarr"
 
-    # sim_key = "memory://test_apply_aiqpd/sim.zarr"
     # Writes NC to local disk, so diff format here:
     sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
 

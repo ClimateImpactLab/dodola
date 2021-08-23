@@ -188,6 +188,8 @@ def adjust_analogdownscaling_year(simulation, aiqpd, variable):
     if isinstance(aiqpd, xr.Dataset):
         aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(aiqpd)
 
+    # aiqpd.ds = aiqpd.ds.chunk({"dayofyear": -1, "lat": -1, "lon": -1})
+
     out = aiqpd.adjust(simulation[variable])
 
     return out.to_dataset(name=variable)
