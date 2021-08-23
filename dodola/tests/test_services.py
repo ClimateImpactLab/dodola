@@ -729,7 +729,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # check output
     downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
 
-    downscaled_shape = (365, len(lon), len(lat))
+    downscaled_shape = (len(lon), len(lat), 365)
     # check that output is correct size
     assert downscaled_ds[variable].shape == downscaled_shape
 
