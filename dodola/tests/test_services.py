@@ -5,13 +5,11 @@ import numpy as np
 from numpy.testing import assert_approx_equal
 import pytest
 import xarray as xr
-import pandas as pd
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
 from xclim.sdba.utils import equally_spaced_nodes
 from xclim import sdba, set_options
 from xclim.sdba.adjustment import QuantileDeltaMapping
-from xclim.core.calendar import convert_calendar
 from dodola.services import (
     bias_correct,
     build_weights,
@@ -566,7 +564,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
     np.random.seed(0)
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
-    time = pd.date_range(start="1994-12-17", end="2015-01-15")
+    time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
     temperature_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
 
     ref_fine = xr.Dataset(
@@ -580,9 +578,6 @@ def test_aiqpd_train(tmpdir, monkeypatch):
         ),
         attrs=dict(description="Weather related data."),
     )
-
-    # remove leap days
-    ref_fine = convert_calendar(ref_fine["temperature"], target="noleap")
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
@@ -617,7 +612,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     )  # Avoid thread lock conflicts with dask scheduler
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
-    time = pd.date_range(start="1994-12-17", end="2015-01-15")
+    time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
     temperature_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
     temperature_train = 15 + 8 * np.random.randn(len(time), 4, 4)
     variable = "scen"
@@ -645,10 +640,6 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
         ),
         attrs=dict(description="Weather related data."),
     )
-
-    # remove leap days
-    ref_fine = convert_calendar(ref_fine[variable], target="noleap")
-    ds_train = convert_calendar(ds_train[variable], target="noleap")
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
