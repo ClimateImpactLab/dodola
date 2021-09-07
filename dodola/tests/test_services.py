@@ -2,13 +2,10 @@
 """
 
 import numpy as np
-from numpy.testing import assert_approx_equal
 import pytest
 import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
-from xclim.sdba.utils import equally_spaced_nodes
-from xclim import sdba, set_options
 from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
@@ -581,7 +578,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
-    # tile the fine resolution grid with the coarse resolution ref data 
+    # tile the fine resolution grid with the coarse resolution ref data
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
 
     # write test data
@@ -607,7 +604,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
 
 def test_aiqpd_integration(tmpdir, monkeypatch):
-    """Tests that the shape of adjustment factors matches the expected shape"""
+    """Integration test of the QDM and AIQPD services"""
     monkeypatch.setenv(
         "HDF5_USE_FILE_LOCKING", "FALSE"
     )  # Avoid thread lock conflicts with dask scheduler
@@ -645,7 +642,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
     ds_train = ds_train.mean(["lat", "lon"])
-    # tile the fine resolution grid with the coarse resolution ref data 
+    # tile the fine resolution grid with the coarse resolution ref data
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
     ds_bc = ds_train + 3
 

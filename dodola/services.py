@@ -153,7 +153,7 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
 
 @log_service
 def apply_aiqpd(simulation, aiqpd, variable, out):
-    """Apply AIQPD adjustment factors to downscale a year within a simulation, dump to NetCDF.
+    """Apply AIQPD adjustment factors to downscale a simulation, dump to NetCDF.
 
     Dumping to NetCDF is a feature likely to change in the near future.
 

@@ -112,7 +112,7 @@ def train_qdm(historical, reference, out, variable, kind):
     help="URL to write NetCDF4 with adjusted (downscaled) simulation year to",
 )
 def apply_aiqpd(simulation, aiqpd, variable, out):
-    """Adjust simulation year with AIQPD downscaling method, outputting to local NetCDF4 file"""
+    """Adjust simulation with AIQPD downscaling method, outputting to local NetCDF4 file"""
     services.apply_aiqpd(simulation=simulation, aiqpd=aiqpd, variable=variable, out=out)
 
 
