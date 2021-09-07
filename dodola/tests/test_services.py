@@ -592,7 +592,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
         ref_coarse_url,
         ref_coarse.chunk({"time": -1}),
     )
-    repository.write(ref_fine_url, ref_fine.to_dataset(name="scen").chunk({"time": -1}))
+    repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
 
     # now train AIQPD model
     train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
@@ -660,17 +660,17 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # write bias corrected data differently because it's a NetCDF, not a zarr
     sim_biascorrected_key = tmpdir.join("sim_biascorrected.nc")
 
-    repository.write(ref_coarse_coarse_url, ds_ref_coarse.to_dataset(name=variable))
+    repository.write(ref_coarse_coarse_url, ds_ref_coarse)
     repository.write(
         ref_coarse_url,
-        ref_coarse.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
+        ref_coarse.chunk({"time": -1, "lat": -1, "lon": -1}),
     )
     repository.write(
         ref_fine_url,
-        ref_fine.to_dataset(name=variable).chunk({"time": -1, "lat": -1, "lon": -1}),
+        ref_fine.chunk({"time": -1, "lat": -1, "lon": -1}),
     )
-    repository.write(qdm_train_url, ds_train.to_dataset(name=variable))
-    repository.write(sim_url, ds_bc.to_dataset(name=variable))
+    repository.write(qdm_train_url, ds_train)
+    repository.write(sim_url, ds_bc)
 
     # this is an integration test between QDM and AIQPD, so use QDM services
     # for bias correction
