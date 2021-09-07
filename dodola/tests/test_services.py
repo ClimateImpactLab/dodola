@@ -569,7 +569,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
     ref_fine = xr.Dataset(
         data_vars=dict(
-            temperature=(["time", "lat", "lon"], temperature_ref),
+            scen=(["time", "lat", "lon"], temperature_ref),
         ),
         coords=dict(
             time=time,
@@ -590,7 +590,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
     repository.write(
         ref_coarse_url,
-        ref_coarse.to_dataset(name="scen").chunk({"time": -1}),
+        ref_coarse.chunk({"time": -1}),
     )
     repository.write(ref_fine_url, ref_fine.to_dataset(name="scen").chunk({"time": -1}))
 
