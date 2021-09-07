@@ -162,8 +162,8 @@ def train_analogdownscaling(
     return aiqpd
 
 
-def adjust_analogdownscaling_year(simulation, aiqpd, variable):
-    """Apply AIQPD to downscale a year of bias corrected output.
+def adjust_analogdownscaling(simulation, aiqpd, variable):
+    """Apply AIQPD to downscale bias corrected output.
 
     Parameters
     ----------

@@ -13,7 +13,7 @@ from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
     train_analogdownscaling,
-    adjust_analogdownscaling_year,
+    adjust_analogdownscaling,
 )
 import dodola.repository as storage
 
@@ -184,7 +184,7 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
 
     variable = str(variable)
 
-    downscaled_ds = adjust_analogdownscaling_year(
+    downscaled_ds = adjust_analogdownscaling(
         simulation=sim_ds, aiqpd=aiqpd_ds, variable=variable
     )
 
