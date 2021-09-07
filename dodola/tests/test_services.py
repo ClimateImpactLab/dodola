@@ -581,6 +581,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
+    # tile the fine resolution grid with the coarse resolution ref data 
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
 
     # write test data
@@ -644,6 +645,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
     ds_train = ds_train.mean(["lat", "lon"])
+    # tile the fine resolution grid with the coarse resolution ref data 
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
     ds_bc = ds_train + 3
 
