@@ -162,8 +162,8 @@ def train_analogdownscaling(
     return aiqpd
 
 
-def adjust_analogdownscaling_year(simulation, aiqpd, year, variable):
-    """Apply AIQPD to downscale a year of bias corrected output.
+def adjust_analogdownscaling(simulation, aiqpd, variable):
+    """Apply AIQPD to downscale bias corrected output.
 
     Parameters
     ----------
@@ -173,8 +173,6 @@ def adjust_analogdownscaling_year(simulation, aiqpd, year, variable):
         Trained ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``, or
         Dataset representation that will instantiate
         ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``.
-    year : int
-        Target year to downscale, with day grouping.
     variable : str
         Target variable in `simulation` to downscale. Downscaled output will share the
         same name.
@@ -185,17 +183,12 @@ def adjust_analogdownscaling_year(simulation, aiqpd, year, variable):
         AIQPD-downscaled values from `simulation`. May be a lazy-evaluated future, not
         yet computed.
     """
-    year = int(year)
     variable = str(variable)
 
     if isinstance(aiqpd, xr.Dataset):
         aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(aiqpd)
 
-    # Slice to get 15 days before and after our target year. This accounts
-    # for the rolling 31 day rolling window.
-    timeslice = slice(f"{year}-01-01", f"{year}-12-31")
-    simulation = simulation[variable].sel(time=timeslice)
-    out = aiqpd.adjust(simulation)
+    out = aiqpd.adjust(simulation[variable])
 
     return out.to_dataset(name=variable)
 

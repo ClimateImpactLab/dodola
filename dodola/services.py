@@ -13,7 +13,7 @@ from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,
     train_analogdownscaling,
-    adjust_analogdownscaling_year,
+    adjust_analogdownscaling,
 )
 import dodola.repository as storage
 
@@ -152,8 +152,8 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
 
 
 @log_service
-def apply_aiqpd(simulation, aiqpd, year, variable, out):
-    """Apply AIQPD adjustment factors to downscale a year within a simulation, dump to NetCDF.
+def apply_aiqpd(simulation, aiqpd, variable, out):
+    """Apply AIQPD adjustment factors to downscale a simulation, dump to NetCDF.
 
     Dumping to NetCDF is a feature likely to change in the near future.
 
@@ -164,8 +164,6 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
     aiqpd : str
         fsspec-compatible URL pointing to Zarr Store containing canned
         ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling`` Dataset.
-    year : int
-        Target year to adjust, with rolling years and day grouping.
     variable : str
         Target variable in `simulation` to downscale. Downscaled output will share the
         same name.
@@ -176,11 +174,14 @@ def apply_aiqpd(simulation, aiqpd, year, variable, out):
     sim_ds = storage.read(simulation)
     aiqpd_ds = storage.read(aiqpd)
 
-    year = int(year)
+    # needs to not be chunked
+    sim_ds = sim_ds.load()
+    aiqpd_ds = aiqpd_ds.load()
+
     variable = str(variable)
 
-    downscaled_ds = adjust_analogdownscaling_year(
-        simulation=sim_ds, aiqpd=aiqpd_ds, year=year, variable=variable
+    downscaled_ds = adjust_analogdownscaling(
+        simulation=sim_ds, aiqpd=aiqpd_ds, variable=variable
     )
 
     # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is

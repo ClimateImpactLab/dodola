@@ -104,7 +104,6 @@ def train_qdm(historical, reference, out, variable, kind):
     required=True,
     help="URL to trained AIQPD store of adjustment factors",
 )
-@click.option("--year", "-y", required=True, help="Year of simulation to adjust")
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
     "--out",
@@ -112,11 +111,9 @@ def train_qdm(historical, reference, out, variable, kind):
     required=True,
     help="URL to write NetCDF4 with adjusted (downscaled) simulation year to",
 )
-def apply_aiqpd(simulation, aiqpd, year, variable, out):
-    """Adjust simulation year with AIQPD downscaling method, outputting to local NetCDF4 file"""
-    services.apply_aiqpd(
-        simulation=simulation, aiqpd=aiqpd, year=year, variable=variable, out=out
-    )
+def apply_aiqpd(simulation, aiqpd, variable, out):
+    """Adjust simulation with AIQPD downscaling method, outputting to local NetCDF4 file"""
+    services.apply_aiqpd(simulation=simulation, aiqpd=aiqpd, variable=variable, out=out)
 
 
 @dodola_cli.command(
