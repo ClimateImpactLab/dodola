@@ -10,7 +10,7 @@ dependencies:
 - intake-esm=2021.1.15  # Not direct dependency. Used in docker environment.
 - fsspec=2021.5.0  # Prevent azure blob errors, not hard req.
 - gcsfs=2021.5.0
-- netcdf4
+- netcdf4=1.5.7
 - numpy=1.20.3
 - pandas=1.2.5  # Not direct dependency, workaround to time slice bug in #96
 - papermill=2.3.3  # Not direct dependency. Used in docker environment.
@@ -24,4 +24,4 @@ dependencies:
 - zarr=2.8.3
 - pip:
   - git+https://github.com/dgergel/xsd@458f292dab6e8a6584659e97a66c37e028da2b7a
-  - git+https://github.com/ClimateImpactLab/xclim@add_analog_downscaling
+  - git+https://github.com/ClimateImpactLab/xclim@c5507ba29c19f957270789fd790ffe6c315a3daa
