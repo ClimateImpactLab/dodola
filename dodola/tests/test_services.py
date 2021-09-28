@@ -604,7 +604,8 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
     assert aiqpd_model.af.shape == af_expected_shape
 
 
-def test_aiqpd_integration(tmpdir, monkeypatch):
+@pytest.mark.parametrize("kind", ["multiplicative", "additive"])
+def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     """Integration test of the QDM and AIQPD services"""
     monkeypatch.setenv(
         "HDF5_USE_FILE_LOCKING", "FALSE"
@@ -612,13 +613,13 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
     time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
-    temperature_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
-    temperature_train = 15 + 8 * np.random.randn(len(time), 4, 4)
+    data_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
+    data_train = 15 + 8 * np.random.randn(len(time), 4, 4)
     variable = "scen"
 
     ref_fine = xr.Dataset(
         data_vars=dict(
-            scen=(["time", "lat", "lon"], temperature_ref),
+            scen=(["time", "lat", "lon"], data_ref),
         ),
         coords=dict(
             time=time,
@@ -630,7 +631,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
 
     ds_train = xr.Dataset(
         data_vars=dict(
-            scen=(["time", "lat", "lon"], temperature_train),
+            scen=(["time", "lat", "lon"], data_train),
         ),
         coords=dict(
             time=time,
@@ -681,7 +682,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
         reference=ref_coarse_coarse_url,
         out=qdm_train_out_url,
         variable=variable,
-        kind="additive",
+        kind=kind,
     )
     apply_qdm(
         simulation=sim_url,
@@ -712,7 +713,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch):
     sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
 
     # now train AIQPD model
-    train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, variable, "additive")
+    train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, variable, kind)
 
     # downscale
     apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_key)
