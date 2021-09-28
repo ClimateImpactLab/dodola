@@ -552,7 +552,8 @@ def test_correct_wet_day_frequency(process):
         )
 
 
-def test_aiqpd_train(tmpdir, monkeypatch):
+@pytest.mark.parametrize("kind", ["multiplicative", "additive"])
+def test_aiqpd_train(tmpdir, monkeypatch, kind):
     """Tests that the shape of adjustment factors matches the expected shape"""
     monkeypatch.setenv(
         "HDF5_USE_FILE_LOCKING", "FALSE"
@@ -562,11 +563,11 @@ def test_aiqpd_train(tmpdir, monkeypatch):
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
     time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
-    temperature_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
+    data_ref = 15 + 8 * np.random.randn(len(time), 4, 4)
 
     ref_fine = xr.Dataset(
         data_vars=dict(
-            scen=(["time", "lat", "lon"], temperature_ref),
+            scen=(["time", "lat", "lon"], data_ref),
         ),
         coords=dict(
             time=time,
@@ -593,7 +594,7 @@ def test_aiqpd_train(tmpdir, monkeypatch):
     repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
 
     # now train AIQPD model
-    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", "additive")
+    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", kind)
 
     # load adjustment factors
     aiqpd_model = repository.read(train_out_url)
