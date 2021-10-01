@@ -321,3 +321,30 @@ def regrid(x, out, method, domain_file, weightspath, astype, cyclic):
 def correct_wetday_frequency(x, out, process):
     """Correct wet day frequency in a dataset"""
     services.correct_wet_day_frequency(str(x), out=str(out), process=str(process))
+
+
+@dodola_cli.command(help="Validate a CMIP6, bias corrected or downscaled dataset")
+@click.argument("x", required=True)
+@click.option("--variable", "-v", required=True)
+@click.option(
+    "--data_type",
+    "-data",
+    required=True,
+    type=click.Choice(["cmip6", "bias_corrected", "downscaled"], case_sensitive=False),
+    help="Which data type to validate",
+)
+@click.option(
+    "--time_period",
+    "-time",
+    required=True,
+    type=click.Choice(["historical", "future"], case_sensitive=False),
+    help="Which time period to validate",
+)
+def validate_dataset(x, variable, data_type, time_period):
+    """Validate a dataset"""
+    services.validate_dataset(
+        str(x),
+        variable=str(variable),
+        data_type=str(data_type),
+        time_period=str(time_period),
+    )
