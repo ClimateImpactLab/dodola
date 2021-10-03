@@ -862,25 +862,6 @@ def test_downscale(domain_file, method, var):
     np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
 
 
-def test_clean_cmip6():
-    """Tests that cmip6 cleanup removes extra dimensions on dataset"""
-    # Setup input data
-    n = 1500  # need over four years of daily data
-    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
-    ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
-
-    in_url = "memory://test_clean_cmip6/an/input/path.zarr"
-    out_url = "memory://test_clean_cmip6/an/output/path.zarr"
-    repository.write(in_url, ds_gcm)
-
-    clean_cmip6(in_url, out_url, leapday_removal=True)
-    ds_cleaned = repository.read(out_url)
-
-    assert "height" not in ds_cleaned.coords
-    assert "member_id" not in ds_cleaned.coords
-    assert "time_bnds" not in ds_cleaned.coords
-
-
 @pytest.mark.parametrize(
     "variable",
     [
