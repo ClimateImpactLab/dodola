@@ -20,6 +20,7 @@ from dodola.services import (
     apply_qdm,
     train_aiqpd,
     apply_aiqpd,
+    validate,
 )
 import dodola.repository as repository
 
@@ -36,6 +37,29 @@ def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
 
     out = xr.Dataset(
         {variable_name: (["time", "lon", "lat"], x[:, np.newaxis, np.newaxis])},
+        coords={
+            "index": time,
+            "time": time,
+            "lon": (["lon"], [1.0]),
+            "lat": (["lat"], [1.0]),
+        },
+    )
+    return out
+
+
+def _modeloutputfactory(
+    start_time="1950-01-01", end_time="2014-12-31", variable_name="fakevariable"
+):
+    """Populate xr.Dataset with synthetic output data for testing"""
+    start_time = str(start_time)
+    end_time = str(end_time)
+
+    np.random.seed(0)
+    time = xr.cftime_range(start=start_time, end=end_time, calendar="noleap")
+    data = 15 + 8 * np.random.randn(len(time))
+
+    out = xr.Dataset(
+        {variable_name: (["time", "lon", "lat"], data[:, np.newaxis, np.newaxis])},
         coords={
             "index": time,
             "time": time,
@@ -836,3 +860,67 @@ def test_downscale(domain_file, method, var):
     )
     downscaled_ds = repository.read(downscaled_url)[var]
     np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
+
+
+def test_clean_cmip6():
+    """Tests that cmip6 cleanup removes extra dimensions on dataset"""
+    # Setup input data
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_gcm = _gcmfactory(ts, start_time="1950-01-01")
+
+    in_url = "memory://test_clean_cmip6/an/input/path.zarr"
+    out_url = "memory://test_clean_cmip6/an/output/path.zarr"
+    repository.write(in_url, ds_gcm)
+
+    clean_cmip6(in_url, out_url, leapday_removal=True)
+    ds_cleaned = repository.read(out_url)
+
+    assert "height" not in ds_cleaned.coords
+    assert "member_id" not in ds_cleaned.coords
+    assert "time_bnds" not in ds_cleaned.coords
+
+
+@pytest.mark.parametrize(
+    "variable",
+    [
+        pytest.param("tasmax"),
+        pytest.param("tasmin"),
+        pytest.param("dtr"),
+        pytest.param("pr"),
+    ],
+    "data_type",
+    [pytest.param("cmip6"), pytest.param("bias_corrected"), pytest.param("downscaled")],
+    "time_period",
+    [pytest.param("historical"), pytest.param("future")],
+)
+def validate_dataset(variable, data_type, time_period):
+    """Tests that validate dataset passes for fake output data"""
+    # Setup input data
+    if data_type == "bias_corrected" or "downscaled":
+        if time_period == "historical":
+            start_time = "1950-01-01"
+            end_time = "2014-12-31"
+        else:
+            start_time = "2015-01-01"
+            end_time = "2100-12-31"
+    elif data_type == "cmip6":
+        if time_period == "historical":
+            start_time = "1950-01-01"
+            end_time = "2025-12-31"
+        else:
+            start_time = "2004-01-01"
+            end_time = "2100-12-31"
+
+    # create test data
+    ds = _modeloutputfactory(
+        start_time=start_time, end_time=end_time, variable_name=variable
+    )
+
+    # write test data
+    in_url = "memory://test_validate/an/input/path.zarr"
+    repository.write(in_url, ds)
+
+    # read in test data and validate
+    ds_test = repository.read(in_url)
+    validate(ds_test, variable, data_type, time_period)
