@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* 
+* Add global validation, includes new service ``validate`` for validating cleaned CMIP6, bias corrected and downscaled data for historical and future time periods. (PR #118, @dgergel) 
 
 
 
