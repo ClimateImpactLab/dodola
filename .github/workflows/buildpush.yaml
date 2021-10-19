@@ -6,7 +6,7 @@ on:
     - "main"
 
 jobs:
-  buildpush:
+  buildpush-azure:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -28,3 +28,34 @@ jobs:
     - name: Push to registry
       run: |
         docker push ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev
+
+  buildpush-gcp:
+    runs-on: ubuntu-latest
+    env:
+      HASH: $(git rev-parse --short "$GITHUB_SHA")
+      BRANCH: ${GITHUB_REF##*/}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      IMAGE_NAME: "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/private/dodola:dev"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker login
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
+        run: |
+          gcloud auth configure-docker -q
+
+      - name: Build container
+        run: |
+          docker build . -t $IMAGE_NAME
+      - name: Test container package
+        run: |
+          docker run $IMAGE_NAME pytest -v --pyargs dodola
+      - name: Test container CLI
+        run: |
+          docker run $IMAGE_NAME dodola --help
+      - name: Push to registry
+        run: |
+          docker push $IMAGE_NAME
