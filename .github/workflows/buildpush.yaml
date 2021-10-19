@@ -45,7 +45,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           export_default_credentials: true
       - run: |
-          gcloud auth configure-docker -q
+          gcloud auth configure-docker -q us-central1-docker.pkg.dev
 
       - name: Build container
         run: |
