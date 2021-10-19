@@ -33,3 +33,40 @@ jobs:
     - name: Push to registry
       run: |
         docker push "${{ env.release_image_name }}"
+
+  buildpushrelease-gcp:
+    runs-on: ubuntu-latest
+    env:
+      HASH: $(git rev-parse --short "$GITHUB_SHA")
+      BRANCH: ${GITHUB_REF##*/}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Docker login
+      uses: google-github-actions/setup-gcloud@master
+      with:
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        export_default_credentials: true
+
+    - run: |
+        gcloud auth configure-docker -q us-central1-docker.pkg.dev
+
+    - name: Set image release tag
+      env:
+        FULL_RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: |
+        echo "docker_tag=${FULL_RELEASE_TAG#v}" >> $GITHUB_ENV
+
+    - name: Set image name
+      run: |
+        echo "release_image_name=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/private/dodola:${{ env.docker_tag }}" >> $GITHUB_ENV
+
+    - name: Build container
+      run: |
+        docker build . -t "${{ env.release_image_name }}"
+
+    - name: Push to registry
+      run: |
+        docker push "${{ env.release_image_name }}"
+
