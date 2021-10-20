@@ -479,3 +479,125 @@ def apply_wet_day_frequency_correction(ds, process):
     else:
         raise ValueError("this processing option is not implemented")
     return ds_corrected
+
+
+def validate_dataset(ds, var, data_type, time_period="future"):
+    """
+    Validate a Dataset. Valid for CMIP6, bias corrected and downscaled.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    variable : {"tasmax", "tasmin", "dtr", "pr"}
+        Variable in Dataset to validate.
+    data_type : {"cmip6", "bias_corrected", "downscaled"}
+        Type of data output to validate.
+    time_period : {"historical", "future"}
+        Time period of data that will be validated.
+
+    Returns
+    -------
+    xr.Dataset
+    """
+
+    # validation for all variables
+    _test_variable_names(ds, var)
+    _test_for_nans(ds, var)
+    _test_timesteps(ds, data_type, time_period)
+
+    # variable specific validation
+    if var == "tasmin" or var == "tasmax":
+        _test_temp_range(ds, var)
+    if var == "dtr":
+        _test_dtr_range(ds, var)
+    if var == "dtr" or var == "pr":
+        _test_negative_values(ds, var)
+    if var == "pr":
+        _test_maximum_precip(ds, var)
+
+
+def _test_for_nans(ds, var):
+    """
+    Tests for presence of NaNs
+    """
+    assert ds[var].isnull().sum() == 0, "there are nans!"
+
+
+def _test_timesteps(ds, data_type, time_period):
+    """
+    Tests that Dataset contains the correct number of timesteps
+    for the data_type/time_period combination.
+    """
+    if time_period == "future":
+        # bias corrected/downscaled data should have 2015 - 2100
+        # CMIP6 future data has an additional ten years from the historical model run
+        if data_type == "cmip6":
+            assert (
+                len(ds.time) == 35405
+            ), "projection {} file is missing timesteps, only has {}".format(
+                data_type, len(ds.time)
+            )
+        else:
+            assert (
+                len(ds.time) == 31390
+            ), "projection {} file is missing timesteps, only has {}".format(
+                data_type, len(ds.time)
+            )
+    elif time_period == "historical":
+        # bias corrected/downscaled data should have 1950 - 2014
+        # CMIP6 historical data has an additional ten years from SSP 370 (or 245 if 370 not available)
+        if data_type == "cmip6":
+            assert (
+                len(ds.time) == 27740
+            ), "historical {} file is missing timesteps, only has {}".format(
+                data_type, len(ds.time)
+            )
+        else:
+            assert (
+                len(ds.time) == 23725
+            ), "historical {} file is missing timesteps, only has {}".format(
+                data_type, len(ds.time)
+            )
+
+
+def _test_variable_names(ds, var):
+    """
+    Test that the correct variable name exists in the file
+    """
+    assert var in ds.var(), "{} not in Dataset".format(var)
+
+
+def _test_temp_range(ds, var):
+    """
+    Ensure temperature values are in a valid range
+    """
+    assert (ds[var].min() > 150) and (
+        ds[var].max() < 350
+    ), "{} values are invalid".format(var)
+
+
+def _test_dtr_range(ds, var):
+    """
+    Ensure DTR values are in a valid range
+    """
+    assert (ds[var].min() > 0) and (
+        ds[var].max() < 45
+    ), "diurnal temperature range values are invalid"
+
+
+def _test_negative_values(ds, var):
+    """
+    Tests for presence of negative values
+    """
+    # this is not set to 0 to deal with floating point error
+    assert ds[var].where(ds[var] < -0.001).count() == 0, "there are negative values!"
+
+
+def _test_maximum_precip(ds, var):
+    """
+    Tests that max precip is reasonable
+    """
+    threshold = 2000  # in mm, max observed is 1.825m --> maximum occurs between 0.5-0.8
+    assert (
+        ds[var].where(ds[var] > threshold).count() == 0
+    ), "maximum precip exceeds 2000mm"

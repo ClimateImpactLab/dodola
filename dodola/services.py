@@ -14,6 +14,7 @@ from dodola.core import (
     adjust_quantiledeltamapping_year,
     train_analogdownscaling,
     adjust_analogdownscaling,
+    validate_dataset,
 )
 import dodola.repository as storage
 
@@ -435,6 +436,28 @@ def correct_wet_day_frequency(x, out, process):
     ds = storage.read(x)
     ds_corrected = apply_wet_day_frequency_correction(ds, process=process)
     storage.write(out, ds_corrected)
+
+
+@log_service
+def validate(x, var, data_type, time_period):
+    """Performs validation on an input dataset
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be validated.
+    var : {"tasmax", "tasmin", "dtr", "pr"}
+        Variable in xr.Dataset that should be validated.
+        Some validation functions are specific to each variable.
+    data_type : {"cmip6", "bias_corrected", "downscaled"}
+        Step in pipeline, used in determining how to validate.
+    time_period: {"historical", "future"}
+        Time period that input data should cover, used in validating the number of timesteps
+        in conjunction with the data type.
+    """
+
+    ds = storage.read(x)
+    validate_dataset(ds)
 
 
 @log_service
