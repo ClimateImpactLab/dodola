@@ -327,15 +327,15 @@ def correct_wetday_frequency(x, out, process):
 @click.argument("x", required=True)
 @click.option("--variable", "-v", required=True)
 @click.option(
-    "--data_type",
-    "-data",
+    "--data-type",
+    "-d",
     required=True,
-    type=click.Choice(["cmip6", "bias_corrected", "downscaled"], case_sensitive=False),
+    type=click.Choice(["cmip6", "bias-corrected", "downscaled"], case_sensitive=False),
     help="Which data type to validate",
 )
 @click.option(
-    "--time_period",
-    "-time",
+    "--time-period",
+    "-t",
     required=True,
     type=click.Choice(["historical", "future"], case_sensitive=False),
     help="Which time period to validate",
