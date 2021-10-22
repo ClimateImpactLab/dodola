@@ -862,21 +862,11 @@ def test_downscale(domain_file, method, var):
     np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
 
 
-@pytest.mark.parametrize(
-    "variable",
-    [
-        pytest.param("tasmax"),
-        pytest.param("tasmin"),
-        pytest.param("dtr"),
-        pytest.param("pr"),
-    ],
-    "data_type",
-    [pytest.param("cmip6"), pytest.param("bias_corrected"), pytest.param("downscaled")],
-    "time_period",
-    [pytest.param("historical"), pytest.param("future")],
-)
-def validate_dataset(variable, data_type, time_period):
-    """Tests that validate dataset passes for fake output data"""
+@pytest.mark.parametrize("variable", ["tasmax", "tasmin", "dtr", "pr"])
+@pytest.mark.parametrize("data_type", ["cmip6", "bias_corrected", "downscaled"])
+@pytest.mark.parametrize("time_period", ["historical", "future"])
+def test_validation(variable, data_type, time_period):
+    """Tests that validate passes for fake output data"""
     # Setup input data
     if data_type == "bias_corrected" or "downscaled":
         if time_period == "historical":
