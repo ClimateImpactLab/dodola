@@ -892,6 +892,4 @@ def test_validation(variable, data_type, time_period):
     in_url = "memory://test_validate/an/input/path.zarr"
     repository.write(in_url, ds)
 
-    # read in test data and validate
-    ds_test = repository.read(in_url)
-    validate(ds_test, variable, data_type, time_period)
+    validate(in_url, variable, data_type, time_period)
