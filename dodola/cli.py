@@ -342,7 +342,7 @@ def correct_wetday_frequency(x, out, process):
 )
 def validate_dataset(x, variable, data_type, time_period):
     """Validate a dataset"""
-    services.validate_dataset(
+    services.validate(
         str(x),
         variable=str(variable),
         data_type=str(data_type),
