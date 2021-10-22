@@ -344,7 +344,7 @@ def validate_dataset(x, variable, data_type, time_period):
     """Validate a dataset"""
     services.validate(
         str(x),
-        variable=str(variable),
+        var=str(variable),
         data_type=str(data_type),
         time_period=str(time_period),
     )
