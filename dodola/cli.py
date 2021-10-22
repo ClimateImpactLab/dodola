@@ -330,7 +330,7 @@ def correct_wetday_frequency(x, out, process):
     "--data-type",
     "-d",
     required=True,
-    type=click.Choice(["cmip6", "bias-corrected", "downscaled"], case_sensitive=False),
+    type=click.Choice(["cmip6", "bias_corrected", "downscaled"], case_sensitive=False),
     help="Which data type to validate",
 )
 @click.option(
