@@ -17,6 +17,7 @@ import dodola.services
         "correct-wetday-frequency",
         "train-aiqpd",
         "apply-aiqpd",
+        "validate-dataset",
     ],
     ids=(
         "--help",
@@ -29,6 +30,7 @@ import dodola.services
         "correct-wetday-frequency --help",
         "train-aiqpd --help",
         "apply-aiqpd --help",
+        "validate-dataset --help",
     ),
 )
 def test_cli_helpflags(subcmd):

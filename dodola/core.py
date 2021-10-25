@@ -489,19 +489,17 @@ def validate_dataset(ds, var, data_type, time_period="future"):
     """
     Validate a Dataset. Valid for CMIP6, bias corrected and downscaled.
 
+    Raises AssertionError when validation fails.
+
     Parameters
     ----------
     ds : xr.Dataset
-    variable : {"tasmax", "tasmin", "dtr", "pr"}
+    var : {"tasmax", "tasmin", "dtr", "pr"}
         Variable in Dataset to validate.
     data_type : {"cmip6", "bias_corrected", "downscaled"}
         Type of data output to validate.
     time_period : {"historical", "future"}
         Time period of data that will be validated.
-
-    Returns
-    -------
-    xr.Dataset
     """
 
     # validation for all variables

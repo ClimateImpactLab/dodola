@@ -56,7 +56,17 @@ def _modeloutputfactory(
 
     np.random.seed(0)
     time = xr.cftime_range(start=start_time, end=end_time, calendar="noleap")
-    data = 15 + 8 * np.random.randn(len(time))
+    # make sure that test data range is reasonable for the variable being tested
+    if variable_name == "tasmax" or variable_name == "tasmin":
+        low_val = 160
+        high_val = 340
+    elif variable_name == "dtr":
+        low_val = 1
+        high_val = 40
+    elif variable_name == "pr":
+        low_val = 0.01
+        high_val = 1900
+    data = np.random.randint(low_val, high_val, len(time)).astype(np.float64)
 
     out = xr.Dataset(
         {variable_name: (["time", "lon", "lat"], data[:, np.newaxis, np.newaxis])},
@@ -893,23 +903,13 @@ def test_downscale(domain_file, method, var):
     np.testing.assert_almost_equal(downscaled_ds.values, downscaled_test.values)
 
 
-@pytest.mark.parametrize(
-    "variable",
-    [
-        pytest.param("tasmax"),
-        pytest.param("tasmin"),
-        pytest.param("dtr"),
-        pytest.param("pr"),
-    ],
-    "data_type",
-    [pytest.param("cmip6"), pytest.param("bias_corrected"), pytest.param("downscaled")],
-    "time_period",
-    [pytest.param("historical"), pytest.param("future")],
-)
-def validate_dataset(variable, data_type, time_period):
-    """Tests that validate dataset passes for fake output data"""
+@pytest.mark.parametrize("variable", ["tasmax", "tasmin", "dtr", "pr"])
+@pytest.mark.parametrize("data_type", ["cmip6", "bias_corrected", "downscaled"])
+@pytest.mark.parametrize("time_period", ["historical", "future"])
+def test_validation(variable, data_type, time_period):
+    """Tests that validate passes for fake output data"""
     # Setup input data
-    if data_type == "bias_corrected" or "downscaled":
+    if data_type == "bias_corrected" or data_type == "downscaled":
         if time_period == "historical":
             start_time = "1950-01-01"
             end_time = "2014-12-31"
@@ -933,6 +933,4 @@ def validate_dataset(variable, data_type, time_period):
     in_url = "memory://test_validate/an/input/path.zarr"
     repository.write(in_url, ds)
 
-    # read in test data and validate
-    ds_test = repository.read(in_url)
-    validate(ds_test, variable, data_type, time_period)
+    validate(in_url, variable, data_type, time_period)
