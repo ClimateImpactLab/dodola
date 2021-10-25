@@ -56,7 +56,17 @@ def _modeloutputfactory(
 
     np.random.seed(0)
     time = xr.cftime_range(start=start_time, end=end_time, calendar="noleap")
-    data = 15 + 8 * np.random.randn(len(time))
+    # make sure that test data range is reasonable for the variable being tested
+    if variable_name == "tasmax" or variable_name == "tasmin":
+        low_val = 160
+        high_val = 340
+    elif variable_name == "dtr":
+        low_val = 1
+        high_val = 40
+    elif variable_name == "pr":
+        low_val = 0.01
+        high_val = 1900
+    data = np.random.randint(low_val, high_val, len(time)).astype(np.float64)
 
     out = xr.Dataset(
         {variable_name: (["time", "lon", "lat"], data[:, np.newaxis, np.newaxis])},
