@@ -868,7 +868,7 @@ def test_downscale(domain_file, method, var):
 def test_validation(variable, data_type, time_period):
     """Tests that validate passes for fake output data"""
     # Setup input data
-    if data_type == "bias_corrected" or "downscaled":
+    if data_type == "bias_corrected" or data_type == "downscaled":
         if time_period == "historical":
             start_time = "1950-01-01"
             end_time = "2014-12-31"
