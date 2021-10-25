@@ -344,7 +344,9 @@ def _add_cyclic(ds, dim):
     )
 
 
-def xesmf_regrid(x, domain, method, weights_path=None, astype=None, add_cyclic=None):
+def xesmf_regrid(
+    x, domain, method, weights_path=None, astype=None, add_cyclic=None, keep_attrs=True
+):
     """
     Regrid a Dataset.
 
@@ -363,6 +365,8 @@ def xesmf_regrid(x, domain, method, weights_path=None, astype=None, add_cyclic=N
         Add cyclic point (aka wrap-around pixel) to given dimension before
         regridding. Useful for avoiding dateline artifacts along longitude
         in global datasets.
+    keep_attrs : bool, optional
+        Whether to pass attrs from input to regridded output.
 
     Returns
     -------
@@ -378,8 +382,8 @@ def xesmf_regrid(x, domain, method, weights_path=None, astype=None, add_cyclic=N
         filename=weights_path,
     )
     if astype:
-        return regridder(x).astype(astype)
-    return regridder(x)
+        return regridder(x, keep_attrs=keep_attrs).astype(astype)
+    return regridder(x, keep_attrs=keep_attrs)
 
 
 def standardize_gcm(ds, leapday_removal=True):

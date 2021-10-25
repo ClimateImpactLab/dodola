@@ -6,7 +6,7 @@ History
 0.X.X (XXXX-XX-XX)
 ------------------
 * Add global validation, includes new service ``validate`` for validating cleaned CMIP6, bias corrected and downscaled data for historical and future time periods. (PR #118, @dgergel) 
-
+* Regrid copies input Dataset ``attrs`` metadata to output (#116).
 
 
 0.6.0 (2021-09-08)
