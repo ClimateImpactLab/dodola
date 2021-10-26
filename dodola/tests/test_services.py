@@ -411,6 +411,37 @@ def test_regrid_dtype(domain_file, expected_dtype):
 
 
 @pytest.mark.parametrize(
+    "domain_file, regrid_method",
+    [pytest.param(5.0, "bilinear"), pytest.param(5.0, "conservative")],
+    indirect=["domain_file"],
+)
+def test_regrid_attrs(domain_file, regrid_method):
+    """Tests that services.regrid copies attrs metadata to output"""
+    # Make fake input data.
+    ds_in = grid_global(5, 10)
+    ds_in["fakevariable"] = wave_smooth(ds_in["lon"], ds_in["lat"])
+
+    ds_in.attrs["foo"] = "bar"
+    ds_in["fakevariable"].attrs["bar"] = "foo"
+
+    in_url = "memory://test_regrid_attrs/an/input/path.zarr"
+    domain_file_url = "memory://test_regrid_attrs/a/domainfile/path.zarr"
+    out_url = "memory://test_regrid_attrs/an/output/path.zarr"
+    repository.write(in_url, ds_in)
+    repository.write(domain_file_url, domain_file)
+
+    regrid(
+        in_url,
+        out=out_url,
+        method="bilinear",
+        domain_file=domain_file_url,
+        astype="float32",
+    )
+    assert repository.read(out_url).attrs["foo"] == "bar"
+    assert repository.read(out_url)["fakevariable"].attrs["bar"] == "foo"
+
+
+@pytest.mark.parametrize(
     "domain_file, expected_shape",
     [
         pytest.param(
