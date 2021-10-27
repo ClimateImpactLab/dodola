@@ -44,11 +44,13 @@ def train_quantiledeltamapping(
     xclim.sdba.adjustment.QuantileDeltaMapping
     """
     qdm = sdba.adjustment.QuantileDeltaMapping(
+        ref=reference[variable],
+        hist=historical[variable],
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=equally_spaced_nodes(int(quantiles_n), eps=None),
     )
-    qdm.train(ref=reference[variable], hist=historical[variable])
+    # qdm.train(ref=reference[variable], hist=historical[variable])
     return qdm
 
 
