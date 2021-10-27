@@ -43,7 +43,7 @@ def train_quantiledeltamapping(
     -------
     xclim.sdba.adjustment.QuantileDeltaMapping
     """
-    qdm = sdba.adjustment.QuantileDeltaMapping(
+    qdm = sdba.adjustment.QuantileDeltaMapping.train(
         ref=reference[variable],
         hist=historical[variable],
         kind=str(kind),
