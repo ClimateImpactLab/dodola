@@ -156,8 +156,8 @@ def train_analogdownscaling(
         )
 
     aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.train(
-        coarse_reference[variable],
-        fine_reference[variable],
+        ref=coarse_reference[variable],
+        hist=fine_reference[variable],
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=quantiles_n,
