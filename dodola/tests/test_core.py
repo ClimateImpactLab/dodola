@@ -22,6 +22,8 @@ def _timeseriesfactory(x, start_dt="1995-01-01", variable_name="fakevariable"):
     )
 
     out = xr.Dataset({variable_name: (["time"], x)}, coords={"time": time})
+    # need to set variable units to pass xclim 0.29 check on units
+    out[variable_name].attrs["units"] = "K"
     return out
 
 
