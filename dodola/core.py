@@ -155,12 +155,13 @@ def train_analogdownscaling(
             )
         )
 
-    aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling(
+    aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.train(
+        coarse_reference[variable],
+        fine_reference[variable],
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=quantiles_n,
     )
-    aiqpd.train(coarse_reference[variable], fine_reference[variable])
     return aiqpd
 
 
@@ -233,9 +234,11 @@ def apply_bias_correction(
         # instantiates a grouper class that groups by day of the year
         # centered window: +/-15 day group
         group = sdba.Grouper("time.dayofyear", window=31)
-        model = sdba.adjustment.QuantileDeltaMapping(group=group, kind="+")
-        model.train(
-            ref=obs_training_ds[train_variable], hist=gcm_training_ds[train_variable]
+        model = sdba.adjustment.QuantileDeltaMapping.train(
+            ref=obs_training_ds[train_variable],
+            hist=gcm_training_ds[train_variable],
+            group=group,
+            kind="+",
         )
         predicted = model.adjust(sim=gcm_predict_ds[train_variable])
     else:
