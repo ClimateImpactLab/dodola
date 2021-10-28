@@ -611,6 +611,7 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
     # tile the fine resolution grid with the coarse resolution ref data
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
+    ref_coarse["scen"].attrs["units"] = "K"
 
     # write test data
     ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
@@ -680,7 +681,9 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     ds_train = ds_train.mean(["lat", "lon"])
     # tile the fine resolution grid with the coarse resolution ref data
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
+    ref_coarse["scen"].attrs["units"] = "K"
     ds_bc = ds_train + 3
+    ds_bc["scen"].attrs["units"] = "K"
 
     # write test data
     ref_coarse_coarse_url = (
