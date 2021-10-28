@@ -44,6 +44,7 @@ def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
             "lat": (["lat"], [1.0]),
         },
     )
+    # need to set variable units to pass xclim 0.29 check on units
     out[variable_name].attrs["units"] = "K"
     return out
 
@@ -68,6 +69,8 @@ def _modeloutputfactory(
             "lat": (["lat"], [1.0]),
         },
     )
+    # need to set variable units to pass xclim 0.29 check on units
+    out[variable_name].attrs["units"] = "K"
     return out
 
 
@@ -601,6 +604,8 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
         ),
         attrs=dict(description="Weather related data."),
     )
+    # need to set variable units to pass xclim 0.29 check on units
+    ref_fine[scen].attrs["units"] = "K"
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
@@ -653,6 +658,8 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
         ),
         attrs=dict(description="Weather related data."),
     )
+    # need to set variable units to pass xclim 0.29 check on units
+    ref_fine[scen].attrs["units"] = "K"
 
     ds_train = xr.Dataset(
         data_vars=dict(
@@ -665,6 +672,8 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
         ),
         attrs=dict(description="Weather related data."),
     )
+    # need to set variable units to pass xclim 0.29 check on units
+    ds_train[scen].attrs["units"] = "K"
 
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
