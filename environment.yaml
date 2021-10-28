@@ -3,7 +3,7 @@ channels:
 - conda-forge
 dependencies:
 - adlfs=0.7.5  # Prevent azure blob errors, not hard req.
-- dask=2021.6.0
+- dask=2021.10.0
 - click=8.0.1
 - cftime=1.5.0
 - intake=0.6.2  # Not direct dependency. Used in docker environment.
