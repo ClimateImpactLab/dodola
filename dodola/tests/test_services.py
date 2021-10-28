@@ -42,10 +42,9 @@ def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
             "time": time,
             "lon": (["lon"], [1.0]),
             "lat": (["lat"], [1.0]),
-            "units": "fakeunits",
         },
     )
-    out.attrs["units"] = "fakeunits"
+    out[variable_name].attrs["units"] = "K"
     return out
 
 
