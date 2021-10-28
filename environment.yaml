@@ -24,4 +24,4 @@ dependencies:
 - zarr=2.8.3
 - pip:
   - git+https://github.com/dgergel/xsd@458f292dab6e8a6584659e97a66c37e028da2b7a
-  - git+https://github.com/ClimateImpactLab/xclim@07ebc00c65979c6d551ce1f2854bb0ad5f940584
+  - git+https://github.com/ClimateImpactLab/xclim@dcbccda8055e76d1916c35e97599d917eab00290
