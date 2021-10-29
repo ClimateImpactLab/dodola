@@ -659,8 +659,6 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
         ),
         attrs=dict(description="Weather related data."),
     )
-    # need to set variable units to pass xclim 0.29 check on units
-    ref_fine["scen"].attrs["units"] = "K"
 
     ds_train = xr.Dataset(
         data_vars=dict(
@@ -677,12 +675,17 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     # take the mean across space to represent coarse reference data for AFs
     ds_ref_coarse = ref_fine.mean(["lat", "lon"])
     ds_train = ds_train.mean(["lat", "lon"])
-    ds_train["scen"].attrs["units"] = "K"
+
     # tile the fine resolution grid with the coarse resolution ref data
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
-    ref_coarse["scen"].attrs["units"] = "K"
     ds_bc = ds_train + 3
+
+    # need to set variable units to pass xclim 0.29 check on units
+    ds_train["scen"].attrs["units"] = "K"
     ds_bc["scen"].attrs["units"] = "K"
+    ref_coarse["scen"].attrs["units"] = "K"
+    ref_fine["scen"].attrs["units"] = "K"
+    ds_ref_course["scen"].attrs["units"] = "K"
 
     # write test data
     ref_coarse_coarse_url = (
