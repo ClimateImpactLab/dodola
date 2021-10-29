@@ -685,7 +685,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     ds_bc["scen"].attrs["units"] = "K"
     ref_coarse["scen"].attrs["units"] = "K"
     ref_fine["scen"].attrs["units"] = "K"
-    ds_ref_course["scen"].attrs["units"] = "K"
+    ds_ref_coarse["scen"].attrs["units"] = "K"
 
     # write test data
     ref_coarse_coarse_url = (
