@@ -149,7 +149,7 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
         kind=k,
     )
 
-    storage.write(out, aiqpd.ds)
+    storage.write(out, aiqpd)
 
 
 @log_service
