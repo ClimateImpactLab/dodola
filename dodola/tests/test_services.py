@@ -216,6 +216,46 @@ def test_train_qdm(kind):
     assert QuantileDeltaMapping.from_dataset(repository.read(output_key))
 
 
+def test_train_qdm_isel_slice():
+    """Test that train_qdm outputs subset data when passed isel_slice"""
+    # Setup input data.
+    n_years = 10
+    n = n_years * 365
+
+    # Lazy way to make fake data for 2 latitudes...
+    model_bias = 2
+    ts = np.sin(np.linspace(-10 * 3.14, 10 * 3.14, n)) * 0.5
+    hist1 = _datafactory(ts + model_bias)
+    hist2 = _datafactory(ts + model_bias).assign_coords(
+        {"lat": hist1["lat"].data + 1.0}
+    )
+    hist = xr.concat([hist1, hist2], dim="lat")
+    ref1 = _datafactory(ts)
+    ref2 = _datafactory(ts + model_bias).assign_coords({"lat": ref1["lat"].data + 1.0})
+    ref = xr.concat([ref1, ref2], dim="lat")
+
+    output_key = "memory://test_train_qdm_isel_slice/test_output.zarr"
+    hist_key = "memory://test_train_qdm_isel_slice/hist.zarr"
+    ref_key = "memory://test_train_qdm_isel_slice/ref.zarr"
+
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=output_key,
+        variable="fakevariable",
+        kind="additive",
+        isel_slice={"lat": slice(0, 1)},  # select only 1 of 2 lats by idx...
+    )
+
+    # Check we can read output and it's the selected value, only.
+    ds_result = repository.read(output_key)
+    np.testing.assert_equal(ds_result["lat"].data, ref["lat"].data[0])
+    assert QuantileDeltaMapping.from_dataset(ds_result)
+
+
 @pytest.mark.parametrize(
     "method, expected_head, expected_tail",
     [

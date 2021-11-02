@@ -35,7 +35,9 @@ def log_service(func):
 
 
 @log_service
-def train_qdm(historical, reference, out, variable, kind):
+def train_qdm(
+    historical, reference, out, variable, kind, sel_slice=None, isel_slice=None
+):
     """Train quantile delta mapping and dump to `out`
 
     Parameters
@@ -50,6 +52,13 @@ def train_qdm(historical, reference, out, variable, kind):
         Name of target variable in input and output stores.
     kind : {"additive", "multiplicative"}
         Kind of QDM scaling.
+    sel_slice: dict or None, optional
+        Label-index slice hist and ref to subset before training.
+        A mapping of {variable_name: slice(...)} passed to
+        `xarray.Dataset.sel()`.
+    isel_slice: dict or None, optional
+        Integer-index slice hist and ref to subset before training. A mapping
+        of {variable_name: slice(...)} passed to `xarray.Dataset.isel()`.
     """
     hist = storage.read(historical)
     ref = storage.read(reference)
@@ -60,6 +69,16 @@ def train_qdm(historical, reference, out, variable, kind):
     except KeyError:
         # So we get a helpful exception message showing accepted kwargs...
         raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+
+    if sel_slice:
+        logger.debug(f"slicing by {sel_slice =}")
+        hist = hist.sel(sel_slice)
+        ref = ref.sel(sel_slice)
+
+    if isel_slice:
+        logger.debug(f"slicing by {isel_slice =}")
+        hist = hist.isel(isel_slice)
+        ref = ref.isel(isel_slice)
 
     qdm = train_quantiledeltamapping(
         reference=ref, historical=hist, variable=variable, kind=k
