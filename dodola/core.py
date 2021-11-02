@@ -27,9 +27,9 @@ def train_quantiledeltamapping(
     Parameters
     ----------
     reference : xr.Dataset
-        Dataset to use as model reference.
+        Dataset to use as model reference. Target variable must have a units attribute.
     historical : xr.Dataset
-        Dataset to use as historical simulation.
+        Dataset to use as historical simulation. Target variable must have a units attribute.
     variable : str
         Name of target variable to extract from `historical` and `reference`.
     kind : {"+", "*"}
@@ -43,12 +43,13 @@ def train_quantiledeltamapping(
     -------
     xclim.sdba.adjustment.QuantileDeltaMapping
     """
-    qdm = sdba.adjustment.QuantileDeltaMapping(
+    qdm = sdba.adjustment.QuantileDeltaMapping.train(
+        ref=reference[variable],
+        hist=historical[variable],
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=equally_spaced_nodes(int(quantiles_n), eps=None),
     )
-    qdm.train(ref=reference[variable], hist=historical[variable])
     return qdm
 
 
@@ -61,7 +62,7 @@ def adjust_quantiledeltamapping_year(
     ----------
     simulation : xr.Dataset
         Daily simulation data to be adjusted. Must have sufficient observations
-        around `year` to adjust.
+        around `year` to adjust. Target variable must have a units attribute.
     qdm : xr.Dataset or sdba.adjustment.QuantileDeltaMapping
         Trained ``xclim.sdba.adjustment.QuantileDeltaMapping``, or
         Dataset representation that will be instantiate
@@ -119,9 +120,9 @@ def train_analogdownscaling(
     Parameters
     ----------
     coarse_reference : xr.Dataset
-        Dataset to use as resampled (to fine resolution) coarse reference.
+        Dataset to use as resampled (to fine resolution) coarse reference.Target variable must have a units attribute.
     fine_reference : xr.Dataset
-        Dataset to use as fine-resolution reference.
+        Dataset to use as fine-resolution reference. Target variable must have a units attribute.
     variable : str
         Name of target variable to extract from `coarse_reference` and `fine_reference`.
     kind : {"+", "*"}
@@ -153,12 +154,13 @@ def train_analogdownscaling(
             )
         )
 
-    aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling(
+    aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.train(
+        ref=coarse_reference[variable],
+        hist=fine_reference[variable],
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=quantiles_n,
     )
-    aiqpd.train(coarse_reference[variable], fine_reference[variable])
     return aiqpd
 
 
@@ -168,7 +170,7 @@ def adjust_analogdownscaling(simulation, aiqpd, variable):
     Parameters
     ----------
     simulation : xr.Dataset
-        Daily bias corrected data to be downscaled.
+        Daily bias corrected data to be downscaled. Target variable must have a units attribute.
     aiqpd : xr.Dataset or sdba.adjustment.AnalogQuantilePreservingDownscaling
         Trained ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``, or
         Dataset representation that will instantiate
@@ -231,9 +233,11 @@ def apply_bias_correction(
         # instantiates a grouper class that groups by day of the year
         # centered window: +/-15 day group
         group = sdba.Grouper("time.dayofyear", window=31)
-        model = sdba.adjustment.QuantileDeltaMapping(group=group, kind="+")
-        model.train(
-            ref=obs_training_ds[train_variable], hist=gcm_training_ds[train_variable]
+        model = sdba.adjustment.QuantileDeltaMapping.train(
+            ref=obs_training_ds[train_variable],
+            hist=gcm_training_ds[train_variable],
+            group=group,
+            kind="+",
         )
         predicted = model.adjust(sim=gcm_predict_ds[train_variable])
     else:
