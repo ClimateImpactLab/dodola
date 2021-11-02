@@ -71,12 +71,12 @@ def train_qdm(
         raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     if sel_slice:
-        logger.debug(f"slicing by {sel_slice =}")
+        logger.debug(f"Slicing by {sel_slice=}")
         hist = hist.sel(sel_slice)
         ref = ref.sel(sel_slice)
 
     if isel_slice:
-        logger.debug(f"slicing by {isel_slice =}")
+        logger.debug(f"Slicing by {isel_slice=}")
         hist = hist.isel(isel_slice)
         ref = ref.isel(isel_slice)
 
