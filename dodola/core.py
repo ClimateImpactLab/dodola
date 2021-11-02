@@ -27,9 +27,9 @@ def train_quantiledeltamapping(
     Parameters
     ----------
     reference : xr.Dataset
-        Dataset to use as model reference.
+        Dataset to use as model reference. Target variable must have a units attribute.
     historical : xr.Dataset
-        Dataset to use as historical simulation.
+        Dataset to use as historical simulation. Target variable must have a units attribute.
     variable : str
         Name of target variable to extract from `historical` and `reference`.
     kind : {"+", "*"}
@@ -62,7 +62,7 @@ def adjust_quantiledeltamapping_year(
     ----------
     simulation : xr.Dataset
         Daily simulation data to be adjusted. Must have sufficient observations
-        around `year` to adjust.
+        around `year` to adjust. Target variable must have a units attribute.
     qdm : xr.Dataset or sdba.adjustment.QuantileDeltaMapping
         Trained ``xclim.sdba.adjustment.QuantileDeltaMapping``, or
         Dataset representation that will be instantiate
@@ -120,9 +120,9 @@ def train_analogdownscaling(
     Parameters
     ----------
     coarse_reference : xr.Dataset
-        Dataset to use as resampled (to fine resolution) coarse reference.
+        Dataset to use as resampled (to fine resolution) coarse reference.Target variable must have a units attribute.
     fine_reference : xr.Dataset
-        Dataset to use as fine-resolution reference.
+        Dataset to use as fine-resolution reference. Target variable must have a units attribute.
     variable : str
         Name of target variable to extract from `coarse_reference` and `fine_reference`.
     kind : {"+", "*"}
@@ -170,7 +170,7 @@ def adjust_analogdownscaling(simulation, aiqpd, variable):
     Parameters
     ----------
     simulation : xr.Dataset
-        Daily bias corrected data to be downscaled.
+        Daily bias corrected data to be downscaled. Target variable must have a units attribute.
     aiqpd : xr.Dataset or sdba.adjustment.AnalogQuantilePreservingDownscaling
         Trained ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``, or
         Dataset representation that will instantiate

@@ -5,6 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
+* Update xclim version to 0.30.1, this updates the Train/Adjust API for QDM and AIQPD and requires units attributes for all QDM and AIQPD inputs (PR #119, @dgergel)
 * Add global validation, includes new service ``validate`` for validating cleaned CMIP6, bias corrected and downscaled data for historical and future time periods. (PR #118, @dgergel) 
 
 
