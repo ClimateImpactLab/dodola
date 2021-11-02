@@ -97,20 +97,20 @@ def train_qdm(
     historical, reference, out, variable, kind, selslice=None, iselslice=None
 ):
     """Train Quantile Delta Mapping (QDM) model and output to storage"""
-    sel_slices = None
-    isel_slices = None
+    sel_slices_d = None
+    isel_slices_d = None
 
     if selslice:
-        sel_slices = {}
+        sel_slices_d = {}
         for s in selslice:
             k, v = s.split("=")
-            sel_slices[k] = slice(*map(str, v.split(",")))
+            sel_slices_d[k] = slice(*map(str, v.split(",")))
 
     if iselslice:
-        isel_slices = {}
+        isel_slices_d = {}
         for s in iselslice:
             k, v = s.split("=")
-            isel_slices[k] = slice(*map(int, v.split(",")))
+            isel_slices_d[k] = slice(*map(int, v.split(",")))
 
     services.train_qdm(
         historical=historical,
@@ -118,8 +118,8 @@ def train_qdm(
         out=out,
         variable=variable,
         kind=kind,
-        sel_slices=sel_slices,
-        isel_slices=isel_slices,
+        sel_slice=sel_slices_d,
+        isel_slice=isel_slices_d,
     )
 
 
