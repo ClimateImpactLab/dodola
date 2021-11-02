@@ -3,6 +3,11 @@ History
 =======
 
 
+0.X.X (XXXX-XX-XX)
+------------------
+* 
+
+
 0.7.0 (2021-11-02)
 ------------------
 * Update xclim version to 0.30.1, this updates the Train/Adjust API for QDM and AIQPD and requires units attributes for all QDM and AIQPD inputs. (PR #119, @dgergel)
