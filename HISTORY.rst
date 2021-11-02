@@ -3,9 +3,9 @@ History
 =======
 
 
-0.X.X (XXXX-XX-XX)
+0.7.0 (2021-11-02)
 ------------------
-* Update xclim version to 0.30.1, this updates the Train/Adjust API for QDM and AIQPD and requires units attributes for all QDM and AIQPD inputs (PR #119, @dgergel)
+* Update xclim version to 0.30.1, this updates the Train/Adjust API for QDM and AIQPD and requires units attributes for all QDM and AIQPD inputs. (PR #119, @dgergel)
 * Add global validation, includes new service ``validate`` for validating cleaned CMIP6, bias corrected and downscaled data for historical and future time periods. (PR #118, @dgergel) 
 * Regrid copies input Dataset ``attrs`` metadata to output (#116). (PR #121, @brews)
 * Upgrade ``dask`` to 2021.10.0 to cover https://nvd.nist.gov/vuln/detail/CVE-2021-42343. (PR #122, @brews)
