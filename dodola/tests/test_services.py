@@ -59,6 +59,9 @@ def _modeloutputfactory(
     np.random.seed(0)
     time = xr.cftime_range(start=start_time, end=end_time, calendar="noleap")
     # make sure that test data range is reasonable for the variable being tested
+
+    low_val = None
+    high_val = None
     if variable_name == "tasmax" or variable_name == "tasmin":
         low_val = 160
         high_val = 340
@@ -985,6 +988,7 @@ def test_downscale(domain_file, method, var):
     )
 
     # compute adjustment factor
+    af_coarse = None
     if var == "temperature":
         af_coarse = ds_bc.groupby("time.dayofyear") - climo_coarse
     elif var == "precipitation":
@@ -1029,6 +1033,7 @@ def test_downscale(domain_file, method, var):
     af_fine = repository.read(af_fine_url)[var]
 
     # compute test downscaled values
+    downscaled_test = None
     if var == "temperature":
         downscaled_test = af_fine.groupby("time.dayofyear") + climo_fine
     elif var == "precipitation":
@@ -1057,6 +1062,8 @@ def test_downscale(domain_file, method, var):
 def test_validation(variable, data_type, time_period):
     """Tests that validate passes for fake output data"""
     # Setup input data
+    start_time = None
+    end_time = None
     if data_type == "bias_corrected" or data_type == "downscaled":
         if time_period == "historical":
             start_time = "1950-01-01"

@@ -502,9 +502,3 @@ def validate(x, var, data_type, time_period):
 
     ds = storage.read(x)
     validate_dataset(ds, var, data_type, time_period)
-
-
-@log_service
-def disaggregate(x, weights, out, repo):
-    """This is just an example. Please replace or delete."""
-    raise NotImplementedError

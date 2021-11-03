@@ -285,7 +285,8 @@ def apply_downscaling(
     af_fine : xr.Dataset
         A dataset of adjustment factors at fine resolution used in downscaling.
     ds_downscaled : xr.Dataset
-        A model dataset that has been downscaled from the bias correction resolution to specified domain file resolution.
+        A model dataset that has been downscaled from the bias correction
+        resolution to specified domain file resolution.
     """
 
     if method == "BCSD":
@@ -476,7 +477,10 @@ def apply_wet_day_frequency_correction(ds, process):
 
     Notes
     -------
-    [1] A.J. Cannon, S.R. Sobie, & T.Q. Murdock, "Bias correction of GCM precipitation by quantile mapping: How well do methods preserve changes in quantiles and extremes?", Journal of Climate, vol. 28, Issue 7, pp. 6938-6959.
+    [1] A.J. Cannon, S.R. Sobie, & T.Q. Murdock, "Bias correction of GCM
+        precipitation by quantile mapping: How well do methods preserve
+        changes in quantiles and extremes?", Journal of Climate, vol.
+        28, Issue 7, pp. 6938-6959.
     """
     threshold = 0.05  # mm/day
     low = 1e-16

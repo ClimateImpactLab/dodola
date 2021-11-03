@@ -2,8 +2,6 @@ import numpy as np
 import pytest
 import xarray as xr
 import cftime
-from xclim.sdba.utils import equally_spaced_nodes
-from xclim import sdba, set_options
 from dodola.core import (
     train_quantiledeltamapping,
     adjust_quantiledeltamapping_year,

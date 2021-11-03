@@ -272,7 +272,7 @@ def downscale(
     adjustmentfactors,
     weightspath,
 ):
-    """Downscale bias corrected GCM to 'out' based on obs climo (yclimocoarse, yclimofine) using (method) and (domain_file)"""
+    """Downscale biascorrected to out based on climo"""
     services.downscale(
         x,
         yclimocoarse,
