@@ -81,14 +81,45 @@ def apply_qdm(simulation, qdm, year, variable, out, include_quantiles):
     help="Variable kind for mapping",
 )
 @click.option("--out", "-o", required=True, help="URL to write QDM model to")
-def train_qdm(historical, reference, out, variable, kind):
+@click.option(
+    "--selslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'isel' slice inputs before training",
+)
+@click.option(
+    "--iselslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'sel' slice inputs before training",
+)
+def train_qdm(
+    historical, reference, out, variable, kind, selslice=None, iselslice=None
+):
     """Train Quantile Delta Mapping (QDM) model and output to storage"""
+    sel_slices_d = None
+    isel_slices_d = None
+
+    if selslice:
+        sel_slices_d = {}
+        for s in selslice:
+            k, v = s.split("=")
+            sel_slices_d[k] = slice(*map(str, v.split(",")))
+
+    if iselslice:
+        isel_slices_d = {}
+        for s in iselslice:
+            k, v = s.split("=")
+            isel_slices_d[k] = slice(*map(int, v.split(",")))
+
     services.train_qdm(
         historical=historical,
         reference=reference,
         out=out,
         variable=variable,
         kind=kind,
+        sel_slice=sel_slices_d,
+        isel_slice=isel_slices_d,
     )
 
 
@@ -134,14 +165,45 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
     help="Variable kind for mapping",
 )
 @click.option("--out", "-o", required=True, help="URL to write QDM model to")
-def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
+@click.option(
+    "--selslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'isel' slice inputs before training",
+)
+@click.option(
+    "--iselslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'sel' slice inputs before training",
+)
+def train_aiqpd(
+    coarse_reference, fine_reference, out, variable, kind, selslice=None, iselslice=None
+):
     """Train Analog-Inspired Quantile Preserving Downscaling (AIQPD) model and output to storage"""
+    sel_slices_d = None
+    isel_slices_d = None
+
+    if selslice:
+        sel_slices_d = {}
+        for s in selslice:
+            k, v = s.split("=")
+            sel_slices_d[k] = slice(*map(str, v.split(",")))
+
+    if iselslice:
+        isel_slices_d = {}
+        for s in iselslice:
+            k, v = s.split("=")
+            isel_slices_d[k] = slice(*map(int, v.split(",")))
+
     services.train_aiqpd(
         coarse_reference=coarse_reference,
         fine_reference=fine_reference,
         out=out,
         variable=variable,
         kind=kind,
+        sel_slice=sel_slices_d,
+        isel_slice=isel_slices_d,
     )
 
 
@@ -210,7 +272,7 @@ def downscale(
     adjustmentfactors,
     weightspath,
 ):
-    """Downscale bias corrected GCM to 'out' based on obs climo (yclimocoarse, yclimofine) using (method) and (domain_file)"""
+    """Downscale biascorrected to out based on climo"""
     services.downscale(
         x,
         yclimocoarse,

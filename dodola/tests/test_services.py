@@ -59,6 +59,9 @@ def _modeloutputfactory(
     np.random.seed(0)
     time = xr.cftime_range(start=start_time, end=end_time, calendar="noleap")
     # make sure that test data range is reasonable for the variable being tested
+
+    low_val = None
+    high_val = None
     if variable_name == "tasmax" or variable_name == "tasmin":
         low_val = 160
         high_val = 340
@@ -214,6 +217,46 @@ def test_train_qdm(kind):
     )
 
     assert QuantileDeltaMapping.from_dataset(repository.read(output_key))
+
+
+def test_train_qdm_isel_slice():
+    """Test that train_qdm outputs subset data when passed isel_slice"""
+    # Setup input data.
+    n_years = 10
+    n = n_years * 365
+
+    # Lazy way to make fake data for 2 latitudes...
+    model_bias = 2
+    ts = np.sin(np.linspace(-10 * 3.14, 10 * 3.14, n)) * 0.5
+    hist1 = _datafactory(ts + model_bias)
+    hist2 = _datafactory(ts + model_bias).assign_coords(
+        {"lat": hist1["lat"].data + 1.0}
+    )
+    hist = xr.concat([hist1, hist2], dim="lat")
+    ref1 = _datafactory(ts)
+    ref2 = _datafactory(ts + model_bias).assign_coords({"lat": ref1["lat"].data + 1.0})
+    ref = xr.concat([ref1, ref2], dim="lat")
+
+    output_key = "memory://test_train_qdm_isel_slice/test_output.zarr"
+    hist_key = "memory://test_train_qdm_isel_slice/hist.zarr"
+    ref_key = "memory://test_train_qdm_isel_slice/ref.zarr"
+
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=output_key,
+        variable="fakevariable",
+        kind="additive",
+        isel_slice={"lat": slice(0, 1)},  # select only 1 of 2 lats by idx...
+    )
+
+    # Check we can read output and it's the selected value, only.
+    ds_result = repository.read(output_key)
+    np.testing.assert_equal(ds_result["lat"].data, ref["lat"].data[0])
+    assert QuantileDeltaMapping.from_dataset(ds_result)
 
 
 @pytest.mark.parametrize(
@@ -676,6 +719,99 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
     assert aiqpd_model.af.shape == af_expected_shape
 
 
+def test_train_aiqpd_isel_slice():
+    """Tests that services.train_aiqpd subsets with isel_slice"""
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
+    data_ref = 15 + 8 * np.ones((len(time), 4, 4))
+    ref_fine = xr.Dataset(
+        data_vars=dict(
+            scen=(["time", "lat", "lon"], data_ref),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
+    # need to set variable units to pass xclim 0.29 check on units
+    ref_fine["scen"].attrs["units"] = "K"
+    # take the mean across space to represent coarse reference data for AFs
+    ds_ref_coarse = ref_fine.mean(["lat", "lon"])
+    # tile the fine resolution grid with the coarse resolution ref data
+    ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
+    ref_coarse["scen"].attrs["units"] = "K"
+
+    # write test data
+    ref_coarse_url = "memory://train_aiqpd_isel_slice/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://train_aiqpd_isel_slice/a/ref_fine/path.zarr"
+    train_out_url = "memory://train_aiqpd_isel_slice/a/train_output/path.zarr"
+
+    repository.write(ref_coarse_url, ref_coarse.chunk({"time": -1}))
+    repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
+
+    # now train AIQPD model
+    train_aiqpd(
+        coarse_reference=ref_coarse_url,
+        fine_reference=ref_fine_url,
+        out=train_out_url,
+        variable="scen",
+        kind="additive",
+        isel_slice={"lat": slice(0, 3)},
+    )
+
+    aiqpd_model = repository.read(train_out_url)
+    assert aiqpd_model["lat"].shape == (3,)
+
+
+def test_train_aiqpd_sel_slice():
+    """Tests that services.train_aiqpd subsets with sel_slice"""
+    # This should prob go to a test fixture for input data setup.
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
+    data_ref = 15 + 8 * np.ones((len(time), 4, 4))
+    ref_fine = xr.Dataset(
+        data_vars=dict(
+            scen=(["time", "lat", "lon"], data_ref),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
+    # need to set variable units to pass xclim 0.29 check on units
+    ref_fine["scen"].attrs["units"] = "K"
+    # take the mean across space to represent coarse reference data for AFs
+    ds_ref_coarse = ref_fine.mean(["lat", "lon"])
+    # tile the fine resolution grid with the coarse resolution ref data
+    ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
+    ref_coarse["scen"].attrs["units"] = "K"
+
+    ref_coarse_url = "memory://test_train_aiqpd_sel_slice/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_train_aiqpd_sel_slice/a/ref_fine/path.zarr"
+    train_out_url = "memory://test_train_aiqpd_sel_slice/a/train_output/path.zarr"
+
+    repository.write(ref_coarse_url, ref_coarse.chunk({"time": -1}))
+    repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
+
+    train_aiqpd(
+        coarse_reference=ref_coarse_url,
+        fine_reference=ref_fine_url,
+        out=train_out_url,
+        variable="scen",
+        kind="additive",
+        sel_slice={"lat": slice(lat[0], lat[2])},
+    )
+
+    aiqpd_model = repository.read(train_out_url)
+    assert aiqpd_model["lat"].shape == (3,)
+
+
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
 def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     """Integration test of the QDM and AIQPD services"""
@@ -852,6 +988,7 @@ def test_downscale(domain_file, method, var):
     )
 
     # compute adjustment factor
+    af_coarse = None
     if var == "temperature":
         af_coarse = ds_bc.groupby("time.dayofyear") - climo_coarse
     elif var == "precipitation":
@@ -896,6 +1033,7 @@ def test_downscale(domain_file, method, var):
     af_fine = repository.read(af_fine_url)[var]
 
     # compute test downscaled values
+    downscaled_test = None
     if var == "temperature":
         downscaled_test = af_fine.groupby("time.dayofyear") + climo_fine
     elif var == "precipitation":
@@ -924,6 +1062,8 @@ def test_downscale(domain_file, method, var):
 def test_validation(variable, data_type, time_period):
     """Tests that validate passes for fake output data"""
     # Setup input data
+    start_time = None
+    end_time = None
     if data_type == "bias_corrected" or data_type == "downscaled":
         if time_period == "historical":
             start_time = "1950-01-01"
