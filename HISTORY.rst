@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* 
+* Add pre-training slicing options to train-qdm and train-aiqpd. (PR #123, @brews)
 
 
 0.7.0 (2021-11-02)
