@@ -135,7 +135,15 @@ def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
 
 
 @log_service
-def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
+def train_aiqpd(
+    coarse_reference,
+    fine_reference,
+    out,
+    variable,
+    kind,
+    sel_slice=None,
+    isel_slice=None,
+):
     """Train analog-inspired quantile preserving downscaling and dump to `out`
 
     Parameters
@@ -150,6 +158,13 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
         Name of target variable in input and output stores.
     kind : {"additive", "multiplicative"}
         Kind of AIQPD downscaling.
+    sel_slice: dict or None, optional
+        Label-index slice hist and ref to subset before training.
+        A mapping of {variable_name: slice(...)} passed to
+        `xarray.Dataset.sel()`.
+    isel_slice: dict or None, optional
+        Integer-index slice hist and ref to subset before training. A mapping
+        of {variable_name: slice(...)} passed to `xarray.Dataset.isel()`.
     """
     ref_coarse = storage.read(coarse_reference)
     ref_fine = storage.read(fine_reference)
@@ -160,6 +175,16 @@ def train_aiqpd(coarse_reference, fine_reference, out, variable, kind):
     except KeyError:
         # So we get a helpful exception message showing accepted kwargs...
         raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
+
+    if sel_slice:
+        logger.debug(f"Slicing by {sel_slice=}")
+        ref_coarse = ref_coarse.sel(sel_slice)
+        ref_fine = ref_fine.sel(sel_slice)
+
+    if isel_slice:
+        logger.debug(f"Slicing by {isel_slice=}")
+        ref_coarse = ref_coarse.isel(isel_slice)
+        ref_fine = ref_fine.isel(isel_slice)
 
     aiqpd = train_analogdownscaling(
         coarse_reference=ref_coarse,

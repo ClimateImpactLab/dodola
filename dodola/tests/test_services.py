@@ -716,6 +716,99 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
     assert aiqpd_model.af.shape == af_expected_shape
 
 
+def test_train_aiqpd_isel_slice():
+    """Tests that services.train_aiqpd subsets with isel_slice"""
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
+    data_ref = 15 + 8 * np.ones((len(time), 4, 4))
+    ref_fine = xr.Dataset(
+        data_vars=dict(
+            scen=(["time", "lat", "lon"], data_ref),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
+    # need to set variable units to pass xclim 0.29 check on units
+    ref_fine["scen"].attrs["units"] = "K"
+    # take the mean across space to represent coarse reference data for AFs
+    ds_ref_coarse = ref_fine.mean(["lat", "lon"])
+    # tile the fine resolution grid with the coarse resolution ref data
+    ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
+    ref_coarse["scen"].attrs["units"] = "K"
+
+    # write test data
+    ref_coarse_url = "memory://train_aiqpd_isel_slice/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://train_aiqpd_isel_slice/a/ref_fine/path.zarr"
+    train_out_url = "memory://train_aiqpd_isel_slice/a/train_output/path.zarr"
+
+    repository.write(ref_coarse_url, ref_coarse.chunk({"time": -1}))
+    repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
+
+    # now train AIQPD model
+    train_aiqpd(
+        coarse_reference=ref_coarse_url,
+        fine_reference=ref_fine_url,
+        out=train_out_url,
+        variable="scen",
+        kind="additive",
+        isel_slice={"lat": slice(0, 3)},
+    )
+
+    aiqpd_model = repository.read(train_out_url)
+    assert aiqpd_model["lat"].shape == (3,)
+
+
+def test_train_aiqpd_sel_slice():
+    """Tests that services.train_aiqpd subsets with sel_slice"""
+    # This should prob go to a test fixture for input data setup.
+    lon = [-99.83, -99.32, -99.79, -99.23]
+    lat = [42.25, 42.21, 42.63, 42.59]
+    time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
+    data_ref = 15 + 8 * np.ones((len(time), 4, 4))
+    ref_fine = xr.Dataset(
+        data_vars=dict(
+            scen=(["time", "lat", "lon"], data_ref),
+        ),
+        coords=dict(
+            time=time,
+            lon=(["lon"], lon),
+            lat=(["lat"], lat),
+        ),
+        attrs=dict(description="Weather related data."),
+    )
+    # need to set variable units to pass xclim 0.29 check on units
+    ref_fine["scen"].attrs["units"] = "K"
+    # take the mean across space to represent coarse reference data for AFs
+    ds_ref_coarse = ref_fine.mean(["lat", "lon"])
+    # tile the fine resolution grid with the coarse resolution ref data
+    ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
+    ref_coarse["scen"].attrs["units"] = "K"
+
+    ref_coarse_url = "memory://test_train_aiqpd_sel_slice/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_train_aiqpd_sel_slice/a/ref_fine/path.zarr"
+    train_out_url = "memory://test_train_aiqpd_sel_slice/a/train_output/path.zarr"
+
+    repository.write(ref_coarse_url, ref_coarse.chunk({"time": -1}))
+    repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
+
+    train_aiqpd(
+        coarse_reference=ref_coarse_url,
+        fine_reference=ref_fine_url,
+        out=train_out_url,
+        variable="scen",
+        kind="additive",
+        sel_slice={"lat": slice(lat[0], lat[2])},
+    )
+
+    aiqpd_model = repository.read(train_out_url)
+    assert aiqpd_model["lat"].shape == (3,)
+
+
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
 def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     """Integration test of the QDM and AIQPD services"""
