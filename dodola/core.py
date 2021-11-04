@@ -511,8 +511,8 @@ def validate_dataset(ds, var, data_type, time_period="future"):
         Time period of data that will be validated.
     """
     # This is pretty rough but works to communicate the idea.
-    # Should have this raise something like ValidationError rather than
-    # AssertionErrors.
+    # Consider having failed tests raise something like ValidationError rather
+    # than AssertionErrors.
 
     # These only read in Zarr Store metadata -- not memory intensive.
     _test_variable_names(ds, var)
@@ -521,18 +521,20 @@ def validate_dataset(ds, var, data_type, time_period="future"):
     # Other test are done on annual selections with dask.delayed to
     # avoid large memory errors. xr.map_blocks had trouble with this.
     @dask.delayed
-    def clear_memory_intensive_tests(ds, v, t):
+    def memory_intensive_tests(ds, v, t):
         d = ds.sel(time=str(t))
 
         _test_for_nans(d, v)
 
-        if v == "tasmin" or v == "tasmax":
+        if v == "tasmin":
             _test_temp_range(d, v)
-        if v == "dtr":
+        elif v == "tasmax":
+            _test_temp_range(d, v)
+        elif v == "dtr":
             _test_dtr_range(d, v)
-        if v == "dtr" or v == "pr":
             _test_negative_values(d, v)
-        if v == "pr":
+        elif v == "pr":
+            _test_negative_values(d, v)
             _test_maximum_precip(d, v)
         else:
             raise ValueError(f"Argument {v=} not recognized")
@@ -543,7 +545,7 @@ def validate_dataset(ds, var, data_type, time_period="future"):
     tasks = []
     for t in np.unique(ds["time"].dt.year.data):
         logger.debug(f"Validating for year {t}")
-        test_results = clear_memory_intensive_tests(ds, var, t)
+        test_results = memory_intensive_tests(ds, var, t)
         tasks.append(test_results)
     tasks = dask.compute(*tasks)
     assert all(tasks)  # Likely don't need this
