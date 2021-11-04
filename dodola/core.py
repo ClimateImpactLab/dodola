@@ -542,13 +542,12 @@ def validate_dataset(ds, var, data_type, time_period="future"):
         # Assumes error thrown if had problem before this.
         return True
 
-    tasks = []
+    results = []
     for t in np.unique(ds["time"].dt.year.data):
-        logger.debug(f"Validating for year {t}")
-        test_results = memory_intensive_tests(ds, var, t)
-        tasks.append(test_results)
-    tasks = dask.compute(*tasks)
-    assert all(tasks)  # Likely don't need this
+        logger.debug(f"Validating year {t}")
+        results.append(memory_intensive_tests(ds, var, t))
+    results = dask.compute(*results)
+    assert all(results)  # Likely don't need this
     return True
 
 
