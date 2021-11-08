@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* Add pre-training slicing options to train-qdm and train-aiqpd. (PR #123, @brews)
+* Add pre-training slicing options to train-qdm and train-aiqpd. (PR #123, PR #128, @brews)
 * Quick fix validation reading entire zarr store for check. (PR #124, @brews)
 
 
