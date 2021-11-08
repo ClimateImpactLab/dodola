@@ -186,6 +186,10 @@ def train_aiqpd(
         ref_coarse = ref_coarse.isel(isel_slice)
         ref_fine = ref_fine.isel(isel_slice)
 
+    # needs to not be chunked
+    ref_coarse.load()
+    ref_fine.load()
+
     aiqpd = train_analogdownscaling(
         coarse_reference=ref_coarse,
         fine_reference=ref_fine,
