@@ -54,7 +54,7 @@ def dodola_cli(debug):
     help="URL to write Zarr Store with adjusted simulation year to",
 )
 @click.option(
-    "--zarr_region_dims",
+    "--zarr-region-dims",
     required=True,
     help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
 )
