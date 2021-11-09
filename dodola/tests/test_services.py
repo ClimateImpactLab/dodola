@@ -342,7 +342,7 @@ def test_prime_qdm_regional_apply():
     xr.testing.assert_allclose(primed_adjusted_ds, adjusted_ds)
 
 
-def test_apply_qdm(tmpdir):
+def test_apply_qdm():
     """Test to apply a trained QDM to input data and read the output.
 
     This is an integration test between train_qdm, apply_qdm.
@@ -366,13 +366,12 @@ def test_apply_qdm(tmpdir):
     hist_key = "memory://test_apply_qdm/hist.zarr"
     ref_key = "memory://test_apply_qdm/ref.zarr"
     sim_key = "memory://test_apply_qdm/sim.zarr"
-    # Writes NC to local disk, so dif format here:
-    sim_adjusted_key = tmpdir.join("sim_adjusted.nc")
+    sim_adj_key = "memory://test_apply_qdm/sim_adjusted.zarr"
     repository.write(sim_key, sim)
     repository.write(hist_key, hist)
     repository.write(ref_key, ref)
 
-    target_year = 1995
+    target_years = [1994, 1995]
 
     train_qdm(
         historical=hist_key,
@@ -384,11 +383,11 @@ def test_apply_qdm(tmpdir):
     apply_qdm(
         simulation=sim_key,
         qdm=qdm_key,
-        year=target_year,
+        years=target_years,
         variable=target_variable,
-        out=sim_adjusted_key,
+        out=sim_adj_key,
     )
-    adjusted_ds = xr.open_dataset(str(sim_adjusted_key))
+    adjusted_ds = repository.read(sim_adj_key)
     assert target_variable in adjusted_ds.variables
 
 
@@ -1083,8 +1082,9 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     sim_url = "memory://test_aiqpd_downscaling/a/sim/path.zarr"
     qdm_train_out_url = "memory://test_aiqpd_downscaling/a/qdm_train_out/path.zarr"
     biascorrected_url = "memory://test_aiqpd_downscaling/a/biascorrected/path.zarr"
-    # write bias corrected data differently because it's a NetCDF, not a zarr
-    sim_biascorrected_key = tmpdir.join("sim_biascorrected.nc")
+    sim_biascorrected_key = (
+        "memory://test_aiqpd_downscaling/a/biascorrected/sim_biascorrected.zarr"
+    )
 
     repository.write(ref_coarse_coarse_url, ds_ref_coarse)
     repository.write(
@@ -1112,23 +1112,20 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     apply_qdm(
         simulation=sim_url,
         qdm=qdm_train_out_url,
-        year=target_year,
+        years=[target_year],
         variable=variable,
         out=sim_biascorrected_key,
-        include_quantiles=True,
     )
-    biascorrected_coarse = xr.open_dataset(str(sim_biascorrected_key))
+    biascorrected_coarse = repository.read(sim_biascorrected_key)
     # make bias corrected data on the fine resolution grid
-    biascorrected_fine = biascorrected_coarse[variable].broadcast_like(
+    biascorrected_fine = biascorrected_coarse.broadcast_like(
         ref_fine.sel(
             time=slice("{}-01-01".format(target_year), "{}-12-31".format(target_year))
         )
     )
     repository.write(
         biascorrected_url,
-        biascorrected_fine.to_dataset(name=variable).chunk(
-            {"time": -1, "lat": -1, "lon": -1}
-        ),
+        biascorrected_fine.chunk({"time": -1, "lat": -1, "lon": -1}),
     )
 
     # write test data
@@ -1147,7 +1144,7 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
 
     # check that downscaled average equals bias corrected value
-    bc_timestep = biascorrected_fine.isel(time=100).values[0][0]
+    bc_timestep = biascorrected_fine[variable].isel(time=100).values[0][0]
     aiqpd_downscaled_mean = downscaled_ds[variable].isel(time=100).mean().values
     np.testing.assert_almost_equal(bc_timestep, aiqpd_downscaled_mean)
 
