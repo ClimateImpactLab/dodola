@@ -18,6 +18,7 @@ import dodola.services
         "train-aiqpd",
         "apply-aiqpd",
         "validate-dataset",
+        "prime-qdm-output-zarrstore"
     ],
     ids=(
         "--help",
@@ -31,6 +32,7 @@ import dodola.services
         "train-aiqpd --help",
         "apply-aiqpd --help",
         "validate-dataset --help",
+        "prime-qdm-output-zarrstore --help"
     ),
 )
 def test_cli_helpflags(subcmd):
