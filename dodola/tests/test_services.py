@@ -224,7 +224,6 @@ def test_prime_qdm_regional_apply():
     the vanilla and regional approaches.
     """
     # Setup input data.
-    quantile_variable = "sim_q"
     target_variable = "fakevariable"
     variable_kind = "additive"
     n_histdays = 10 * 365  # 10 years of daily historical.
