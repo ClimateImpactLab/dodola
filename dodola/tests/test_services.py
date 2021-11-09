@@ -213,7 +213,6 @@ def test_prime_qdm_output_zarrstore():
     assert primed_ds[quantile_variable].attrs == adjusted_ds[quantile_variable].attrs
 
 
-
 def test_prime_qdm_regional_apply():
     """
     Integration test checking that prime_qdm_output_zarrstore and apply_qdm can write regionally.
@@ -242,10 +241,11 @@ def test_prime_qdm_regional_apply():
     # modify the data factories to get this. Gives us a way to test regional
     # writes.
     sim = xr.concat([sim, sim.assign({"lat": np.array([2.0])})], dim="lat")
-    sim[target_variable][:,:,-1] += 1  # Introducing a slight difference for different lat.
+    sim[target_variable][
+        :, :, -1
+    ] += 1  # Introducing a slight difference for different lat.
     ref = xr.concat([ref, ref.assign({"lat": np.array([2.0])})], dim="lat")
     hist = xr.concat([hist, hist.assign({"lat": np.array([2.0])})], dim="lat")
-
 
     # Datafactory appends cruft "index" coordinate. We're removing it because we
     # dont need it and I'm too lazy to tinker with input data fixtures.
@@ -299,7 +299,7 @@ def test_prime_qdm_regional_apply():
         variable=target_variable,
         out=primed_url,
         isel_slice=region_1,
-        out_zarr_region=region_1
+        out_zarr_region=region_1,
     )
     region_2 = {"lat": slice(1, 2)}
     train_qdm(
@@ -317,7 +317,7 @@ def test_prime_qdm_regional_apply():
         variable=target_variable,
         out=primed_url,
         isel_slice=region_2,
-        out_zarr_region=region_2
+        out_zarr_region=region_2,
     )
     primed_adjusted_ds = repository.read(primed_url)
 
