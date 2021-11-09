@@ -9,6 +9,7 @@ from xesmf.util import grid_global
 from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
+    prime_qdm_output_zarrstore,
     build_weights,
     rechunk,
     regrid,
@@ -131,6 +132,214 @@ def domain_file(request):
     domain[lon_name] = np.unique(domain[lon_name].values)
 
     return domain
+
+
+def test_prime_qdm_output_zarrstore():
+    """
+    Test that prime_qdm_output_zarrstore creates a Zarr with variables, shapes, attrs.
+
+    We're testing this by running QDM (train + apply) in it's usualy mode and
+    then using comparable parameters to prime a Zarr Store. We then compare
+    the two.
+    """
+    # Setup input data.
+    quantile_variable = "sim_q"
+    target_variable = "fakevariable"
+    variable_kind = "additive"
+    n_histdays = 10 * 365  # 10 years of daily historical.
+    n_simdays = 50 * 365  # 50 years of daily simulation.
+
+    model_bias = 2
+    ts_ref = np.ones(n_histdays, dtype=np.float64)
+    ts_sim = np.ones(n_simdays, dtype=np.float64)
+    hist = _datafactory(ts_ref + model_bias, variable_name=target_variable)
+    ref = _datafactory(ts_ref, variable_name=target_variable)
+    sim = _datafactory(ts_sim + model_bias, variable_name=target_variable)
+
+    # Load up a fake repo with our input data in the place of big data and cloud
+    # storage.
+    qdm_key = "memory://test_apply_qdm/qdm.zarr"
+    hist_key = "memory://test_apply_qdm/hist.zarr"
+    ref_key = "memory://test_apply_qdm/ref.zarr"
+    sim_key = "memory://test_apply_qdm/sim.zarr"
+    sim_adj_key = "memory://test_apply_qdm/sim_adjusted.zarr"
+    primed_url = "memory://test_prime_qdm_output_zarrstore/primed.zarr"
+
+    repository.write(sim_key, sim)
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    target_year = 1995
+
+    # Lets prime a QDM output.
+    prime_qdm_output_zarrstore(
+        simulation=sim_key,
+        variable=target_variable,
+        years=[target_year],
+        out=primed_url,
+        zarr_region_dims=["lat"],
+    )
+
+    primed_ds = repository.read(primed_url)
+
+    # Now train, apply actual QDM and compare outputs with primed Zarr Store
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=qdm_key,
+        variable=target_variable,
+        kind=variable_kind,
+    )
+    apply_qdm(
+        simulation=sim_key,
+        qdm=qdm_key,
+        years=[target_year],
+        variable=target_variable,
+        out=sim_adj_key,
+    )
+    adjusted_ds = repository.read(sim_adj_key)
+
+    # Desired variables present?
+    assert (
+        quantile_variable in primed_ds.variables
+        and target_variable in primed_ds.variables
+    )
+    # Desired shapes with dims in correct order?
+    assert primed_ds[quantile_variable].shape == primed_ds[target_variable].shape
+    assert primed_ds[target_variable].shape == adjusted_ds[target_variable].shape
+    # Output attrs matching for root and variables?
+    assert primed_ds.attrs == adjusted_ds.attrs
+    assert primed_ds[target_variable].attrs == adjusted_ds[target_variable].attrs
+    assert primed_ds[quantile_variable].attrs == adjusted_ds[quantile_variable].attrs
+
+
+
+def test_prime_qdm_regional_apply():
+    """
+    Integration test checking that prime_qdm_output_zarrstore and apply_qdm can write regionally.
+
+    The strategy is to create input data for two latitudes and run two QDMs
+    (train + apply). One doing a "vanilla", global QDM. The other using a
+    "regional" strategy: training and applying QDM on each latitude and then
+    writing each to the same, primed zarr store. We then compare output from
+    the vanilla and regional approaches.
+    """
+    # Setup input data.
+    quantile_variable = "sim_q"
+    target_variable = "fakevariable"
+    variable_kind = "additive"
+    n_histdays = 10 * 365  # 10 years of daily historical.
+    n_simdays = 50 * 365  # 50 years of daily simulation.
+
+    model_bias = 2
+    ts_ref = np.ones(n_histdays, dtype=np.float64)
+    ts_sim = np.ones(n_simdays, dtype=np.float64)
+    hist = _datafactory(ts_ref + model_bias, variable_name=target_variable)
+    ref = _datafactory(ts_ref, variable_name=target_variable)
+    sim = _datafactory(ts_sim + model_bias, variable_name=target_variable)
+
+    # Append a copy of the data onto a new latitude of "2.0". I'm too lazy to
+    # modify the data factories to get this. Gives us a way to test regional
+    # writes.
+    sim = xr.concat([sim, sim.assign({"lat": np.array([2.0])})], dim="lat")
+    sim[target_variable][:,:,-1] += 1  # Introducing a slight difference for different lat.
+    ref = xr.concat([ref, ref.assign({"lat": np.array([2.0])})], dim="lat")
+    hist = xr.concat([hist, hist.assign({"lat": np.array([2.0])})], dim="lat")
+
+
+    # Datafactory appends cruft "index" coordinate. We're removing it because we
+    # dont need it and I'm too lazy to tinker with input data fixtures.
+    hist = hist.drop_vars("index")
+    ref = ref.drop_vars("index")
+    sim = sim.drop_vars("index")
+
+    # Load up a fake repo with our input data in the place of big data and cloud
+    # storage.
+    qdm_key = "memory://test_apply_qdm/qdm_global.zarr"
+    qdm_region1_key = "memory://test_apply_qdm/qdm_region1.zarr"
+    qdm_region2_key = "memory://test_apply_qdm/qdm_region2.zarr"
+    hist_key = "memory://test_apply_qdm/hist.zarr"
+    ref_key = "memory://test_apply_qdm/ref.zarr"
+    sim_key = "memory://test_apply_qdm/sim.zarr"
+    primed_url = "memory://test_prime_qdm_output_zarrstore/primed.zarr"
+    sim_adj_key = "memory://test_apply_qdm/sim_adjusted.zarr"
+
+    repository.write(sim_key, sim)
+    repository.write(hist_key, hist)
+    repository.write(ref_key, ref)
+
+    target_years = [1994, 1995]
+
+    # Lets prime a QDM output.
+    prime_qdm_output_zarrstore(
+        simulation=sim_key,
+        variable=target_variable,
+        years=target_years,
+        out=primed_url,
+        zarr_region_dims=["lat"],
+    )
+
+    # Now train, apply QDM for two cases. One with region write to primed
+    # zarr and one without.
+
+    # Writing to regions
+    region_1 = {"lat": slice(0, 1)}
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=qdm_region1_key,
+        variable=target_variable,
+        kind=variable_kind,
+        isel_slice=region_1,
+    )
+    apply_qdm(
+        simulation=sim_key,
+        qdm=qdm_region1_key,
+        years=target_years,
+        variable=target_variable,
+        out=primed_url,
+        isel_slice=region_1,
+        out_zarr_region=region_1
+    )
+    region_2 = {"lat": slice(1, 2)}
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=qdm_region2_key,
+        variable=target_variable,
+        kind=variable_kind,
+        isel_slice=region_2,
+    )
+    apply_qdm(
+        simulation=sim_key,
+        qdm=qdm_region2_key,
+        years=target_years,
+        variable=target_variable,
+        out=primed_url,
+        isel_slice=region_2,
+        out_zarr_region=region_2
+    )
+    primed_adjusted_ds = repository.read(primed_url)
+
+    # Doing it globally, all "regions" at once.
+    train_qdm(
+        historical=hist_key,
+        reference=ref_key,
+        out=qdm_key,
+        variable=target_variable,
+        kind=variable_kind,
+    )
+    apply_qdm(
+        simulation=sim_key,
+        qdm=qdm_key,
+        years=target_years,
+        variable=target_variable,
+        out=sim_adj_key,
+    )
+    adjusted_ds = repository.read(sim_adj_key)
+
+    # Desired variables present?
+    xr.testing.assert_allclose(primed_adjusted_ds, adjusted_ds)
 
 
 def test_apply_qdm(tmpdir):
