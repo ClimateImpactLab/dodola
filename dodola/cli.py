@@ -37,33 +37,120 @@ def dodola_cli(debug):
         logging.root.setLevel(logging.INFO)
 
 
-@dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
+@dodola_cli.command(help="Prime a Zarr Store for regionally-written QDM output")
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
 )
-@click.option("--qdm", "-q", required=True, help="URL to trained QDM model store")
-@click.option("--year", "-y", required=True, help="Year of simulation to adjust")
+@click.option(
+    "--years",
+    required=True,
+    help="firstyear,lastyear inclusive range of years in simulation to adjust and output",
+)
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
     "--out",
     "-o",
     required=True,
-    help="URL to write NetCDF4 with adjusted simulation year to",
+    help="URL to write Zarr Store with adjusted simulation year to",
 )
 @click.option(
-    "--include-quantiles",
-    is_flag=True,
-    help="Include simulation quantiles in output",
+    "--zarr_region_dims",
+    required=True,
+    help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
 )
-def apply_qdm(simulation, qdm, year, variable, out, include_quantiles):
-    """Adjust simulation year with QDM bias correction method, outputting to local NetCDF4 file"""
+def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims=None):
+    """Initialize a Zarr Store for writing QDM output regionally in independent processes"""
+    first_year, last_year = (int(x) for x in years.split(","))
+    region_dims = zarr_region_dims.split(",")
+    services.prime_qdm_output_zarrstore(
+        simulation=simulation,
+        years=(first_year, last_year),
+        variable=variable,
+        out=out,
+        zarr_region_dims=region_dims,
+    )
+
+
+@dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
+@click.option(
+    "--simulation", "-s", required=True, help="URL to simulation store to adjust"
+)
+@click.option("--qdm", "-q", required=True, help="URL to trained QDM model store")
+@click.option(
+    "--years",
+    required=True,
+    help="firstyear,lastyear inclusive range of years in simulation to adjust and output",
+)
+@click.option("--variable", "-v", required=True, help="Variable name in data stores")
+@click.option(
+    "--out",
+    "-o",
+    required=True,
+    help="URL to write Zarr Store with adjusted simulation year to",
+)
+@click.option(
+    "--selslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'isel' slice input simulation before applying",
+)
+@click.option(
+    "--iselslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'sel' slice input simulation before applying",
+)
+@click.option(
+    "--out-zarr-region",
+    multiple=True,
+    required=False,
+    help="variable=start,stop index to write output to region of existing Zarr Store",
+)
+def apply_qdm(
+    simulation,
+    qdm,
+    years,
+    variable,
+    out,
+    selslice=None,
+    iselslice=None,
+    out_zarr_region=None,
+):
+    """Adjust simulation years with QDM bias correction method, outputting Zarr Store"""
+    first_year, last_year = (int(x) for x in years.split(","))
+
+    sel_slices_d = None
+    if selslice:
+        sel_slices_d = {}
+        for s in selslice:
+            k, v = s.split("=")
+            sel_slices_d[k] = slice(*map(str, v.split(",")))
+
+    isel_slices_d = None
+    if iselslice:
+        isel_slices_d = {}
+        for s in iselslice:
+            k, v = s.split("=")
+            isel_slices_d[k] = slice(*map(int, v.split(",")))
+
+    out_zarr_region_d = None
+    if out_zarr_region:
+        out_zarr_region_d = {}
+        for s in out_zarr_region:
+            k, v = s.split("=")
+            isel_slices_d[k] = slice(*map(int, v.split(",")))
+
     services.apply_qdm(
         simulation=simulation,
         qdm=qdm,
-        year=year,
+        years=range(
+            first_year, last_year + 1
+        ),  # +1 because years is an inclusive range.
         variable=variable,
         out=out,
-        include_quantiles=include_quantiles,
+        sel_slice=sel_slices_d,
+        isel_slice=isel_slices_d,
+        out_zarr_region=out_zarr_region_d,
     )
 
 

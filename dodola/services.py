@@ -11,7 +11,7 @@ from dodola.core import (
     apply_downscaling,
     apply_wet_day_frequency_correction,
     train_quantiledeltamapping,
-    adjust_quantiledeltamapping_year,
+    adjust_quantiledeltamapping,
     train_analogdownscaling,
     adjust_analogdownscaling,
     validate_dataset,
@@ -32,6 +32,76 @@ def log_service(func):
         logger.info(f"dodola service {servicename} done")
 
     return service_logger
+
+
+@log_service
+def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims):
+    """Init a Zarr Store for writing QDM output regionally in independent processes.
+
+    Parameters
+    ----------
+    simulation : str
+        fsspec-compatible URL containing simulation data to be adjusted.
+    variable : str
+        Target variable in `simulation` to adjust. Adjusted output will share the
+        same name.
+    years : sequence of ints
+        Years of simulation to adjust, with rolling years and day grouping.
+    out : str
+        fsspec-compatible path or URL pointing to Zarr Store file where the
+        QDM-adjusted simulation data will be written.
+    zarr_region_dims: sequence of str
+        Sequence giving the name of dimensions that will be used to later write
+        to regions of the Zarr Store. Variables with dimensions that do not use
+        these regional variables will be appended to the primed Zarr Store as
+        part of this call.
+    """
+    # TODO: Options to change primed output zarr store chunking?
+    import xarray as xr  # TODO: Clean up this import or move the import-depending code to doodla.core
+
+    quantile_variable_name = "sim_q"
+    sim_df = storage.read(simulation)
+
+    # Yes, the time slice needs to use strs, not ints. It's already going to be inclusive so don't need to +1.
+    primer = sim_df.sel(time=slice(str(min(years)), str(max(years))))
+
+    ## This is where chunking happens... not sure about whether this is needed or how to effectively handle this.
+    # primed_out = dodola.repository.read(simulation_zarr).sel(time=timeslice).chunk({"time": 73, "lat": 10, "lon":180})
+
+    primer[quantile_variable_name] = xr.zeros_like(primer[variable])
+    # Analysts said sim_q needed no attrs.
+    primer[quantile_variable_name].attrs = {}
+
+    # Add metadata to outgoing Dataset here.
+
+    # Logic below might be better off in dodola.repository.
+    logger.debug(f"Priming Zarr Store with {primer=}")
+    primer.to_zarr(
+        out,
+        mode="w",
+        compute=False,
+        consolidated=True,
+        safe_chunks=False,
+    )
+    logger.info(f"Written primer to {out}")
+
+    # Append variables that do not depend on dims we're using to define the
+    # region we'll later write to in the Zarr Store.
+    variables_to_append = []
+    for variable_name, variable in primer.variables.items():
+        if any(
+            region_variable not in variable.dims for region_variable in zarr_region_dims
+        ):
+            variables_to_append.append(variable_name)
+
+    if variables_to_append:
+        logger.debug(f"Appending {variables_to_append=} to primed Zarr Store")
+        primer[variables_to_append].to_zarr(
+            out, mode="a", compute=True, consolidated=True, safe_chunks=False
+        )
+        logger.info(f"Appended non-regional variables to {out}")
+    else:
+        logger.info("No non-regional variables to append to Zarr Store")
 
 
 @log_service
@@ -88,10 +158,20 @@ def train_qdm(
 
 
 @log_service
-def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
-    """Apply trained QDM to adjust a year within a simulation, dump to NetCDF.
+def apply_qdm(
+    simulation,
+    qdm,
+    years,
+    variable,
+    out,
+    sel_slice=None,
+    isel_slice=None,
+    out_zarr_region=None,
+):
+    """Apply trained QDM to adjust a years in a simulation, write to Zarr Store.
 
-    Dumping to NetCDF is a feature likely to change in the near future.
+    Output includes bias-corrected variable `variable` as well as a variable giving quantiles
+    from the QDM, "sim_q".
 
     Parameters
     ----------
@@ -100,38 +180,51 @@ def apply_qdm(simulation, qdm, year, variable, out, include_quantiles=False):
     qdm : str
         fsspec-compatible URL pointing to Zarr Store containing canned
         ``xclim.sdba.adjustment.QuantileDeltaMapping`` Dataset.
-    year : int
-        Target year to adjust, with rolling years and day grouping.
+    years : sequence of ints
+        Years of simulation to adjust, with rolling years and day grouping.
     variable : str
         Target variable in `simulation` to adjust. Adjusted output will share the
         same name.
     out : str
-        fsspec-compatible path or URL pointing to NetCDF4 file where the
+        fsspec-compatible path or URL pointing to Zarr Store file where the
         QDM-adjusted simulation data will be written.
-    include_quantiles : bool
-        Flag to indicate whether bias-corrected quantiles should be
-        included in the QDM-adjusted output.
+    sel_slice: dict or None, optional
+        Label-index slice input slimulation dataset before adjusting.
+        A mapping of {variable_name: slice(...)} passed to
+        `xarray.Dataset.sel()`.
+    isel_slice: dict or None, optional
+        Integer-index slice input slimulation dataset before adjusting. A mapping
+        of {variable_name: slice(...)} passed to `xarray.Dataset.isel()`.
+    out_zarr_region: dict or None, optional
+        A mapping of {variable_name: slice(...)} giving the region to write
+        to if outputting to existing Zarr Store.
     """
     sim_ds = storage.read(simulation)
     qdm_ds = storage.read(qdm)
 
-    year = int(year)
+    if sel_slice:
+        logger.debug(f"Slicing by {sel_slice=}")
+        sim_ds = sim_ds.sel(sel_slice)
+
+    if isel_slice:
+        logger.debug(f"Slicing by {isel_slice=}")
+        sim_ds = sim_ds.isel(isel_slice)
+
     variable = str(variable)
 
-    adjusted_ds = adjust_quantiledeltamapping_year(
+    qdm_ds.load()
+    sim_ds.load()
+
+    adjusted_ds = adjust_quantiledeltamapping(
         simulation=sim_ds,
-        qdm=qdm_ds,
-        year=year,
         variable=variable,
-        include_quantiles=include_quantiles,
+        qdm=qdm_ds,
+        years=years,
+        astype=sim_ds[variable].dtype,
+        include_quantiles=True,
     )
 
-    # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
-    # currently faster and more reliable than Zarr Stores. This logic is handled
-    # in workflow and cloud artifact repository.
-    logger.debug(f"Writing to {out}")
-    adjusted_ds.to_netcdf(out, compute=True)
-    logger.info(f"Written {out}")
+    storage.write(out, adjusted_ds, region=out_zarr_region)
 
 
 @log_service
@@ -210,6 +303,8 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
     ----------
     simulation : str
         fsspec-compatible URL containing simulation data to be adjusted.
+        Dataset must have `variable` as well as a variable, "sim_q", giving
+        the quantiles from QDM bias-correction.
     aiqpd : str
         fsspec-compatible URL pointing to Zarr Store containing canned
         ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling`` Dataset.
@@ -222,6 +317,8 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
     """
     sim_ds = storage.read(simulation)
     aiqpd_ds = storage.read(aiqpd)
+
+    sim_ds = sim_ds.set_coords(["sim_q"])
 
     # needs to not be chunked
     sim_ds = sim_ds.load()

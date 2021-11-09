@@ -26,18 +26,44 @@ def read(url_or_path):
     return x
 
 
-def write(url_or_path, x):
-    """Write Dataset to Zarr store
+def write(url_or_path, x, region=None):
+    """Write Dataset to Zarr Store
 
-    This opens Zarr store with mode "w" and is called with
-    ``compute=True``, so any lazy computations will be completed.
+    Note, any lazy computations will be evaluated.
 
     Parameters
     ----------
     url_or_path : str
         Location to write Zarr store to.
     x : xr.Dataset
+    region : dict or None, optional
+        Optional mapping from dimension names to integer slices along dataset
+        dimensions to indicate the region of existing zarr array(s) in
+        which to write this dataset’s data. Variables not sliced in the region
+        are dropped.
     """
     logger.debug(f"Writing {url_or_path}")
-    x.to_zarr(url_or_path, mode="w", compute=True)
+
+    if region:
+        # TODO: This behavior needs a better, focused, unit test.
+        logger.debug(f"Writing to Zarr Store region, {region=}")
+
+        # We need to drop all variables not sliced by the selected zarr_region.
+        variables_to_drop = []
+        region_variables = list(region.keys())
+        for variable_name, variable in x.variables.items():
+            if any(
+                region_variable not in variable.dims
+                for region_variable in region_variables
+            ):
+                variables_to_drop.append(variable_name)
+
+        logger.debug(
+            f"Dropping variables before Zarr regional write: {variables_to_drop=}"
+        )
+        x = x.drop_vars(variables_to_drop)
+
+        x.to_zarr(url_or_path, region=region, mode="a", compute=True)
+    else:
+        x.to_zarr(url_or_path, mode="w", compute=True)
     logger.info(f"Written {url_or_path}")
