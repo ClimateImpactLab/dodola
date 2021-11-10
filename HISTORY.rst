@@ -5,7 +5,9 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* Add pre-training slicing options to train-qdm and train-aiqpd. (PR #123, PR #128, @brews)
+* Add QDM output Zarr priming (``prime-qdm-output-zarrstore``), region writing, attrs merging, and multi-year processing. This breaks backwards compatibility for ``apply-qdm`` and its services and core functions. See the pull request for additional details. (PR #129, @brews)
+* Make logging slightly more chatty by default. (PR #129, @brews)
+* Add pre-training slicing options to ``train-qdm`` and ``train-aiqpd``. (PR #123, PR #128, @brews)
 * Quick fix validation reading entire zarr store for check. (PR #124, @brews)
 
 

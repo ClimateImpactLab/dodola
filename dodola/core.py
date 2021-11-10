@@ -54,6 +54,74 @@ def train_quantiledeltamapping(
     return qdm
 
 
+def adjust_quantiledeltamapping(
+    simulation,
+    variable,
+    qdm,
+    years,
+    astype=None,
+    quantile_variable="sim_q",
+    **kwargs,
+):
+    """Apply QDM to adjust a range of years within a simulation.
+
+    Parameters
+    ----------
+    simulation : xr.Dataset
+        Daily simulation data to be adjusted. Must have sufficient observations
+        around `year` to adjust. Target variable must have a units attribute.
+    variable : str
+        Target variable in `simulation` to adjust. Adjusted output will
+        share the same name.
+    qdm : xr.Dataset or sdba.adjustment.QuantileDeltaMapping
+        Trained ``xclim.sdba.adjustment.QuantileDeltaMapping``, or Dataset
+        representation that will be instantiate
+        ``xclim.sdba.adjustment.QuantileDeltaMapping``.
+    years : sequence of ints
+        Years of simulation to adjust, with rolling years and day grouping.
+    astype : str, numpy.dtype, or None, optional
+        Typecode or data-type to which the regridded output is cast.
+    quantile_variable : str or None, optional
+        Name of quantile coordinate to reset to data variable. Not reset
+        if ``None``.
+    kwargs :
+        Keyword arguments passed to
+        ``dodola.core.adjust_quantiledeltamapping_year``.
+
+    Returns
+    -------
+    out : xr.Dataset
+        QDM-adjusted values from `simulation`. May be a lazy-evaluated future, not
+        yet computed. In addition to adjusted original variables, this includes
+        "sim_q" variable giving quantiles from QDM biascorrection.
+    """
+    # This loop is a candidate for dask.delayed. Beware, xclim had issues with saturated scheduler.
+    qdm_list = []
+    for yr in years:
+        adj = adjust_quantiledeltamapping_year(
+            simulation=simulation, qdm=qdm, year=yr, variable=variable, **kwargs
+        )
+        if astype:
+            adj = adj.astype(astype)
+        qdm_list.append(adj)
+
+    # Combine years and ensure output matches input data dimension order.
+    adjusted_ds = xr.concat(qdm_list, dim="time").transpose(*simulation[variable].dims)
+
+    if quantile_variable:
+        adjusted_ds = adjusted_ds.reset_coords(quantile_variable)
+        # Analysts said sim_q needed no attrs.
+        adjusted_ds[quantile_variable].attrs = {}
+
+    # Overwrite QDM output attrs with input simulation attrs.
+    adjusted_ds.attrs = simulation.attrs
+    for k, v in simulation.variables.items():
+        if k in adjusted_ds:
+            adjusted_ds[k].attrs = v.attrs
+
+    return adjusted_ds
+
+
 def adjust_quantiledeltamapping_year(
     simulation, qdm, year, variable, halfyearwindow_n=10, include_quantiles=False
 ):
