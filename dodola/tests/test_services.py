@@ -1049,11 +1049,8 @@ def test_train_aiqpd_sel_slice():
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
-def test_aiqpd_integration(tmpdir, monkeypatch, kind):
+def test_aiqpd_integration(kind):
     """Integration test of the QDM and AIQPD services"""
-    monkeypatch.setenv(
-        "HDF5_USE_FILE_LOCKING", "FALSE"
-    )  # Avoid thread lock conflicts with dask scheduler
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
     time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
