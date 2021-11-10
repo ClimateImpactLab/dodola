@@ -9,6 +9,7 @@ from xesmf.util import grid_global
 from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
+    prime_aiqpd_output_zarrstore,
     prime_qdm_output_zarrstore,
     build_weights,
     rechunk,
@@ -134,6 +135,34 @@ def domain_file(request):
     return domain
 
 
+def test_prime_aiqpd_output_zarrstore():
+    """
+    Test that prime_aiqpd_output_zarrstore creates a Zarr with good variables, shapes, attrs
+    """
+    # Make fake simulation data for test.
+    target_variable = "fakevariable"
+    sim = _datafactory(np.ones(365, dtype=np.float32), variable_name=target_variable)
+    sim.attrs["foo"] = "bar"
+    goal_shape = sim[target_variable].shape
+    sim_key = "memory://test_prime_aiqpd_output_zarrstore/sim.zarr"
+    repository.write(sim_key, sim)
+
+    primed_url = "memory://test_prime_aiqpd_output_zarrstore/primed.zarr"
+
+    prime_aiqpd_output_zarrstore(
+        simulation=sim_key,
+        variable=target_variable,
+        out=primed_url,
+        zarr_region_dims=["lat"],
+    )
+
+    primed_ds = repository.read(primed_url)
+
+    assert target_variable in primed_ds.variables
+    assert primed_ds[target_variable].shape == goal_shape
+    assert primed_ds.attrs["foo"] == "bar"
+
+
 def test_prime_qdm_output_zarrstore():
     """
     Test that prime_qdm_output_zarrstore creates a Zarr with variables, shapes, attrs.
@@ -158,11 +187,11 @@ def test_prime_qdm_output_zarrstore():
 
     # Load up a fake repo with our input data in the place of big data and cloud
     # storage.
-    qdm_key = "memory://test_apply_qdm/qdm.zarr"
-    hist_key = "memory://test_apply_qdm/hist.zarr"
-    ref_key = "memory://test_apply_qdm/ref.zarr"
-    sim_key = "memory://test_apply_qdm/sim.zarr"
-    sim_adj_key = "memory://test_apply_qdm/sim_adjusted.zarr"
+    qdm_key = "memory://test_prime_qdm_output_zarrstore/qdm.zarr"
+    hist_key = "memory://test_prime_qdm_output_zarrstore/hist.zarr"
+    ref_key = "memory://test_prime_qdm_output_zarrstore/ref.zarr"
+    sim_key = "memory://test_prime_qdm_output_zarrstore/sim.zarr"
+    sim_adj_key = "memory://test_prime_qdm_output_zarrstore/sim_adjusted.zarr"
     primed_url = "memory://test_prime_qdm_output_zarrstore/primed.zarr"
 
     repository.write(sim_key, sim)

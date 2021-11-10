@@ -19,6 +19,7 @@ import dodola.services
         "apply-aiqpd",
         "validate-dataset",
         "prime-qdm-output-zarrstore",
+        "prime-aiqpd-output-zarrstore"
     ],
     ids=(
         "--help",
@@ -33,6 +34,7 @@ import dodola.services
         "apply-aiqpd --help",
         "validate-dataset --help",
         "prime-qdm-output-zarrstore --help",
+        "prime-aipqd-output-zarrstore --help"
     ),
 )
 def test_cli_helpflags(subcmd):
