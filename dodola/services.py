@@ -110,6 +110,62 @@ def prime_qdm_output_zarrstore(
 
 
 @log_service
+def prime_aiqpd_output_zarrstore(
+    simulation, variable, out, zarr_region_dims, new_attrs=None
+):
+    """Init a Zarr Store for writing AIQPD output regionally in independent processes.
+
+    Parameters
+    ----------
+    simulation : str
+        fsspec-compatible URL containing simulation data to be adjusted.
+    variable : str
+        Target variable in `simulation` to adjust. Adjusted output will share the
+        same name.
+    out : str
+        fsspec-compatible path or URL pointing to Zarr Store file where the
+        AIQPD-adjusted simulation data will be written.
+    zarr_region_dims: sequence of str
+        Sequence giving the name of dimensions that will be used to later write
+        to regions of the Zarr Store. Variables with dimensions that do not use
+        these regional variables will be appended to the primed Zarr Store as
+        part of this call.
+    new_attrs : dict or None, optional
+        dict to merge with output Dataset's root ``attrs`` before output.
+    """
+    sim_df = storage.read(simulation)
+    primer = sim_df[[variable]]
+    # Ensure we get root attrs. Not sure explicit copy is still required.
+    primer.attrs = sim_df.attrs.copy()
+
+    if new_attrs:
+        primer.attrs |= new_attrs
+
+    # Logic below might be better off in dodola.repository.
+    logger.debug(f"Priming Zarr Store with {primer=}")
+    primer.to_zarr(out, mode="w", compute=False, consolidated=True)
+    logger.info(f"Written primer to {out}")
+
+    # Append variables that do not depend on dims we're using to define the
+    # region we'll later write to in the Zarr Store.
+    variables_to_append = []
+    for variable_name, variable in primer.variables.items():
+        if any(
+            region_variable not in variable.dims for region_variable in zarr_region_dims
+        ):
+            variables_to_append.append(variable_name)
+
+    if variables_to_append:
+        logger.info(f"Appending {variables_to_append} to primed Zarr Store")
+        primer[variables_to_append].to_zarr(
+            out, mode="a", compute=True, consolidated=True, safe_chunks=False
+        )
+        logger.info(f"Appended non-regional variables to {out}")
+    else:
+        logger.info("No non-regional variables to append to Zarr Store")
+
+
+@log_service
 def train_qdm(
     historical, reference, out, variable, kind, sel_slice=None, isel_slice=None
 ):

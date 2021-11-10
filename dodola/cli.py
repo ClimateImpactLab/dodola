@@ -84,6 +84,45 @@ def prime_qdm_output_zarrstore(
     )
 
 
+@dodola_cli.command(help="Prime a Zarr Store for regionally-written AIQPD output")
+@click.option(
+    "--simulation", "-s", required=True, help="URL to simulation store to adjust"
+)
+@click.option("--variable", "-v", required=True, help="Variable name in data stores")
+@click.option(
+    "--out",
+    "-o",
+    required=True,
+    help="URL to write Zarr Store with adjusted simulation year to",
+)
+@click.option(
+    "--zarr-region-dims",
+    required=True,
+    help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
+)
+@click.option(
+    "--new-attrs",
+    multiple=True,
+    help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
+)
+def prime_aiqpd_output_zarrstore(
+    simulation, variable, out, zarr_region_dims=None, new_attrs=None
+):
+    """Initialize a Zarr Store for writing AIQPD output regionally in independent processes"""
+    unpacked_attrs = None
+    if new_attrs:
+        unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
+
+    region_dims = zarr_region_dims.split(",")
+    services.prime_aiqpd_output_zarrstore(
+        simulation=simulation,
+        variable=variable,
+        out=out,
+        zarr_region_dims=region_dims,
+        new_attrs=unpacked_attrs,
+    )
+
+
 @dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
