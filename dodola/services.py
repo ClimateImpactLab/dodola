@@ -35,7 +35,9 @@ def log_service(func):
 
 
 @log_service
-def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims, new_attrs=None):
+def prime_qdm_output_zarrstore(
+    simulation, variable, years, out, zarr_region_dims, new_attrs=None
+):
     """Init a Zarr Store for writing QDM output regionally in independent processes.
 
     Parameters
@@ -170,7 +172,7 @@ def apply_qdm(
     sel_slice=None,
     isel_slice=None,
     out_zarr_region=None,
-    new_attrs=None
+    new_attrs=None,
 ):
     """Apply trained QDM to adjust a years in a simulation, write to Zarr Store.
 

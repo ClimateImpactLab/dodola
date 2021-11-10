@@ -63,11 +63,13 @@ def dodola_cli(debug):
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
 )
-def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims=None, new_attrs=None):
+def prime_qdm_output_zarrstore(
+    simulation, variable, years, out, zarr_region_dims=None, new_attrs=None
+):
     """Initialize a Zarr Store for writing QDM output regionally in independent processes"""
     first_year, last_year = (int(x) for x in years.split(","))
 
-    unpacked_attrs=None
+    unpacked_attrs = None
     if new_attrs:
         unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
 
@@ -78,7 +80,7 @@ def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dim
         variable=variable,
         out=out,
         zarr_region_dims=region_dims,
-        new_attrs=unpacked_attrs
+        new_attrs=unpacked_attrs,
     )
 
 
@@ -131,12 +133,12 @@ def apply_qdm(
     selslice=None,
     iselslice=None,
     out_zarr_region=None,
-    new_attrs=None
+    new_attrs=None,
 ):
     """Adjust simulation years with QDM bias correction method, outputting Zarr Store"""
     first_year, last_year = (int(x) for x in years.split(","))
 
-    unpacked_attrs=None
+    unpacked_attrs = None
     if new_attrs:
         unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
 
@@ -172,7 +174,7 @@ def apply_qdm(
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
         out_zarr_region=out_zarr_region_d,
-        new_attrs=unpacked_attrs
+        new_attrs=unpacked_attrs,
     )
 
 
