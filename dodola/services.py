@@ -35,7 +35,7 @@ def log_service(func):
 
 
 @log_service
-def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims):
+def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims, new_attrs=None):
     """Init a Zarr Store for writing QDM output regionally in independent processes.
 
     Parameters
@@ -55,6 +55,8 @@ def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dim
         to regions of the Zarr Store. Variables with dimensions that do not use
         these regional variables will be appended to the primed Zarr Store as
         part of this call.
+    new_attrs : dict or None, optional
+        dict to merge with output Dataset's root ``attrs`` before output.
     """
     # TODO: Options to change primed output zarr store chunking?
     import xarray as xr  # TODO: Clean up this import or move the import-depending code to doodla.core
@@ -72,7 +74,8 @@ def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dim
     # Analysts said sim_q needed no attrs.
     primer[quantile_variable_name].attrs = {}
 
-    # Add metadata to outgoing Dataset here.
+    if new_attrs:
+        primer.attrs |= new_attrs
 
     # Logic below might be better off in dodola.repository.
     logger.debug(f"Priming Zarr Store with {primer=}")
@@ -167,6 +170,7 @@ def apply_qdm(
     sel_slice=None,
     isel_slice=None,
     out_zarr_region=None,
+    new_attrs=None
 ):
     """Apply trained QDM to adjust a years in a simulation, write to Zarr Store.
 
@@ -198,6 +202,8 @@ def apply_qdm(
     out_zarr_region: dict or None, optional
         A mapping of {variable_name: slice(...)} giving the region to write
         to if outputting to existing Zarr Store.
+    new_attrs : dict or None, optional
+        dict to merge with output Dataset's root ``attrs`` before output.
     """
     sim_ds = storage.read(simulation)
     qdm_ds = storage.read(qdm)
@@ -223,6 +229,9 @@ def apply_qdm(
         astype=sim_ds[variable].dtype,
         include_quantiles=True,
     )
+
+    if new_attrs:
+        adjusted_ds.attrs |= new_attrs
 
     storage.write(out, adjusted_ds, region=out_zarr_region)
 

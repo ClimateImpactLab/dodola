@@ -58,9 +58,19 @@ def dodola_cli(debug):
     required=True,
     help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
 )
-def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims=None):
+@click.option(
+    "--new-attrs",
+    multiple=True,
+    help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
+)
+def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dims=None, new_attrs=None):
     """Initialize a Zarr Store for writing QDM output regionally in independent processes"""
     first_year, last_year = (int(x) for x in years.split(","))
+
+    unpacked_attrs=None
+    if new_attrs:
+        unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
+
     region_dims = zarr_region_dims.split(",")
     services.prime_qdm_output_zarrstore(
         simulation=simulation,
@@ -68,6 +78,7 @@ def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dim
         variable=variable,
         out=out,
         zarr_region_dims=region_dims,
+        new_attrs=unpacked_attrs
     )
 
 
@@ -106,6 +117,11 @@ def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dim
     required=False,
     help="variable=start,stop index to write output to region of existing Zarr Store",
 )
+@click.option(
+    "--new-attrs",
+    multiple=True,
+    help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
+)
 def apply_qdm(
     simulation,
     qdm,
@@ -115,9 +131,14 @@ def apply_qdm(
     selslice=None,
     iselslice=None,
     out_zarr_region=None,
+    new_attrs=None
 ):
     """Adjust simulation years with QDM bias correction method, outputting Zarr Store"""
     first_year, last_year = (int(x) for x in years.split(","))
+
+    unpacked_attrs=None
+    if new_attrs:
+        unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
 
     sel_slices_d = None
     if selslice:
@@ -151,6 +172,7 @@ def apply_qdm(
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
         out_zarr_region=out_zarr_region_d,
+        new_attrs=unpacked_attrs
     )
 
 
