@@ -27,7 +27,7 @@ def log_service(func):
     @wraps(func)
     def service_logger(*args, **kwargs):
         servicename = func.__name__
-        logger.info(f"Starting {servicename} dodola service")
+        logger.info(f"Starting dodola service {servicename} with {args=}, {kwargs=})")
         func(*args, **kwargs)
         logger.info(f"dodola service {servicename} done")
 
@@ -95,7 +95,7 @@ def prime_qdm_output_zarrstore(simulation, variable, years, out, zarr_region_dim
             variables_to_append.append(variable_name)
 
     if variables_to_append:
-        logger.debug(f"Appending {variables_to_append=} to primed Zarr Store")
+        logger.info(f"Appending {variables_to_append} to primed Zarr Store")
         primer[variables_to_append].to_zarr(
             out, mode="a", compute=True, consolidated=True, safe_chunks=False
         )
@@ -141,12 +141,12 @@ def train_qdm(
         raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     if sel_slice:
-        logger.debug(f"Slicing by {sel_slice=}")
+        logger.info(f"Slicing by {sel_slice=}")
         hist = hist.sel(sel_slice)
         ref = ref.sel(sel_slice)
 
     if isel_slice:
-        logger.debug(f"Slicing by {isel_slice=}")
+        logger.info(f"Slicing by {isel_slice=}")
         hist = hist.isel(isel_slice)
         ref = ref.isel(isel_slice)
 
@@ -203,11 +203,11 @@ def apply_qdm(
     qdm_ds = storage.read(qdm)
 
     if sel_slice:
-        logger.debug(f"Slicing by {sel_slice=}")
+        logger.info(f"Slicing by {sel_slice=}")
         sim_ds = sim_ds.sel(sel_slice)
 
     if isel_slice:
-        logger.debug(f"Slicing by {isel_slice=}")
+        logger.info(f"Slicing by {isel_slice=}")
         sim_ds = sim_ds.isel(isel_slice)
 
     variable = str(variable)
@@ -270,12 +270,12 @@ def train_aiqpd(
         raise ValueError(f"kind must be {set(kind_map.keys())}, got {kind}")
 
     if sel_slice:
-        logger.debug(f"Slicing by {sel_slice=}")
+        logger.info(f"Slicing by {sel_slice=}")
         ref_coarse = ref_coarse.sel(sel_slice)
         ref_fine = ref_fine.sel(sel_slice)
 
     if isel_slice:
-        logger.debug(f"Slicing by {isel_slice=}")
+        logger.info(f"Slicing by {isel_slice=}")
         ref_coarse = ref_coarse.isel(isel_slice)
         ref_fine = ref_fine.isel(isel_slice)
 

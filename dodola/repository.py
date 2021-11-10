@@ -43,10 +43,11 @@ def write(url_or_path, x, region=None):
         are dropped.
     """
     logger.debug(f"Writing {url_or_path}")
+    logger.debug(f"Output Dataset {x=}")
 
     if region:
         # TODO: This behavior needs a better, focused, unit test.
-        logger.debug(f"Writing to Zarr Store region, {region=}")
+        logger.info(f"Writing to Zarr Store region, {region=}")
 
         # We need to drop all variables not sliced by the selected zarr_region.
         variables_to_drop = []
@@ -58,8 +59,8 @@ def write(url_or_path, x, region=None):
             ):
                 variables_to_drop.append(variable_name)
 
-        logger.debug(
-            f"Dropping variables before Zarr regional write: {variables_to_drop=}"
+        logger.info(
+            f"Dropping variables before Zarr region write: {variables_to_drop=}"
         )
         x = x.drop_vars(variables_to_drop)
 
