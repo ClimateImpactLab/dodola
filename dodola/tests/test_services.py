@@ -1160,16 +1160,16 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     aiqpd_afs_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/path.zarr"
 
     # Writes NC to local disk, so diff format here:
-    sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
+    sim_downscaled_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/downscaled.zarr"
 
     # now train AIQPD model
     train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, variable, kind)
 
     # downscale
-    apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_key)
+    apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_url)
 
     # check output
-    downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
+    downscaled_ds = repository.read(sim_downscaled_url)
 
     # check that downscaled average equals bias corrected value
     bc_timestep = biascorrected_fine[variable].isel(time=100).values[0][0]
