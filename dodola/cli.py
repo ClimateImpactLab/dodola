@@ -138,7 +138,7 @@ def apply_qdm(
         out_zarr_region_d = {}
         for s in out_zarr_region:
             k, v = s.split("=")
-            isel_slices_d[k] = slice(*map(int, v.split(",")))
+            out_zarr_region_d[k] = slice(*map(int, v.split(",")))
 
     services.apply_qdm(
         simulation=simulation,
