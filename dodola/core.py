@@ -261,6 +261,13 @@ def adjust_analogdownscaling(simulation, aiqpd, variable):
 
     out = aiqpd.adjust(simulation[variable])
 
+    out = out.transpose(*simulation[variable].dims)
+    # Overwrite AIQPD output attrs with input simulation attrs.
+    out.attrs = simulation.attrs
+    for k, v in simulation.variables.items():
+        if k in out:
+            out[k].attrs = v.attrs
+
     return out.to_dataset(name=variable)
 
 
