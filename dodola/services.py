@@ -110,6 +110,62 @@ def prime_qdm_output_zarrstore(
 
 
 @log_service
+def prime_aiqpd_output_zarrstore(
+    simulation, variable, out, zarr_region_dims, new_attrs=None
+):
+    """Init a Zarr Store for writing AIQPD output regionally in independent processes.
+
+    Parameters
+    ----------
+    simulation : str
+        fsspec-compatible URL containing simulation data to be adjusted.
+    variable : str
+        Target variable in `simulation` to adjust. Adjusted output will share the
+        same name.
+    out : str
+        fsspec-compatible path or URL pointing to Zarr Store file where the
+        AIQPD-adjusted simulation data will be written.
+    zarr_region_dims: sequence of str
+        Sequence giving the name of dimensions that will be used to later write
+        to regions of the Zarr Store. Variables with dimensions that do not use
+        these regional variables will be appended to the primed Zarr Store as
+        part of this call.
+    new_attrs : dict or None, optional
+        dict to merge with output Dataset's root ``attrs`` before output.
+    """
+    sim_df = storage.read(simulation)
+    primer = sim_df[[variable]]
+    # Ensure we get root attrs. Not sure explicit copy is still required.
+    primer.attrs = sim_df.attrs.copy()
+
+    if new_attrs:
+        primer.attrs |= new_attrs
+
+    # Logic below might be better off in dodola.repository.
+    logger.debug(f"Priming Zarr Store with {primer=}")
+    primer.to_zarr(out, mode="w", compute=False, consolidated=True)
+    logger.info(f"Written primer to {out}")
+
+    # Append variables that do not depend on dims we're using to define the
+    # region we'll later write to in the Zarr Store.
+    variables_to_append = []
+    for variable_name, variable in primer.variables.items():
+        if any(
+            region_variable not in variable.dims for region_variable in zarr_region_dims
+        ):
+            variables_to_append.append(variable_name)
+
+    if variables_to_append:
+        logger.info(f"Appending {variables_to_append} to primed Zarr Store")
+        primer[variables_to_append].to_zarr(
+            out, mode="a", compute=True, consolidated=True, safe_chunks=False
+        )
+        logger.info(f"Appended non-regional variables to {out}")
+    else:
+        logger.info("No non-regional variables to append to Zarr Store")
+
+
+@log_service
 def train_qdm(
     historical, reference, out, variable, kind, sel_slice=None, isel_slice=None
 ):
@@ -305,7 +361,16 @@ def train_aiqpd(
 
 
 @log_service
-def apply_aiqpd(simulation, aiqpd, variable, out):
+def apply_aiqpd(
+    simulation,
+    aiqpd,
+    variable,
+    out,
+    sel_slice=None,
+    isel_slice=None,
+    out_zarr_region=None,
+    new_attrs=None,
+):
     """Apply AIQPD adjustment factors to downscale a simulation, dump to NetCDF.
 
     Dumping to NetCDF is a feature likely to change in the near future.
@@ -323,11 +388,31 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
         Target variable in `simulation` to downscale. Downscaled output will share the
         same name.
     out : str
-        fsspec-compatible path or URL pointing to NetCDF4 file where the
+        fsspec-compatible path or URL pointing to Zarr Store where the
         AIQPD-downscaled simulation data will be written.
+    sel_slice: dict or None, optional
+        Label-index slice input slimulation dataset before adjusting.
+        A mapping of {variable_name: slice(...)} passed to
+        `xarray.Dataset.sel()`.
+    isel_slice: dict or None, optional
+        Integer-index slice input slimulation dataset before adjusting. A mapping
+        of {variable_name: slice(...)} passed to `xarray.Dataset.isel()`.
+    out_zarr_region: dict or None, optional
+        A mapping of {variable_name: slice(...)} giving the region to write
+        to if outputting to existing Zarr Store.
+    new_attrs : dict or None, optional
+        dict to merge with output Dataset's root ``attrs`` before output.
     """
     sim_ds = storage.read(simulation)
     aiqpd_ds = storage.read(aiqpd)
+
+    if sel_slice:
+        logger.info(f"Slicing by {sel_slice=}")
+        sim_ds = sim_ds.sel(sel_slice)
+
+    if isel_slice:
+        logger.info(f"Slicing by {isel_slice=}")
+        sim_ds = sim_ds.isel(isel_slice)
 
     sim_ds = sim_ds.set_coords(["sim_q"])
 
@@ -337,16 +422,14 @@ def apply_aiqpd(simulation, aiqpd, variable, out):
 
     variable = str(variable)
 
-    downscaled_ds = adjust_analogdownscaling(
+    adjusted_ds = adjust_analogdownscaling(
         simulation=sim_ds, aiqpd=aiqpd_ds, variable=variable
     )
 
-    # Write to NetCDF, usually on local disk, pooling and "fanning-in" NetCDFs is
-    # currently faster and more reliable than Zarr Stores. This logic is handled
-    # in workflow and cloud artifact repository.
-    logger.debug(f"Writing to {out}")
-    downscaled_ds.to_netcdf(out, compute=True, engine="netcdf4")
-    logger.info(f"Written {out}")
+    if new_attrs:
+        adjusted_ds.attrs |= new_attrs
+
+    storage.write(out, adjusted_ds, region=out_zarr_region)
 
 
 @log_service

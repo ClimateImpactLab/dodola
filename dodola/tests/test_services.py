@@ -9,6 +9,7 @@ from xesmf.util import grid_global
 from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
+    prime_aiqpd_output_zarrstore,
     prime_qdm_output_zarrstore,
     build_weights,
     rechunk,
@@ -134,6 +135,34 @@ def domain_file(request):
     return domain
 
 
+def test_prime_aiqpd_output_zarrstore():
+    """
+    Test that prime_aiqpd_output_zarrstore creates a Zarr with good variables, shapes, attrs
+    """
+    # Make fake simulation data for test.
+    target_variable = "fakevariable"
+    sim = _datafactory(np.ones(365, dtype=np.float32), variable_name=target_variable)
+    sim.attrs["foo"] = "bar"
+    goal_shape = sim[target_variable].shape
+    sim_key = "memory://test_prime_aiqpd_output_zarrstore/sim.zarr"
+    repository.write(sim_key, sim)
+
+    primed_url = "memory://test_prime_aiqpd_output_zarrstore/primed.zarr"
+
+    prime_aiqpd_output_zarrstore(
+        simulation=sim_key,
+        variable=target_variable,
+        out=primed_url,
+        zarr_region_dims=["lat"],
+    )
+
+    primed_ds = repository.read(primed_url)
+
+    assert target_variable in primed_ds.variables
+    assert primed_ds[target_variable].shape == goal_shape
+    assert primed_ds.attrs["foo"] == "bar"
+
+
 def test_prime_qdm_output_zarrstore():
     """
     Test that prime_qdm_output_zarrstore creates a Zarr with variables, shapes, attrs.
@@ -158,11 +187,11 @@ def test_prime_qdm_output_zarrstore():
 
     # Load up a fake repo with our input data in the place of big data and cloud
     # storage.
-    qdm_key = "memory://test_apply_qdm/qdm.zarr"
-    hist_key = "memory://test_apply_qdm/hist.zarr"
-    ref_key = "memory://test_apply_qdm/ref.zarr"
-    sim_key = "memory://test_apply_qdm/sim.zarr"
-    sim_adj_key = "memory://test_apply_qdm/sim_adjusted.zarr"
+    qdm_key = "memory://test_prime_qdm_output_zarrstore/qdm.zarr"
+    hist_key = "memory://test_prime_qdm_output_zarrstore/hist.zarr"
+    ref_key = "memory://test_prime_qdm_output_zarrstore/ref.zarr"
+    sim_key = "memory://test_prime_qdm_output_zarrstore/sim.zarr"
+    sim_adj_key = "memory://test_prime_qdm_output_zarrstore/sim_adjusted.zarr"
     primed_url = "memory://test_prime_qdm_output_zarrstore/primed.zarr"
 
     repository.write(sim_key, sim)
@@ -1020,11 +1049,8 @@ def test_train_aiqpd_sel_slice():
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
-def test_aiqpd_integration(tmpdir, monkeypatch, kind):
+def test_aiqpd_integration(kind):
     """Integration test of the QDM and AIQPD services"""
-    monkeypatch.setenv(
-        "HDF5_USE_FILE_LOCKING", "FALSE"
-    )  # Avoid thread lock conflicts with dask scheduler
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
     time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
@@ -1131,16 +1157,16 @@ def test_aiqpd_integration(tmpdir, monkeypatch, kind):
     aiqpd_afs_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/path.zarr"
 
     # Writes NC to local disk, so diff format here:
-    sim_downscaled_key = tmpdir.join("sim_downscaled.nc")
+    sim_downscaled_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/downscaled.zarr"
 
     # now train AIQPD model
     train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, variable, kind)
 
     # downscale
-    apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_key)
+    apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_url)
 
     # check output
-    downscaled_ds = xr.open_dataset(str(sim_downscaled_key))
+    downscaled_ds = repository.read(sim_downscaled_url)
 
     # check that downscaled average equals bias corrected value
     bc_timestep = biascorrected_fine[variable].isel(time=100).values[0][0]

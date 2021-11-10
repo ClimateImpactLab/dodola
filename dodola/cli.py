@@ -84,6 +84,45 @@ def prime_qdm_output_zarrstore(
     )
 
 
+@dodola_cli.command(help="Prime a Zarr Store for regionally-written AIQPD output")
+@click.option(
+    "--simulation", "-s", required=True, help="URL to simulation store to adjust"
+)
+@click.option("--variable", "-v", required=True, help="Variable name in data stores")
+@click.option(
+    "--out",
+    "-o",
+    required=True,
+    help="URL to write Zarr Store with adjusted simulation year to",
+)
+@click.option(
+    "--zarr-region-dims",
+    required=True,
+    help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
+)
+@click.option(
+    "--new-attrs",
+    multiple=True,
+    help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
+)
+def prime_aiqpd_output_zarrstore(
+    simulation, variable, out, zarr_region_dims=None, new_attrs=None
+):
+    """Initialize a Zarr Store for writing AIQPD output regionally in independent processes"""
+    unpacked_attrs = None
+    if new_attrs:
+        unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
+
+    region_dims = zarr_region_dims.split(",")
+    services.prime_aiqpd_output_zarrstore(
+        simulation=simulation,
+        variable=variable,
+        out=out,
+        zarr_region_dims=region_dims,
+        new_attrs=unpacked_attrs,
+    )
+
+
 @dodola_cli.command(help="Adjust simulation year with quantile delta mapping (QDM)")
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
@@ -251,11 +290,77 @@ def train_qdm(
     "--out",
     "-o",
     required=True,
-    help="URL to write NetCDF4 with adjusted (downscaled) simulation year to",
+    help="URL to write Zarr with downscaled output to",
 )
-def apply_aiqpd(simulation, aiqpd, variable, out):
-    """Adjust simulation with AIQPD downscaling method, outputting to local NetCDF4 file"""
-    services.apply_aiqpd(simulation=simulation, aiqpd=aiqpd, variable=variable, out=out)
+@click.option(
+    "--selslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'isel' slice input simulation before applying",
+)
+@click.option(
+    "--iselslice",
+    multiple=True,
+    required=False,
+    help="variable=start,stop to 'sel' slice input simulation before applying",
+)
+@click.option(
+    "--out-zarr-region",
+    multiple=True,
+    required=False,
+    help="variable=start,stop index to write output to region of existing Zarr Store",
+)
+@click.option(
+    "--new-attrs",
+    multiple=True,
+    help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
+)
+def apply_aiqpd(
+    simulation,
+    aiqpd,
+    variable,
+    out,
+    selslice=None,
+    iselslice=None,
+    out_zarr_region=None,
+    new_attrs=None,
+):
+    """Adjust simulation with AIQPD downscaling method, outputting Zarr Store"""
+    unpacked_attrs = None
+    if new_attrs:
+        unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
+
+    sel_slices_d = None
+    if selslice:
+        sel_slices_d = {}
+        for s in selslice:
+            k, v = s.split("=")
+            sel_slices_d[k] = slice(*map(str, v.split(",")))
+
+    isel_slices_d = None
+    if iselslice:
+        isel_slices_d = {}
+        for s in iselslice:
+            k, v = s.split("=")
+            isel_slices_d[k] = slice(*map(int, v.split(",")))
+
+    out_zarr_region_d = None
+    if out_zarr_region:
+        out_zarr_region_d = {}
+        for s in out_zarr_region:
+            k, v = s.split("=")
+            out_zarr_region_d[k] = slice(*map(int, v.split(",")))
+
+    services.apply_aiqpd(
+        simulation=simulation,
+        aiqpd=aiqpd,
+        variable=variable,
+        out=out,
+        sel_slice=sel_slices_d,
+        isel_slice=isel_slices_d,
+        out_zarr_region=out_zarr_region_d,
+        new_attrs=unpacked_attrs,
+    )
 
 
 @dodola_cli.command(
