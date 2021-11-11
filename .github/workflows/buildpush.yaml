@@ -19,12 +19,6 @@ jobs:
     - name: Build container
       run: |
         docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev
-    - name: Test container package
-      run: |
-        docker run ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev pytest -v --pyargs dodola
-    - name: Test container CLI
-      run: |
-        docker run ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev dodola --help
     - name: Push to registry
       run: |
         docker push ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev
@@ -46,16 +40,9 @@ jobs:
           export_default_credentials: true
       - run: |
           gcloud auth configure-docker -q us-central1-docker.pkg.dev
-
       - name: Build container
         run: |
           docker build . -t $IMAGE_NAME
-      - name: Test container package
-        run: |
-          docker run $IMAGE_NAME pytest -v --pyargs dodola
-      - name: Test container CLI
-        run: |
-          docker run $IMAGE_NAME dodola --help
       - name: Push to registry
         run: |
           docker push $IMAGE_NAME
