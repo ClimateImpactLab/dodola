@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:4.9.2
+FROM continuumio/miniconda3:4.10.3
 
 ENV PATH /opt/conda/bin:$PATH
 ENV PYTHONUNBUFFERED TRUE
