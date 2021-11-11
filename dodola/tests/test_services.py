@@ -9,7 +9,7 @@ from xesmf.util import grid_global
 from xclim.sdba.adjustment import QuantileDeltaMapping
 from dodola.services import (
     bias_correct,
-    prime_aiqpd_output_zarrstore,
+    prime_qplad_output_zarrstore,
     prime_qdm_output_zarrstore,
     build_weights,
     rechunk,
@@ -20,8 +20,8 @@ from dodola.services import (
     correct_wet_day_frequency,
     train_qdm,
     apply_qdm,
-    train_aiqpd,
-    apply_aiqpd,
+    train_qplad,
+    apply_qplad,
     validate,
 )
 import dodola.repository as repository
@@ -135,21 +135,21 @@ def domain_file(request):
     return domain
 
 
-def test_prime_aiqpd_output_zarrstore():
+def test_prime_qplad_output_zarrstore():
     """
-    Test that prime_aiqpd_output_zarrstore creates a Zarr with good variables, shapes, attrs
+    Test that prime_qplad_output_zarrstore creates a Zarr with good variables, shapes, attrs
     """
     # Make fake simulation data for test.
     target_variable = "fakevariable"
     sim = _datafactory(np.ones(365, dtype=np.float32), variable_name=target_variable)
     sim.attrs["foo"] = "bar"
     goal_shape = sim[target_variable].shape
-    sim_key = "memory://test_prime_aiqpd_output_zarrstore/sim.zarr"
+    sim_key = "memory://test_prime_qplad_output_zarrstore/sim.zarr"
     repository.write(sim_key, sim)
 
-    primed_url = "memory://test_prime_aiqpd_output_zarrstore/primed.zarr"
+    primed_url = "memory://test_prime_qplad_output_zarrstore/primed.zarr"
 
-    prime_aiqpd_output_zarrstore(
+    prime_qplad_output_zarrstore(
         simulation=sim_key,
         variable=target_variable,
         out=primed_url,
@@ -901,7 +901,7 @@ def test_correct_wet_day_frequency(process):
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
-def test_aiqpd_train(tmpdir, monkeypatch, kind):
+def test_qplad_train(tmpdir, monkeypatch, kind):
     """Tests that the shape of adjustment factors matches the expected shape"""
     monkeypatch.setenv(
         "HDF5_USE_FILE_LOCKING", "FALSE"
@@ -934,9 +934,9 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
     ref_coarse["scen"].attrs["units"] = "K"
 
     # write test data
-    ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
-    ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
-    train_out_url = "memory://test_aiqpd_downscaling/a/train_output/path.zarr"
+    ref_coarse_url = "memory://test_qplad_downscaling/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_qplad_downscaling/a/ref_fine/path.zarr"
+    train_out_url = "memory://test_qplad_downscaling/a/train_output/path.zarr"
 
     repository.write(
         ref_coarse_url,
@@ -944,19 +944,19 @@ def test_aiqpd_train(tmpdir, monkeypatch, kind):
     )
     repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
 
-    # now train AIQPD model
-    train_aiqpd(ref_coarse_url, ref_fine_url, train_out_url, "scen", kind)
+    # now train QPLAD model
+    train_qplad(ref_coarse_url, ref_fine_url, train_out_url, "scen", kind)
 
     # load adjustment factors
-    aiqpd_model = repository.read(train_out_url)
+    qplad_model = repository.read(train_out_url)
 
     af_expected_shape = (len(lon), len(lat), 365, 620)
 
-    assert aiqpd_model.af.shape == af_expected_shape
+    assert qplad_model.af.shape == af_expected_shape
 
 
-def test_train_aiqpd_isel_slice():
-    """Tests that services.train_aiqpd subsets with isel_slice"""
+def test_train_qplad_isel_slice():
+    """Tests that services.train_qplad subsets with isel_slice"""
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
     time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
@@ -981,15 +981,15 @@ def test_train_aiqpd_isel_slice():
     ref_coarse["scen"].attrs["units"] = "K"
 
     # write test data
-    ref_coarse_url = "memory://train_aiqpd_isel_slice/a/ref_coarse/path.zarr"
-    ref_fine_url = "memory://train_aiqpd_isel_slice/a/ref_fine/path.zarr"
-    train_out_url = "memory://train_aiqpd_isel_slice/a/train_output/path.zarr"
+    ref_coarse_url = "memory://train_qplad_isel_slice/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://train_qplad_isel_slice/a/ref_fine/path.zarr"
+    train_out_url = "memory://train_qplad_isel_slice/a/train_output/path.zarr"
 
     repository.write(ref_coarse_url, ref_coarse.chunk({"time": -1}))
     repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
 
-    # now train AIQPD model
-    train_aiqpd(
+    # now train QPLAD model
+    train_qplad(
         coarse_reference=ref_coarse_url,
         fine_reference=ref_fine_url,
         out=train_out_url,
@@ -998,12 +998,12 @@ def test_train_aiqpd_isel_slice():
         isel_slice={"lat": slice(0, 3)},
     )
 
-    aiqpd_model = repository.read(train_out_url)
-    assert aiqpd_model["lat"].shape == (3,)
+    qplad_model = repository.read(train_out_url)
+    assert qplad_model["lat"].shape == (3,)
 
 
-def test_train_aiqpd_sel_slice():
-    """Tests that services.train_aiqpd subsets with sel_slice"""
+def test_train_qplad_sel_slice():
+    """Tests that services.train_qplad subsets with sel_slice"""
     # This should prob go to a test fixture for input data setup.
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
@@ -1028,14 +1028,14 @@ def test_train_aiqpd_sel_slice():
     ref_coarse = ds_ref_coarse.broadcast_like(ref_fine)
     ref_coarse["scen"].attrs["units"] = "K"
 
-    ref_coarse_url = "memory://test_train_aiqpd_sel_slice/a/ref_coarse/path.zarr"
-    ref_fine_url = "memory://test_train_aiqpd_sel_slice/a/ref_fine/path.zarr"
-    train_out_url = "memory://test_train_aiqpd_sel_slice/a/train_output/path.zarr"
+    ref_coarse_url = "memory://test_train_qplad_sel_slice/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_train_qplad_sel_slice/a/ref_fine/path.zarr"
+    train_out_url = "memory://test_train_qplad_sel_slice/a/train_output/path.zarr"
 
     repository.write(ref_coarse_url, ref_coarse.chunk({"time": -1}))
     repository.write(ref_fine_url, ref_fine.chunk({"time": -1}))
 
-    train_aiqpd(
+    train_qplad(
         coarse_reference=ref_coarse_url,
         fine_reference=ref_fine_url,
         out=train_out_url,
@@ -1044,13 +1044,13 @@ def test_train_aiqpd_sel_slice():
         sel_slice={"lat": slice(lat[0], lat[2])},
     )
 
-    aiqpd_model = repository.read(train_out_url)
-    assert aiqpd_model["lat"].shape == (3,)
+    qplad_model = repository.read(train_out_url)
+    assert qplad_model["lat"].shape == (3,)
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
-def test_aiqpd_integration(kind):
-    """Integration test of the QDM and AIQPD services"""
+def test_qplad_integration(kind):
+    """Integration test of the QDM and QPLAD services"""
     lon = [-99.83, -99.32, -99.79, -99.23]
     lat = [42.25, 42.21, 42.63, 42.59]
     time = xr.cftime_range(start="1994-12-17", end="2015-01-15", calendar="noleap")
@@ -1099,16 +1099,16 @@ def test_aiqpd_integration(kind):
 
     # write test data
     ref_coarse_coarse_url = (
-        "memory://test_aiqpd_downscaling/a/ref_coarse_coarse/path.zarr"
+        "memory://test_qplad_downscaling/a/ref_coarse_coarse/path.zarr"
     )
-    ref_coarse_url = "memory://test_aiqpd_downscaling/a/ref_coarse/path.zarr"
-    ref_fine_url = "memory://test_aiqpd_downscaling/a/ref_fine/path.zarr"
-    qdm_train_url = "memory://test_aiqpd_downscaling/a/qdm_train/path.zarr"
-    sim_url = "memory://test_aiqpd_downscaling/a/sim/path.zarr"
-    qdm_train_out_url = "memory://test_aiqpd_downscaling/a/qdm_train_out/path.zarr"
-    biascorrected_url = "memory://test_aiqpd_downscaling/a/biascorrected/path.zarr"
+    ref_coarse_url = "memory://test_qplad_downscaling/a/ref_coarse/path.zarr"
+    ref_fine_url = "memory://test_qplad_downscaling/a/ref_fine/path.zarr"
+    qdm_train_url = "memory://test_qplad_downscaling/a/qdm_train/path.zarr"
+    sim_url = "memory://test_qplad_downscaling/a/sim/path.zarr"
+    qdm_train_out_url = "memory://test_qplad_downscaling/a/qdm_train_out/path.zarr"
+    biascorrected_url = "memory://test_qplad_downscaling/a/biascorrected/path.zarr"
     sim_biascorrected_key = (
-        "memory://test_aiqpd_downscaling/a/biascorrected/sim_biascorrected.zarr"
+        "memory://test_qplad_downscaling/a/biascorrected/sim_biascorrected.zarr"
     )
 
     repository.write(ref_coarse_coarse_url, ds_ref_coarse)
@@ -1123,7 +1123,7 @@ def test_aiqpd_integration(kind):
     repository.write(qdm_train_url, ds_train)
     repository.write(sim_url, ds_bc)
 
-    # this is an integration test between QDM and AIQPD, so use QDM services
+    # this is an integration test between QDM and QPLAD, so use QDM services
     # for bias correction
     target_year = 2005
 
@@ -1154,24 +1154,24 @@ def test_aiqpd_integration(kind):
     )
 
     # write test data
-    aiqpd_afs_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/path.zarr"
+    qplad_afs_url = "memory://test_qplad_downscaling/a/qplad_afs/path.zarr"
 
     # Writes NC to local disk, so diff format here:
-    sim_downscaled_url = "memory://test_aiqpd_downscaling/a/aiqpd_afs/downscaled.zarr"
+    sim_downscaled_url = "memory://test_qplad_downscaling/a/qplad_afs/downscaled.zarr"
 
-    # now train AIQPD model
-    train_aiqpd(ref_coarse_url, ref_fine_url, aiqpd_afs_url, variable, kind)
+    # now train QPLAD model
+    train_qplad(ref_coarse_url, ref_fine_url, qplad_afs_url, variable, kind)
 
     # downscale
-    apply_aiqpd(biascorrected_url, aiqpd_afs_url, variable, sim_downscaled_url)
+    apply_qplad(biascorrected_url, qplad_afs_url, variable, sim_downscaled_url)
 
     # check output
     downscaled_ds = repository.read(sim_downscaled_url)
 
     # check that downscaled average equals bias corrected value
     bc_timestep = biascorrected_fine[variable].isel(time=100).values[0][0]
-    aiqpd_downscaled_mean = downscaled_ds[variable].isel(time=100).mean().values
-    np.testing.assert_almost_equal(bc_timestep, aiqpd_downscaled_mean)
+    qplad_downscaled_mean = downscaled_ds[variable].isel(time=100).mean().values
+    np.testing.assert_almost_equal(bc_timestep, qplad_downscaled_mean)
 
 
 @pytest.mark.parametrize(

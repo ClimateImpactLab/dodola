@@ -84,7 +84,7 @@ def prime_qdm_output_zarrstore(
     )
 
 
-@dodola_cli.command(help="Prime a Zarr Store for regionally-written AIQPD output")
+@dodola_cli.command(help="Prime a Zarr Store for regionally-written QPLAD output")
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
 )
@@ -105,16 +105,16 @@ def prime_qdm_output_zarrstore(
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
 )
-def prime_aiqpd_output_zarrstore(
+def prime_qplad_output_zarrstore(
     simulation, variable, out, zarr_region_dims=None, new_attrs=None
 ):
-    """Initialize a Zarr Store for writing AIQPD output regionally in independent processes"""
+    """Initialize a Zarr Store for writing QPLAD output regionally in independent processes"""
     unpacked_attrs = None
     if new_attrs:
         unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
 
     region_dims = zarr_region_dims.split(",")
-    services.prime_aiqpd_output_zarrstore(
+    services.prime_qplad_output_zarrstore(
         simulation=simulation,
         variable=variable,
         out=out,
@@ -274,16 +274,16 @@ def train_qdm(
 
 
 @dodola_cli.command(
-    help="Adjust (downscale) simulation year with analog-inspired quantile preserving downscaling (AIQPD)"
+    help="Adjust (downscale) simulation year with Quantile-Preserving, Localized Analogs Downscaling (QPLAD)"
 )
 @click.option(
     "--simulation", "-s", required=True, help="URL to simulation store to adjust"
 )
 @click.option(
-    "--aiqpd",
+    "--qplad",
     "-d",
     required=True,
-    help="URL to trained AIQPD store of adjustment factors",
+    help="URL to trained QPLAD store of adjustment factors",
 )
 @click.option("--variable", "-v", required=True, help="Variable name in data stores")
 @click.option(
@@ -315,9 +315,9 @@ def train_qdm(
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
 )
-def apply_aiqpd(
+def apply_qplad(
     simulation,
-    aiqpd,
+    qplad,
     variable,
     out,
     selslice=None,
@@ -325,7 +325,7 @@ def apply_aiqpd(
     out_zarr_region=None,
     new_attrs=None,
 ):
-    """Adjust simulation with AIQPD downscaling method, outputting Zarr Store"""
+    """Adjust simulation with QPLAD downscaling method, outputting Zarr Store"""
     unpacked_attrs = None
     if new_attrs:
         unpacked_attrs = {k: v for x in new_attrs for k, v in (x.split("="),)}
@@ -351,9 +351,9 @@ def apply_aiqpd(
             k, v = s.split("=")
             out_zarr_region_d[k] = slice(*map(int, v.split(",")))
 
-    services.apply_aiqpd(
+    services.apply_qplad(
         simulation=simulation,
-        aiqpd=aiqpd,
+        qplad=qplad,
         variable=variable,
         out=out,
         sel_slice=sel_slices_d,
@@ -364,7 +364,7 @@ def apply_aiqpd(
 
 
 @dodola_cli.command(
-    help="Train analog-inspired quantile preserving downscaling (AIQPD)"
+    help="Train Quantile-Preserving, Localized Analogs Downscaling (QPLAD)"
 )
 @click.option(
     "--coarse-reference", "-cr", required=True, help="URL to coarse reference store"
@@ -393,10 +393,10 @@ def apply_aiqpd(
     required=False,
     help="variable=start,stop to 'sel' slice inputs before training",
 )
-def train_aiqpd(
+def train_qplad(
     coarse_reference, fine_reference, out, variable, kind, selslice=None, iselslice=None
 ):
-    """Train Analog-Inspired Quantile Preserving Downscaling (AIQPD) model and output to storage"""
+    """Train Quantile-Preserving, Localized Analogs Downscaling (QPLAD) model and output to storage"""
     sel_slices_d = None
     isel_slices_d = None
 
@@ -412,7 +412,7 @@ def train_aiqpd(
             k, v = s.split("=")
             isel_slices_d[k] = slice(*map(int, v.split(",")))
 
-    services.train_aiqpd(
+    services.train_qplad(
         coarse_reference=coarse_reference,
         fine_reference=fine_reference,
         out=out,
