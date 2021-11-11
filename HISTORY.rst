@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-*
+* Upgrade Docker base image to ``continuumio/miniconda3:4.10.3``. (@brews)
 
 
 0.8.0 (2021-11-10)
