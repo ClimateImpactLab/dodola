@@ -3,7 +3,7 @@ History
 =======
 
 
-0.X.X (XXXX-XX-XX)
+0.8.0 (2021-11-10)
 ------------------
 * AIQPD has been renamed "Quantile-Preserving, Localized Analogs Downscaling" (QPLAD). AIQPD-named commands have been switch to QPLAD. This is backward compatibility breaking. (PR #131, @brews)
 * Add AIQPD output Zarr priming (``prime-aipqd-output-zarrstore``), input slicing, region writing, attrs merging, and multi-year processing. This breaks backwards compatibility for ``apply-aiqpd`` and its services and core functions. See the pull request for additional details. (PR #130, @brews)
