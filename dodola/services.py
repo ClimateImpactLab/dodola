@@ -110,10 +110,10 @@ def prime_qdm_output_zarrstore(
 
 
 @log_service
-def prime_aiqpd_output_zarrstore(
+def prime_qplad_output_zarrstore(
     simulation, variable, out, zarr_region_dims, new_attrs=None
 ):
-    """Init a Zarr Store for writing AIQPD output regionally in independent processes.
+    """Init a Zarr Store for writing QPLAD output regionally in independent processes.
 
     Parameters
     ----------
@@ -124,7 +124,7 @@ def prime_aiqpd_output_zarrstore(
         same name.
     out : str
         fsspec-compatible path or URL pointing to Zarr Store file where the
-        AIQPD-adjusted simulation data will be written.
+        QPLAD-adjusted simulation data will be written.
     zarr_region_dims: sequence of str
         Sequence giving the name of dimensions that will be used to later write
         to regions of the Zarr Store. Variables with dimensions that do not use
@@ -295,7 +295,7 @@ def apply_qdm(
 
 
 @log_service
-def train_aiqpd(
+def train_qplad(
     coarse_reference,
     fine_reference,
     out,
@@ -304,7 +304,7 @@ def train_aiqpd(
     sel_slice=None,
     isel_slice=None,
 ):
-    """Train analog-inspired quantile preserving downscaling and dump to `out`
+    """Train Quantile-Preserving, Localized Analogs Downscaling and dump to `out`
 
     Parameters
     ----------
@@ -317,7 +317,7 @@ def train_aiqpd(
     variable : str
         Name of target variable in input and output stores.
     kind : {"additive", "multiplicative"}
-        Kind of AIQPD downscaling.
+        Kind of QPLAD downscaling.
     sel_slice: dict or None, optional
         Label-index slice hist and ref to subset before training.
         A mapping of {variable_name: slice(...)} passed to
@@ -350,20 +350,20 @@ def train_aiqpd(
     ref_coarse.load()
     ref_fine.load()
 
-    aiqpd = train_analogdownscaling(
+    qplad = train_analogdownscaling(
         coarse_reference=ref_coarse,
         fine_reference=ref_fine,
         variable=variable,
         kind=k,
     )
 
-    storage.write(out, aiqpd.ds)
+    storage.write(out, qplad.ds)
 
 
 @log_service
-def apply_aiqpd(
+def apply_qplad(
     simulation,
-    aiqpd,
+    qplad,
     variable,
     out,
     sel_slice=None,
@@ -371,7 +371,7 @@ def apply_aiqpd(
     out_zarr_region=None,
     new_attrs=None,
 ):
-    """Apply AIQPD adjustment factors to downscale a simulation, dump to NetCDF.
+    """Apply QPLAD adjustment factors to downscale a simulation, dump to NetCDF.
 
     Dumping to NetCDF is a feature likely to change in the near future.
 
@@ -381,7 +381,7 @@ def apply_aiqpd(
         fsspec-compatible URL containing simulation data to be adjusted.
         Dataset must have `variable` as well as a variable, "sim_q", giving
         the quantiles from QDM bias-correction.
-    aiqpd : str
+    qplad : str
         fsspec-compatible URL pointing to Zarr Store containing canned
         ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling`` Dataset.
     variable : str
@@ -389,7 +389,7 @@ def apply_aiqpd(
         same name.
     out : str
         fsspec-compatible path or URL pointing to Zarr Store where the
-        AIQPD-downscaled simulation data will be written.
+        QPLAD-downscaled simulation data will be written.
     sel_slice: dict or None, optional
         Label-index slice input slimulation dataset before adjusting.
         A mapping of {variable_name: slice(...)} passed to
@@ -404,7 +404,7 @@ def apply_aiqpd(
         dict to merge with output Dataset's root ``attrs`` before output.
     """
     sim_ds = storage.read(simulation)
-    aiqpd_ds = storage.read(aiqpd)
+    qplad_ds = storage.read(qplad)
 
     if sel_slice:
         logger.info(f"Slicing by {sel_slice=}")
@@ -418,12 +418,12 @@ def apply_aiqpd(
 
     # needs to not be chunked
     sim_ds = sim_ds.load()
-    aiqpd_ds = aiqpd_ds.load()
+    qplad_ds = qplad_ds.load()
 
     variable = str(variable)
 
     adjusted_ds = adjust_analogdownscaling(
-        simulation=sim_ds, aiqpd=aiqpd_ds, variable=variable
+        simulation=sim_ds, qplad=qplad_ds, variable=variable
     )
 
     if new_attrs:

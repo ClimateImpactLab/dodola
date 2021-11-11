@@ -184,7 +184,7 @@ def adjust_quantiledeltamapping_year(
 def train_analogdownscaling(
     coarse_reference, fine_reference, variable, kind, quantiles_n=620, window_n=31
 ):
-    """Train analog-inspired quantile-preserving downscaling
+    """Train Quantile-Preserving, Localized Analogs Downscaling (QPLAD)
 
     Parameters
     ----------
@@ -195,9 +195,9 @@ def train_analogdownscaling(
     variable : str
         Name of target variable to extract from `coarse_reference` and `fine_reference`.
     kind : {"+", "*"}
-        Kind of variable. Used for creating AIQPD adjustment factors.
+        Kind of variable. Used for creating QPLAD adjustment factors.
     quantiles_n : int, optional
-        Number of quantiles for AIQPD.
+        Number of quantiles for QPLAD.
     window_n : int, optional
         Centered window size for day-of-year grouping.
 
@@ -206,7 +206,7 @@ def train_analogdownscaling(
     xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling
     """
 
-    # AIQPD method requires that the number of quantiles equals
+    # QPLAD method requires that the number of quantiles equals
     # the number of days in each day group
     # e.g. 20 years of data and a window of 31 = 620 quantiles
 
@@ -223,24 +223,24 @@ def train_analogdownscaling(
             )
         )
 
-    aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.train(
+    qplad = sdba.adjustment.AnalogQuantilePreservingDownscaling.train(
         ref=coarse_reference[variable],
         hist=fine_reference[variable],
         kind=str(kind),
         group=sdba.Grouper("time.dayofyear", window=int(window_n)),
         nquantiles=quantiles_n,
     )
-    return aiqpd
+    return qplad
 
 
-def adjust_analogdownscaling(simulation, aiqpd, variable):
-    """Apply AIQPD to downscale bias corrected output.
+def adjust_analogdownscaling(simulation, qplad, variable):
+    """Apply QPLAD to downscale bias corrected output.
 
     Parameters
     ----------
     simulation : xr.Dataset
         Daily bias corrected data to be downscaled. Target variable must have a units attribute.
-    aiqpd : xr.Dataset or sdba.adjustment.AnalogQuantilePreservingDownscaling
+    qplad : xr.Dataset or sdba.adjustment.AnalogQuantilePreservingDownscaling
         Trained ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``, or
         Dataset representation that will instantiate
         ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``.
@@ -251,18 +251,18 @@ def adjust_analogdownscaling(simulation, aiqpd, variable):
     Returns
     -------
     out : xr.Dataset
-        AIQPD-downscaled values from `simulation`. May be a lazy-evaluated future, not
+        QPLAD-downscaled values from `simulation`. May be a lazy-evaluated future, not
         yet computed.
     """
     variable = str(variable)
 
-    if isinstance(aiqpd, xr.Dataset):
-        aiqpd = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(aiqpd)
+    if isinstance(qplad, xr.Dataset):
+        qplad = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(qplad)
 
-    out = aiqpd.adjust(simulation[variable])
+    out = qplad.adjust(simulation[variable])
 
     out = out.transpose(*simulation[variable].dims)
-    # Overwrite AIQPD output attrs with input simulation attrs.
+    # Overwrite QPLAD output attrs with input simulation attrs.
     out.attrs = simulation.attrs
     for k, v in simulation.variables.items():
         if k in out:
