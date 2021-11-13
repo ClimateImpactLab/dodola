@@ -59,12 +59,22 @@ def dodola_cli(debug):
     help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
 )
 @click.option(
+    "--root-attrs-json-file",
+    help="fsspec-compatible URL pointing to a JSON file to use as root ``attrs`` for output data.",
+)
+@click.option(
     "--new-attrs",
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
 )
 def prime_qdm_output_zarrstore(
-    simulation, variable, years, out, zarr_region_dims=None, new_attrs=None
+    simulation,
+    variable,
+    years,
+    out,
+    zarr_region_dims=None,
+    root_attrs_json_file=None,
+    new_attrs=None,
 ):
     """Initialize a Zarr Store for writing QDM output regionally in independent processes"""
     first_year, last_year = (int(x) for x in years.split(","))
@@ -80,6 +90,7 @@ def prime_qdm_output_zarrstore(
         variable=variable,
         out=out,
         zarr_region_dims=region_dims,
+        root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
     )
 
@@ -101,12 +112,21 @@ def prime_qdm_output_zarrstore(
     help="'variable1,variable2' comma-delimited list of variables used to define region when writing",
 )
 @click.option(
+    "--root-attrs-json-file",
+    help="fsspec-compatible URL pointing to a JSON file to use as root ``attrs`` for output data.",
+)
+@click.option(
     "--new-attrs",
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
 )
 def prime_qplad_output_zarrstore(
-    simulation, variable, out, zarr_region_dims=None, new_attrs=None
+    simulation,
+    variable,
+    out,
+    zarr_region_dims=None,
+    root_attrs_json_file=None,
+    new_attrs=None,
 ):
     """Initialize a Zarr Store for writing QPLAD output regionally in independent processes"""
     unpacked_attrs = None
@@ -119,6 +139,7 @@ def prime_qplad_output_zarrstore(
         variable=variable,
         out=out,
         zarr_region_dims=region_dims,
+        root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
     )
 
@@ -159,6 +180,10 @@ def prime_qplad_output_zarrstore(
     help="variable=start,stop index to write output to region of existing Zarr Store",
 )
 @click.option(
+    "--root-attrs-json-file",
+    help="fsspec-compatible URL pointing to a JSON file to use as root ``attrs`` for output data.",
+)
+@click.option(
     "--new-attrs",
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
@@ -172,6 +197,7 @@ def apply_qdm(
     selslice=None,
     iselslice=None,
     out_zarr_region=None,
+    root_attrs_json_file=None,
     new_attrs=None,
 ):
     """Adjust simulation years with QDM bias correction method, outputting Zarr Store"""
@@ -213,6 +239,7 @@ def apply_qdm(
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
         out_zarr_region=out_zarr_region_d,
+        root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
     )
 
@@ -311,6 +338,10 @@ def train_qdm(
     help="variable=start,stop index to write output to region of existing Zarr Store",
 )
 @click.option(
+    "--root-attrs-json-file",
+    help="fsspec-compatible URL pointing to a JSON file to use as root ``attrs`` for output data.",
+)
+@click.option(
     "--new-attrs",
     multiple=True,
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
@@ -323,6 +354,7 @@ def apply_qplad(
     selslice=None,
     iselslice=None,
     out_zarr_region=None,
+    root_attrs_json_file=None,
     new_attrs=None,
 ):
     """Adjust simulation with QPLAD downscaling method, outputting Zarr Store"""
@@ -359,6 +391,7 @@ def apply_qplad(
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
         out_zarr_region=out_zarr_region_d,
+        root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
     )
 

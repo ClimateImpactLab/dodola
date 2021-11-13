@@ -1,7 +1,9 @@
 """Objects to read and write stored climate model data.
 """
 
+import json
 import logging
+import fsspec
 from xarray import open_zarr
 
 
@@ -68,3 +70,15 @@ def write(url_or_path, x, region=None):
     else:
         x.to_zarr(url_or_path, mode="w", compute=True)
     logger.info(f"Written {url_or_path}")
+
+
+def read_attrs(urlpath):
+    """Read and deserialize JSON attrs file"""
+    logger.debug(f"Reading attrs from {urlpath}")
+
+    with fsspec.open(urlpath) as f:
+        out = json.load(f)
+        logger.info(f"Read attrs from {urlpath}")
+
+    logger.debug(f"Read attrs {out}")
+    return out

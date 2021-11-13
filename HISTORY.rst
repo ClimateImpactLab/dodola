@@ -5,6 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
+* Add `--root-attrs-json-file` to `prime-qplad-output-zarrstore`, `apply-qplad`, `prime-qdm-output-zarrstore`, `apply-qdm`. (@brews)
 * Add `dodola get-attrs` command. (PR #133, @brews)
 * Upgrade Docker base image to ``continuumio/miniconda3:4.10.3``. (PR #132, @brews)
 
