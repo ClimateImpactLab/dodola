@@ -37,7 +37,13 @@ def log_service(func):
 
 @log_service
 def prime_qdm_output_zarrstore(
-    simulation, variable, years, out, zarr_region_dims, new_attrs=None
+    simulation,
+    variable,
+    years,
+    out,
+    zarr_region_dims,
+    root_attrs_json_file=None,
+    new_attrs=None,
 ):
     """Init a Zarr Store for writing QDM output regionally in independent processes.
 
@@ -58,6 +64,9 @@ def prime_qdm_output_zarrstore(
         to regions of the Zarr Store. Variables with dimensions that do not use
         these regional variables will be appended to the primed Zarr Store as
         part of this call.
+    root_attrs_json_file : str or None, optional
+        fsspec-compatible URL pointing to a JSON file to use as root ``attrs``
+        for the output data. ``new_attrs`` will be appended to this.
     new_attrs : dict or None, optional
         dict to merge with output Dataset's root ``attrs`` before output.
     """
@@ -66,6 +75,10 @@ def prime_qdm_output_zarrstore(
 
     quantile_variable_name = "sim_q"
     sim_df = storage.read(simulation)
+
+    if root_attrs_json_file:
+        logger.info(f"Using root attrs from {root_attrs_json_file}")
+        sim_df.attrs = storage.read_attrs(root_attrs_json_file)
 
     # Yes, the time slice needs to use strs, not ints. It's already going to be inclusive so don't need to +1.
     primer = sim_df.sel(time=slice(str(min(years)), str(max(years))))
@@ -112,7 +125,12 @@ def prime_qdm_output_zarrstore(
 
 @log_service
 def prime_qplad_output_zarrstore(
-    simulation, variable, out, zarr_region_dims, new_attrs=None
+    simulation,
+    variable,
+    out,
+    zarr_region_dims,
+    root_attrs_json_file=None,
+    new_attrs=None,
 ):
     """Init a Zarr Store for writing QPLAD output regionally in independent processes.
 
@@ -131,10 +149,18 @@ def prime_qplad_output_zarrstore(
         to regions of the Zarr Store. Variables with dimensions that do not use
         these regional variables will be appended to the primed Zarr Store as
         part of this call.
+    root_attrs_json_file : str or None, optional
+        fsspec-compatible URL pointing to a JSON file to use as root ``attrs``
+        for the output data. ``new_attrs`` will be appended to this.
     new_attrs : dict or None, optional
         dict to merge with output Dataset's root ``attrs`` before output.
     """
     sim_df = storage.read(simulation)
+
+    if root_attrs_json_file:
+        logger.info(f"Using root attrs from {root_attrs_json_file}")
+        sim_df.attrs = storage.read_attrs(root_attrs_json_file)
+
     primer = sim_df[[variable]]
     # Ensure we get root attrs. Not sure explicit copy is still required.
     primer.attrs = sim_df.attrs.copy()
@@ -229,6 +255,7 @@ def apply_qdm(
     sel_slice=None,
     isel_slice=None,
     out_zarr_region=None,
+    root_attrs_json_file=None,
     new_attrs=None,
 ):
     """Apply trained QDM to adjust a years in a simulation, write to Zarr Store.
@@ -261,11 +288,18 @@ def apply_qdm(
     out_zarr_region: dict or None, optional
         A mapping of {variable_name: slice(...)} giving the region to write
         to if outputting to existing Zarr Store.
+    root_attrs_json_file : str or None, optional
+        fsspec-compatible URL pointing to a JSON file to use as root ``attrs``
+        for the output data. ``new_attrs`` will be appended to this.
     new_attrs : dict or None, optional
         dict to merge with output Dataset's root ``attrs`` before output.
     """
     sim_ds = storage.read(simulation)
     qdm_ds = storage.read(qdm)
+
+    if root_attrs_json_file:
+        logger.info(f"Using root attrs from {root_attrs_json_file}")
+        sim_ds.attrs = storage.read_attrs(root_attrs_json_file)
 
     if sel_slice:
         logger.info(f"Slicing by {sel_slice=}")
@@ -370,6 +404,7 @@ def apply_qplad(
     sel_slice=None,
     isel_slice=None,
     out_zarr_region=None,
+    root_attrs_json_file=None,
     new_attrs=None,
 ):
     """Apply QPLAD adjustment factors to downscale a simulation, dump to NetCDF.
@@ -401,11 +436,18 @@ def apply_qplad(
     out_zarr_region: dict or None, optional
         A mapping of {variable_name: slice(...)} giving the region to write
         to if outputting to existing Zarr Store.
+    root_attrs_json_file : str or None, optional
+        fsspec-compatible URL pointing to a JSON file to use as root ``attrs``
+        for the output data. ``new_attrs`` will be appended to this.
     new_attrs : dict or None, optional
         dict to merge with output Dataset's root ``attrs`` before output.
     """
     sim_ds = storage.read(simulation)
     qplad_ds = storage.read(qplad)
+
+    if root_attrs_json_file:
+        logger.info(f"Using root attrs from {root_attrs_json_file}")
+        sim_ds.attrs = storage.read_attrs(root_attrs_json_file)
 
     if sel_slice:
         logger.info(f"Slicing by {sel_slice=}")
