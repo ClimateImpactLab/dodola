@@ -23,6 +23,7 @@ from dodola.services import (
     train_qplad,
     apply_qplad,
     validate,
+    get_attrs,
 )
 import dodola.repository as repository
 
@@ -1320,3 +1321,24 @@ def test_validation(variable, data_type, time_period):
     repository.write(in_url, ds)
 
     validate(in_url, variable, data_type, time_period)
+
+
+def test_get_attrs_global():
+    """Test that services.get_attrs returns json of global attrs"""
+    url = "memory://test_get_attrs_global/x.zarr"
+    repository.write(url, xr.Dataset({"bar": "SPAM"}, attrs={"fish": "chips"}))
+    out = get_attrs(url)
+    assert out == '{"fish": "chips"}'
+
+
+def test_get_attrs_variable():
+    """Test that services.get_attrs returns json of variable attrs"""
+    url = "memory://test_get_attrs/x.zarr"
+    variable_name = "bar"
+    ds_in = xr.Dataset({variable_name: "SPAM"}, attrs={"fish": "chips"})
+    ds_in[variable_name].attrs["carrot"] = "sticks"
+
+    repository.write(url, ds_in)
+    out = get_attrs(url, variable=variable_name)
+
+    assert out == '{"carrot": "sticks"}'

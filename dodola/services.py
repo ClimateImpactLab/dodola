@@ -1,6 +1,7 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
 from functools import wraps
+import json
 import logging
 from dodola.core import (
     apply_bias_correction,
@@ -430,6 +431,14 @@ def apply_qplad(
         adjusted_ds.attrs |= new_attrs
 
     storage.write(out, adjusted_ds, region=out_zarr_region)
+
+
+def get_attrs(x, variable=None):
+    """Get JSON str of `x` attrs metadata."""
+    d = storage.read(x)
+    if variable:
+        d = d[variable]
+    return json.dumps(d.attrs)
 
 
 @log_service

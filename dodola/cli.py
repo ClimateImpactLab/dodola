@@ -444,6 +444,14 @@ def removeleapdays(x, out):
     services.remove_leapdays(x, out)
 
 
+@dodola_cli.command(help="Get attrs from data")
+@click.argument("x", required=True)
+@click.option("--variable", "-v", help="Variable name in data stores")
+def get_attrs(x, variable=None):
+    """Get JSON str of data attrs metadata."""
+    click.echo(services.get_attrs(x, variable))
+
+
 @dodola_cli.command(help="Bias-correct GCM on observations")
 @click.argument("x", required=True)
 @click.argument("xtrain", required=True)
