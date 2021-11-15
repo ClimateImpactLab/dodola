@@ -259,7 +259,7 @@ def adjust_analogdownscaling(simulation, qplad, variable):
     if isinstance(qplad, xr.Dataset):
         qplad = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(qplad)
 
-    out = qplad.adjust(simulation[variable])
+    out = qplad.adjust(simulation[variable]).to_dataset(name=variable)
 
     out = out.transpose(*simulation[variable].dims)
     # Overwrite QPLAD output attrs with input simulation attrs.
@@ -268,7 +268,7 @@ def adjust_analogdownscaling(simulation, qplad, variable):
         if k in out:
             out[k].attrs = v.attrs
 
-    return out.to_dataset(name=variable)
+    return out
 
 
 def apply_bias_correction(
