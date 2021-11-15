@@ -3,7 +3,7 @@ History
 =======
 
 
-0.X.X (XXXX-XX-XX)
+0.9.0 (2021-11-15)
 ------------------
 * Fix attrs missing from services.apply_qplad output Datasets. (#135, @brews)
 * Add `--root-attrs-json-file` to `prime-qplad-output-zarrstore`, `apply-qplad`, `prime-qdm-output-zarrstore`, `apply-qdm`. (PR #134, @brews)
