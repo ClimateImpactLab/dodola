@@ -5,7 +5,7 @@ History
 
 0.X.X (XXXX-XX-XX)
 ------------------
-* Add additional tests for `dodola.core.*_analogdownscaling` functions. (@brews)
+* Add additional tests for `dodola.core.*_analogdownscaling` functions. (PR #136, @dgergel, @brews)
 
 
 0.9.0 (2021-11-15)
