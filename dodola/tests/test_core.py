@@ -221,8 +221,6 @@ def test_qplad_integration_af_quantiles():
 
     data_ref = xr.DataArray(
         np.ones((len(time), len(lat)), dtype="float64"),
-        ## If you want something more sophisticated:
-        # np.arange(len(time) * len(lat), dtype="float64").reshape(len(time), len(lat)),
         coords={"time": time, "lat": lat},
         attrs={"units": "K"},
         name=variable,
@@ -298,10 +296,9 @@ def test_qplad_integration_af_quantiles():
 
     # Similar to above, spoil one lat value in adjustment factors
     # (force it to be 0.0) and test that the spoiled value correctly
-    # propigates through to output.
-    spoiled_latitude = qplad_model.ds.copy(deep=True)
-    laitutde_idx_to_spoil = 0
-    spoiled_latitude["af"][laitutde_idx_to_spoil, ...] = 0.0
+    # propagates through to output.
+    latitude_idx_to_spoil = 0
+    spoiled_latitude["af"][latitude_idx_to_spoil, ...] = 0.0
     qplad_model.ds = spoiled_latitude
     downscaled = adjust_analogdownscaling(
         simulation=biascorrected_fine.set_coords(
@@ -315,4 +312,4 @@ def test_qplad_integration_af_quantiles():
     # The other half should be `0.0` due to the spoiled data...
     assert (downscaled[variable].values == 0.0).sum() == 366
     # All our 0.0s should be in this single lat in output dataset.
-    assert all(downscaled[variable].values[:, laitutde_idx_to_spoil] == 0.0)
+    assert all(downscaled[variable].values[:, latitude_idx_to_spoil] == 0.0)
