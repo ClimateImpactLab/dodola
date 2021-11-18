@@ -308,8 +308,8 @@ def test_qplad_integration_af_quantiles():
         variable=variable,
     )
     # Half of values in output should be 1.0...
-    assert (downscaled[variable].values == 1.0).sum() == 364
+    assert (downscaled[variable].values == 1.0).sum() == 365
     # The other half should be `0.0` due to the spoiled data...
-    assert (downscaled[variable].values == 0.0).sum() == 366
+    assert (downscaled[variable].values == 0.0).sum() == 365
     # All our 0.0s should be in this single lat in output dataset.
     assert all(downscaled[variable].values[:, latitude_idx_to_spoil] == 0.0)
