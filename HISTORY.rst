@@ -3,9 +3,15 @@ History
 =======
 
 
+0.XX.X (XXXX-XX-XX)
+-------------------
+*
+
+
+
 0.10.0 (2021-11-22)
 -------------------
-* Add additional tests for `dodola.core.*_analogdownscaling` functions. (PR #136, @dgergel, @brews)
+* Add additional tests for ``dodola.core.*_analogdownscaling`` functions. (PR #136, @dgergel, @brews)
 * Update dtr range check max to allow up to 70 C. (PR #138, @brews, @dgergel)
 
 
