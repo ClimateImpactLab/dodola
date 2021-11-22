@@ -328,7 +328,7 @@ def test_qplad_integration_af_quantiles():
     # only do this for one lat pt
     lat_pt = 0
     # get the quantile from the bias corrected data for this doy and latitude
-    q_100 = biascorrected_fine.sim_q[lat_pt, doy]
+    q_100 = biascorrected_fine.sim_q[doy, lat_pt].values
     # extract quantiles from afs to get the corresponding quantile index
     bc_quantiles = qplad_model.ds.af[0, 100, :].quantiles.values
     # get index of the af for that day
@@ -336,7 +336,7 @@ def test_qplad_integration_af_quantiles():
 
     # now spoil that doy quantile adjustment factor
     spoiled_quantile["af"][0, 100, q_idx] = 200
-    qplad_model.ds["af"] = spoiled_quantile["af"]
+    qplad_model.ds = spoiled_quantile
 
     downscaled = adjust_analogdownscaling(
         simulation=biascorrected_fine.set_coords(
@@ -347,7 +347,7 @@ def test_qplad_integration_af_quantiles():
     )
 
     # the 100th doy and corresponding quantile should be equal to the spoiled value
-    assert np.max(downscaled[variable].values[lat_pt, :]) == 200
-    assert np.argmax(downscaled[variable].values[lat_pt, :]) == 100
+    assert np.max(downscaled[variable].values[:, lat_pt]) == 200
+    assert np.argmax(downscaled[variable].values[:, lat_pt]) == 100
     # check that the adjustment factor did not get applied to any other days of the year
-    assert (downscaled[variable].values[lat_pt, :]).sum() == 564
+    assert (downscaled[variable].values[:, lat_pt]).sum() == 564
