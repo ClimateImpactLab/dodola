@@ -203,7 +203,7 @@ def train_analogdownscaling(
 
     Returns
     -------
-    xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling
+    xclim.sdba.adjustment.QuantilePreservingAnalogDownscaling
     """
 
     # QPLAD method requires that the number of quantiles equals
@@ -223,7 +223,7 @@ def train_analogdownscaling(
             )
         )
 
-    qplad = sdba.adjustment.AnalogQuantilePreservingDownscaling.train(
+    qplad = sdba.adjustment.QuantilePreservingAnalogDownscaling.train(
         ref=coarse_reference[variable],
         hist=fine_reference[variable],
         kind=str(kind),
@@ -240,10 +240,10 @@ def adjust_analogdownscaling(simulation, qplad, variable):
     ----------
     simulation : xr.Dataset
         Daily bias corrected data to be downscaled. Target variable must have a units attribute.
-    qplad : xr.Dataset or sdba.adjustment.AnalogQuantilePreservingDownscaling
-        Trained ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``, or
+    qplad : xr.Dataset or sdba.adjustment.QuantilePreservingAnalogDownscaling
+        Trained ``xclim.sdba.adjustment.QuantilePreservingAnalogDownscaling``, or
         Dataset representation that will instantiate
-        ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling``.
+        ``xclim.sdba.adjustment.QuantilePreservingAnalogDownscaling``.
     variable : str
         Target variable in `simulation` to downscale. Downscaled output will share the
         same name.
@@ -257,7 +257,7 @@ def adjust_analogdownscaling(simulation, qplad, variable):
     variable = str(variable)
 
     if isinstance(qplad, xr.Dataset):
-        qplad = sdba.adjustment.AnalogQuantilePreservingDownscaling.from_dataset(qplad)
+        qplad = sdba.adjustment.QuantilePreservingAnalogDownscaling.from_dataset(qplad)
 
     out = qplad.adjust(simulation[variable]).to_dataset(name=variable)
 
