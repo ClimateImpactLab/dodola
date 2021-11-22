@@ -227,6 +227,7 @@ def test_qplad_integration_af_quantiles():
         np.ones((len(time), len(lat)), dtype="float64"),
         coords={"time": time, "lat": lat},
         attrs={"units": "K"},
+        dims=["time", "lat"],
         name=variable,
     ).chunk({"time": -1, "lat": -1})
     data_train = data_ref + 2
@@ -327,7 +328,7 @@ def test_qplad_integration_af_quantiles():
     # only do this for one lat pt
     lat_pt = 0
     # get the quantile from the bias corrected data for this doy and latitude
-    q_100 = biascorrected_fine.sim_q[lat_pt, doy].values
+    q_100 = biascorrected_fine.sim_q[lat_pt, doy]
     # extract quantiles from afs to get the corresponding quantile index
     bc_quantiles = qplad_model.ds.af[0, 100, :].quantiles.values
     # get index of the af for that day
