@@ -691,7 +691,7 @@ def _test_dtr_range(ds, var):
     Ensure DTR values are in a valid range
     """
     assert (ds[var].min() > 0) and (
-        ds[var].max() < 45
+        ds[var].max() < 70
     ), "diurnal temperature range values are invalid"
 
 
