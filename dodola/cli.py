@@ -349,7 +349,7 @@ def train_qdm(
 @click.option(
     "--wet-day-post-correction/--no-wet-day-post-correction",
     default=False,
-    help="Whether to apply wet day frequency correction on downscaled data"
+    help="Whether to apply wet day frequency correction on downscaled data",
 )
 def apply_qplad(
     simulation,
@@ -361,7 +361,7 @@ def apply_qplad(
     out_zarr_region=None,
     root_attrs_json_file=None,
     new_attrs=None,
-    wet_day_post_correction=False
+    wet_day_post_correction=False,
 ):
     """Adjust simulation with QPLAD downscaling method, outputting Zarr Store"""
     unpacked_attrs = None
@@ -399,7 +399,7 @@ def apply_qplad(
         out_zarr_region=out_zarr_region_d,
         root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
-        wet_day_post_correction=wet_day_post_correction
+        wet_day_post_correction=wet_day_post_correction,
     )
 
 
