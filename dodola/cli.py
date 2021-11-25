@@ -348,7 +348,7 @@ def train_qdm(
 )
 @click.option(
     "--wet-day-post-correction",
-    type=bool
+    type=bool,
     default=False,
     help="Whether to apply wet day frequency correction on downscaled data",
 )
