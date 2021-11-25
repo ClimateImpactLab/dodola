@@ -347,7 +347,8 @@ def train_qdm(
     help="'key1=value1' entry to merge into the output Dataset root metadata (attrs)",
 )
 @click.option(
-    "--wet-day-post-correction/--no-wet-day-post-correction",
+    "--wet-day-post-correction",
+    type=bool
     default=False,
     help="Whether to apply wet day frequency correction on downscaled data",
 )
