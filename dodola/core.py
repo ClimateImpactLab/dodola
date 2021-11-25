@@ -677,7 +677,7 @@ def _test_timesteps(ds, data_type, time_period):
             )
             if len(ds.time) > 27740:
                 warnings.warn(
-                    "projection {} file has excess timesteps, has {}".format(
+                    "historical {} file has excess timesteps, has {}".format(
                         data_type, len(ds.time)
                     )
                 )
@@ -689,7 +689,7 @@ def _test_timesteps(ds, data_type, time_period):
             )
             if len(ds.time) > 23725:
                 warnings.warn(
-                    "projection {} file has excess timesteps, has {}".format(
+                    "historical {} file has excess timesteps, has {}".format(
                         data_type, len(ds.time)
                     )
                 )
