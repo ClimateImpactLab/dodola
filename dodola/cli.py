@@ -362,7 +362,7 @@ def apply_qplad(
     out_zarr_region=None,
     root_attrs_json_file=None,
     new_attrs=None,
-    wet_day_post_correction=False,
+    wetday_post_correction=False,
 ):
     """Adjust simulation with QPLAD downscaling method, outputting Zarr Store"""
     unpacked_attrs = None
