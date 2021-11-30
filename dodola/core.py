@@ -4,6 +4,7 @@ Math stuff and business logic goes here. This is the "business logic".
 """
 
 
+import warnings
 import logging
 import dask
 import numpy as np
@@ -635,7 +636,7 @@ def _test_for_nans(ds, var):
 
 def _test_timesteps(ds, data_type, time_period):
     """
-    Tests that Dataset contains the correct number of timesteps
+    Tests that Dataset contains the correct number of timesteps (number of days on a noleap calendar)
     for the data_type/time_period combination.
     """
     if time_period == "future":
@@ -643,31 +644,55 @@ def _test_timesteps(ds, data_type, time_period):
         # CMIP6 future data has an additional ten years from the historical model run
         if data_type == "cmip6":
             assert (
-                len(ds.time) == 35405
-            ), "projection {} file is missing timesteps, only has {}".format(
+                len(ds.time) >= 35040  # some CMIP6 data ends in 2099
+            ), "projection {} file is missing timesteps, has {}".format(
                 data_type, len(ds.time)
             )
+            if len(ds.time) > 35405:
+                warnings.warn(
+                    "projection {} file has excess timesteps, has {}".format(
+                        data_type, len(ds.time)
+                    )
+                )
         else:
             assert (
-                len(ds.time) == 31390
-            ), "projection {} file is missing timesteps, only has {}".format(
+                len(ds.time) >= 31390
+            ), "projection {} file is missing timesteps, has {}".format(
                 data_type, len(ds.time)
             )
+            if len(ds.time) > 31390:
+                warnings.warn(
+                    "projection {} file has excess timesteps, has {}".format(
+                        data_type, len(ds.time)
+                    )
+                )
     elif time_period == "historical":
         # bias corrected/downscaled data should have 1950 - 2014
         # CMIP6 historical data has an additional ten years from SSP 370 (or 245 if 370 not available)
         if data_type == "cmip6":
             assert (
-                len(ds.time) == 27740
-            ), "historical {} file is missing timesteps, only has {}".format(
+                len(ds.time) >= 27740
+            ), "historical {} file is missing timesteps, has {}".format(
                 data_type, len(ds.time)
             )
+            if len(ds.time) > 27740:
+                warnings.warn(
+                    "historical {} file has excess timesteps, has {}".format(
+                        data_type, len(ds.time)
+                    )
+                )
         else:
             assert (
-                len(ds.time) == 23725
-            ), "historical {} file is missing timesteps, only has {}".format(
+                len(ds.time) >= 23725
+            ), "historical {} file is missing timesteps, has {}".format(
                 data_type, len(ds.time)
             )
+            if len(ds.time) > 23725:
+                warnings.warn(
+                    "historical {} file has excess timesteps, has {}".format(
+                        data_type, len(ds.time)
+                    )
+                )
 
 
 def _test_variable_names(ds, var):
