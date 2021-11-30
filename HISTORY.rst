@@ -5,11 +5,7 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-*
-
-0.11.0 (2021-11-24
-------------------
-*  distinguish missing from excess timesteps in timesteps validation (PR #140, @emileten)
+*  Distinguish missing from excess timesteps in timesteps validation (PR #140, @emileten)
 
 0.10.0 (2021-11-22)
 -------------------
