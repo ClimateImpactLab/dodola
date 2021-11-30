@@ -400,7 +400,7 @@ def apply_qplad(
         out_zarr_region=out_zarr_region_d,
         root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
-        wet_day_post_correction=wet_day_post_correction,
+        wet_day_post_correction=wetday_post_correction,
     )
 
 
