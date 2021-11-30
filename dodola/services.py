@@ -406,6 +406,7 @@ def apply_qplad(
     out_zarr_region=None,
     root_attrs_json_file=None,
     new_attrs=None,
+    wet_day_post_correction=False,
 ):
     """Apply QPLAD adjustment factors to downscale a simulation, dump to NetCDF.
 
@@ -441,6 +442,8 @@ def apply_qplad(
         for the output data. ``new_attrs`` will be appended to this.
     new_attrs : dict or None, optional
         dict to merge with output Dataset's root ``attrs`` before output.
+    wet_day_post_correction : bool
+        Whether to apply wet day frequency correction on downscaled data
     """
     sim_ds = storage.read(simulation)
     qplad_ds = storage.read(qplad)
@@ -468,6 +471,9 @@ def apply_qplad(
     adjusted_ds = adjust_analogdownscaling(
         simulation=sim_ds, qplad=qplad_ds, variable=variable
     )
+
+    if wet_day_post_correction:
+        adjusted_ds = apply_wet_day_frequency_correction(adjusted_ds, "post")
 
     if new_attrs:
         adjusted_ds.attrs |= new_attrs
