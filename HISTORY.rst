@@ -5,7 +5,7 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-* 
+* Add an option to temporarily replace the target variable units in dodola services and use in CLI dodola for precip (PR #143, @emileten)
 
 
 0.11.0 (2021-11-30)
