@@ -194,7 +194,7 @@ def prime_qplad_output_zarrstore(
 
 @log_service
 def train_qdm(
-    historical, reference, out, variable, kind, sel_slice=None, isel_slice=None
+    historical, reference, out, variable, kind, sel_slice=None, isel_slice=None, units_replacement=None,
 ):
     """Train quantile delta mapping and dump to `out`
 
@@ -217,6 +217,8 @@ def train_qdm(
     isel_slice: dict or None, optional
         Integer-index slice hist and ref to subset before training. A mapping
         of {variable_name: slice(...)} passed to `xarray.Dataset.isel()`.
+    units_replacement: str or None, optional
+        temporary replacement of `variable` units attribute during qdm training
     """
     hist = storage.read(historical)
     ref = storage.read(reference)
@@ -238,9 +240,17 @@ def train_qdm(
         hist = hist.isel(isel_slice)
         ref = ref.isel(isel_slice)
 
+    if units_replacement:
+        initial_units = ref[variable].attrs["units"]
+        ref[variable].attrs["units"] = units_replacement
+        hist[variable].attrs["units"] = units_replacement
+
     qdm = train_quantiledeltamapping(
         reference=ref, historical=hist, variable=variable, kind=k
     )
+
+    if units_replacement:
+        qdm.ds[variable].attrs["units"] = initial_units
 
     storage.write(out, qdm.ds)
 
@@ -257,6 +267,7 @@ def apply_qdm(
     out_zarr_region=None,
     root_attrs_json_file=None,
     new_attrs=None,
+    units_replacement=None,
 ):
     """Apply trained QDM to adjust a years in a simulation, write to Zarr Store.
 
@@ -293,6 +304,8 @@ def apply_qdm(
         for the output data. ``new_attrs`` will be appended to this.
     new_attrs : dict or None, optional
         dict to merge with output Dataset's root ``attrs`` before output.
+    units_replacement: str or None, optional
+        temporary replacement of `variable` units attribute during qdm adjustment
     """
     sim_ds = storage.read(simulation)
     qdm_ds = storage.read(qdm)
@@ -314,6 +327,11 @@ def apply_qdm(
     qdm_ds.load()
     sim_ds.load()
 
+    if units_replacement:
+        initial_units = sim_ds[variable].attrs["units"]
+        sim_ds[variable].attrs["units"] = units_replacement
+        qdm_ds[variable].attrs["units"] = units_replacement
+
     adjusted_ds = adjust_quantiledeltamapping(
         simulation=sim_ds,
         variable=variable,
@@ -322,6 +340,9 @@ def apply_qdm(
         astype=sim_ds[variable].dtype,
         include_quantiles=True,
     )
+
+    if units_replacement:
+        adjusted_ds[variable].attrs["units"] = initial_units
 
     if new_attrs:
         adjusted_ds.attrs |= new_attrs
@@ -338,6 +359,7 @@ def train_qplad(
     kind,
     sel_slice=None,
     isel_slice=None,
+    units_replacement=None,
 ):
     """Train Quantile-Preserving, Localized Analogs Downscaling and dump to `out`
 
@@ -360,6 +382,8 @@ def train_qplad(
     isel_slice: dict or None, optional
         Integer-index slice hist and ref to subset before training. A mapping
         of {variable_name: slice(...)} passed to `xarray.Dataset.isel()`.
+    units_replacement: str or None, optional
+        temporary replacement of `variable` units attribute during qplad training
     """
     ref_coarse = storage.read(coarse_reference)
     ref_fine = storage.read(fine_reference)
@@ -385,12 +409,20 @@ def train_qplad(
     ref_coarse.load()
     ref_fine.load()
 
+    if units_replacement:
+        initial_units = ref_coarse[variable].attrs["units"]
+        ref_coarse[variable].attrs["units"] = units_replacement
+        ref_fine[variable].attrs["units"] = units_replacement
+
     qplad = train_analogdownscaling(
         coarse_reference=ref_coarse,
         fine_reference=ref_fine,
         variable=variable,
         kind=k,
     )
+
+    if units_replacement:
+        qplad.ds[variable].attrs["units"] = initial_units
 
     storage.write(out, qplad.ds)
 
@@ -407,6 +439,7 @@ def apply_qplad(
     root_attrs_json_file=None,
     new_attrs=None,
     wet_day_post_correction=False,
+    units_replacement=None,
 ):
     """Apply QPLAD adjustment factors to downscale a simulation, dump to NetCDF.
 
@@ -444,6 +477,8 @@ def apply_qplad(
         dict to merge with output Dataset's root ``attrs`` before output.
     wet_day_post_correction : bool
         Whether to apply wet day frequency correction on downscaled data
+    units_replacement: str or None, optional
+        temporary replacement of `variable` units attribute during qplad adjustment
     """
     sim_ds = storage.read(simulation)
     qplad_ds = storage.read(qplad)
@@ -468,9 +503,17 @@ def apply_qplad(
 
     variable = str(variable)
 
+    if units_replacement:
+        initial_units = sim_ds[variable].attrs["units"]
+        sim_ds[variable].attrs["units"] = units_replacement
+        qplad_ds[variable].attrs["units"] = units_replacement
+
     adjusted_ds = adjust_analogdownscaling(
         simulation=sim_ds, qplad=qplad_ds, variable=variable
     )
+
+    if units_replacement:
+        adjusted_ds[variable].attrs["units"] = initial_units
 
     if wet_day_post_correction:
         adjusted_ds = apply_wet_day_frequency_correction(adjusted_ds, "post")
