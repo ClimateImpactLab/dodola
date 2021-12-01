@@ -228,6 +228,8 @@ def apply_qdm(
             k, v = s.split("=")
             out_zarr_region_d[k] = slice(*map(int, v.split(",")))
 
+    units_replacement = "mm/day" if variable=="pr" else None
+
     services.apply_qdm(
         simulation=simulation,
         qdm=qdm,
@@ -241,6 +243,7 @@ def apply_qdm(
         out_zarr_region=out_zarr_region_d,
         root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
+        units_replacement=units_replacement,
     )
 
 
@@ -289,6 +292,8 @@ def train_qdm(
             k, v = s.split("=")
             isel_slices_d[k] = slice(*map(int, v.split(",")))
 
+    units_replacement = "mm/day" if variable=="pr" else None
+
     services.train_qdm(
         historical=historical,
         reference=reference,
@@ -297,6 +302,7 @@ def train_qdm(
         kind=kind,
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
+        units_replacement=units_replacement,
     )
 
 
@@ -390,6 +396,8 @@ def apply_qplad(
             k, v = s.split("=")
             out_zarr_region_d[k] = slice(*map(int, v.split(",")))
 
+    units_replacement = "mm/day" if variable=="pr" else None
+
     services.apply_qplad(
         simulation=simulation,
         qplad=qplad,
@@ -401,6 +409,7 @@ def apply_qplad(
         root_attrs_json_file=root_attrs_json_file,
         new_attrs=unpacked_attrs,
         wet_day_post_correction=wetday_post_correction,
+        units_replacement=units_replacement,
     )
 
 
@@ -453,6 +462,8 @@ def train_qplad(
             k, v = s.split("=")
             isel_slices_d[k] = slice(*map(int, v.split(",")))
 
+    units_replacement = "mm/day" if variable=="pr" else None
+
     services.train_qplad(
         coarse_reference=coarse_reference,
         fine_reference=fine_reference,
@@ -461,6 +472,7 @@ def train_qplad(
         kind=kind,
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
+        units_replacement=units_replacement
     )
 
 
