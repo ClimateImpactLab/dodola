@@ -707,7 +707,7 @@ def _test_temp_range(ds, var):
     Ensure temperature values are in a valid range
     """
     assert (ds[var].min() > 150) and (
-        ds[var].max() < 350
+        ds[var].max() < 360
     ), "{} values are invalid".format(var)
 
 

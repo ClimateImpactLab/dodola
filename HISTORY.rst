@@ -4,6 +4,7 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
+* Increase validation temperature range max to 360 (PR #142, @dgergel)
 * Distinguish missing from excess timesteps in timesteps validation (PR #140, @emileten)
 * Add post wet day correction option in CLI dodola (PR #141 @emileten)
 
