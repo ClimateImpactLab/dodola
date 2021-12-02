@@ -714,6 +714,7 @@ def remove_leapdays(x, out):
     noleap_ds = xclim_remove_leapdays(ds)
     storage.write(out, noleap_ds)
 
+
 @log_service
 def convert_360day_calendar(x, target, out):
     """converts a 360 day calendar to target and updates calendar attribute
@@ -730,6 +731,7 @@ def convert_360day_calendar(x, target, out):
     ds = storage.read(x)
     converted_target = xclim_convert_360day_calendar(ds, target)
     storage.write(out, converted_target)
+
 
 @log_service
 def correct_wet_day_frequency(x, out, process):

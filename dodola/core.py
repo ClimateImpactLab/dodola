@@ -560,7 +560,7 @@ def xclim_convert_360day_calendar(ds, target="noleap"):
     -------
     xr.Dataset
     """
-    if get_calendar(ds)!="360_day":
+    if get_calendar(ds) != "360_day":
         raise ValueError("tried to use 360 day calendar conversion for a non-360-day calendar dataset")
     ds_converted = convert_calendar(ds, target=target, align_on="random")
     return ds_converted
