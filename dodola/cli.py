@@ -228,7 +228,7 @@ def apply_qdm(
             k, v = s.split("=")
             out_zarr_region_d[k] = slice(*map(int, v.split(",")))
 
-    units_replacement = "mm/day" if variable=="pr" else None
+    units_replacement = "mm/day" if variable == "pr" else None
 
     services.apply_qdm(
         simulation=simulation,
@@ -292,7 +292,7 @@ def train_qdm(
             k, v = s.split("=")
             isel_slices_d[k] = slice(*map(int, v.split(",")))
 
-    units_replacement = "mm/day" if variable=="pr" else None
+    units_replacement = "mm/day" if variable == "pr" else None
 
     services.train_qdm(
         historical=historical,
@@ -396,7 +396,7 @@ def apply_qplad(
             k, v = s.split("=")
             out_zarr_region_d[k] = slice(*map(int, v.split(",")))
 
-    units_replacement = "mm/day" if variable=="pr" else None
+    units_replacement = "mm/day" if variable == "pr" else None
 
     services.apply_qplad(
         simulation=simulation,
@@ -462,7 +462,7 @@ def train_qplad(
             k, v = s.split("=")
             isel_slices_d[k] = slice(*map(int, v.split(",")))
 
-    units_replacement = "mm/day" if variable=="pr" else None
+    units_replacement = "mm/day" if variable == "pr" else None
 
     services.train_qplad(
         coarse_reference=coarse_reference,
