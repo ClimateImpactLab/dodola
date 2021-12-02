@@ -91,7 +91,9 @@ def _modeloutputfactory(
     return out
 
 
-def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01", calendar="standard"):
+def _gcmfactory(
+    x, gcm_variable="fakevariable", start_time="1950-01-01", calendar="standard"
+):
     """Populate xr.Dataset with synthetic GCM data for testing
     that includes extra dimensions and leap days to be removed.
     """
@@ -862,6 +864,7 @@ def test_remove_leapdays():
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
 
+
 def test_convert_360day_calendar():
 
     """Test that 360 day calendar conversion works, to noleap and standard"""
@@ -880,9 +883,9 @@ def test_convert_360day_calendar():
     ds_std = repository.read(out_std_url)
     ds_nlp = repository.read(out_nlp_url)
 
-    assert len(ds_std.sel(time="1950").time) ==  365 # gregorian in a non-leap year
-    assert len(ds_std.sel(time="1952").time) == 366 # gregorian in a leap year
-    assert len(ds_nlp.sel(time="1950").time) == 365 # noleap
+    assert len(ds_std.sel(time="1950").time) == 365  # gregorian in a non-leap year
+    assert len(ds_std.sel(time="1952").time) == 366  # gregorian in a leap year
+    assert len(ds_nlp.sel(time="1950").time) == 365  # noleap
 
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
