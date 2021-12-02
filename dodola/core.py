@@ -512,11 +512,11 @@ def standardize_gcm(ds, leapday_removal=True):
 
     cal = get_calendar(ds)
 
-    if cal == "360_calendar" or leapday_removal:  # conversion necessary
+    if cal == "360_day" or leapday_removal:  # conversion necessary
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
-        if cal == "360_calendar":
+        if cal == "360_day":
             if leapday_removal:
                 ds_converted = xclim_convert_360day_calendar(ds, target="noleap")
             else:
@@ -560,6 +560,8 @@ def xclim_convert_360day_calendar(ds, target="noleap"):
     -------
     xr.Dataset
     """
+    if get_calendar(ds)!="360_day":
+        raise ValueError("tried to use 360 day calendar conversion for a non-360-day calendar dataset")
     ds_converted = convert_calendar(ds, target=target, align_on="random")
     return ds_converted
 
