@@ -12,7 +12,7 @@ from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
 from xclim import sdba, set_options
 from xclim.sdba.utils import equally_spaced_nodes
-from xclim.core.calendar import convert_calendar
+from xclim.core.calendar import convert_calendar, get_calendar
 import xesmf as xe
 
 logger = logging.getLogger(__name__)
@@ -510,15 +510,26 @@ def standardize_gcm(ds, leapday_removal=True):
             # we want this to fail, as pr units are something we don't expect
             raise ValueError("check units: pr units attribute is not kg m-2 s-1")
 
-    if leapday_removal:
+    cal = get_calendar(ds)
+
+    if cal == "360_calendar" or leapday_removal:  # conversion necessary
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
-        # remove leap days and update calendar
-        ds_noleap = xclim_remove_leapdays(ds_cleaned)
+        if cal == "360_calendar":
+            if leapday_removal:
+                ds_converted = xclim_convert_360day_calendar(ds, target="noleap")
+            else:
+                ds_converted = xclim_convert_360day_calendar(ds, target="standard")
+        else:
+            # remove leap days and update calendar
+            ds_converted = xclim_remove_leapdays(ds_cleaned)
 
         # rechunk, otherwise chunks are different sizes
-        ds_out = ds_noleap.chunk({"time": 730, "lat": len(ds.lat), "lon": len(ds.lon)})
+        ds_out = ds_converted.chunk(
+            {"time": 730, "lat": len(ds.lat), "lon": len(ds.lon)}
+        )
+
     else:
         ds_out = ds_cleaned
 
@@ -538,6 +549,19 @@ def xclim_remove_leapdays(ds):
     """
     ds_noleap = convert_calendar(ds, target="noleap")
     return ds_noleap
+
+
+def xclim_convert_360day_calendar(ds, target="noleap"):
+    """
+    Parameters
+    ----------
+    ds : xr.Dataset
+    Returns
+    -------
+    xr.Dataset
+    """
+    ds_converted = convert_calendar(ds, target=target, align_on="random")
+    return ds_converted
 
 
 def apply_wet_day_frequency_correction(ds, process):
