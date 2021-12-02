@@ -90,7 +90,7 @@ def _modeloutputfactory(
     return out
 
 
-def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01"):
+def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01", calendar="standard"):
     """Populate xr.Dataset with synthetic GCM data for testing
     that includes extra dimensions and leap days to be removed.
     """
@@ -99,7 +99,7 @@ def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01"):
         raise ValueError("'x' needs dim of one")
 
     time = xr.cftime_range(
-        start=start_time, freq="D", periods=len(x), calendar="standard"
+        start=start_time, freq="D", periods=len(x), calendar=calendar
     )
 
     out = xr.Dataset(
@@ -861,6 +861,29 @@ def test_remove_leapdays():
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
 
+def test_convert_360day_calendar():
+
+    """Test that 360 day calendar conversion works, to noleap and standard"""
+    # Setup input data
+    # @TODO put that in a fixture and use it in leap days removal test as well
+    n = 1500  # need over four years of daily data
+    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
+    ds_fake = _gcmfactory(ts, start_time="1950-01-01")
+
+    in_url = "memory://test_convert_360day_calendar/an/input/path.zarr"
+    out_std_url = "memory://test_convert_360day_calendar_std/an/output/path.zarr"
+    out_nlp_url = "memory://test_convert_360day_calendar_nlp/an/output/path.zarr"
+
+    repository.write(in_url, ds_fake)
+
+    std = convert_360day_calendar(in_url, 'standard' out_url)
+    nlp = convert_360day_calendar(in_url, 'noleap', out_url)
+    ds_std = repository.read(out_std_url)
+    ds_nlp = repository.read(out_std_nlp)
+
+    # @TODO check that for the nlp, the missing 5 days have been added (length 365)
+    # check that for the std, the missing 5 days have been added in a no leap year (length 365)
+    # check that for the std, the missing 5 days have been added on top of the leap year day, so six days (length 366)
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):
