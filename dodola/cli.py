@@ -472,7 +472,7 @@ def train_qplad(
         kind=kind,
         sel_slice=sel_slices_d,
         isel_slice=isel_slices_d,
-        units_replacement=units_replacement
+        units_replacement=units_replacement,
     )
 
 

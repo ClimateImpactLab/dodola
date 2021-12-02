@@ -194,7 +194,14 @@ def prime_qplad_output_zarrstore(
 
 @log_service
 def train_qdm(
-    historical, reference, out, variable, kind, sel_slice=None, isel_slice=None, units_replacement=None,
+    historical,
+    reference,
+    out,
+    variable,
+    kind,
+    sel_slice=None,
+    isel_slice=None,
+    units_replacement=None,
 ):
     """Train quantile delta mapping and dump to `out`
 
