@@ -15,6 +15,7 @@ from dodola.services import (
     rechunk,
     regrid,
     remove_leapdays,
+    convert_360day_calendar,
     clean_cmip6,
     downscale,
     correct_wet_day_frequency,
@@ -868,22 +869,21 @@ def test_convert_360day_calendar():
     # @TODO put that in a fixture and use it in leap days removal test as well
     n = 1500  # need over four years of daily data
     ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
-    ds_fake = _gcmfactory(ts, start_time="1950-01-01")
+    ds_fake_360 = _gcmfactory(ts, start_time="1950-01-01", calendar="360_day")
 
     in_url = "memory://test_convert_360day_calendar/an/input/path.zarr"
     out_std_url = "memory://test_convert_360day_calendar_std/an/output/path.zarr"
     out_nlp_url = "memory://test_convert_360day_calendar_nlp/an/output/path.zarr"
-
-    repository.write(in_url, ds_fake)
-
-    std = convert_360day_calendar(in_url, 'standard' out_url)
-    nlp = convert_360day_calendar(in_url, 'noleap', out_url)
+    repository.write(in_url, ds_fake_360)
+    convert_360day_calendar(in_url, "standard", out_std_url)
+    convert_360day_calendar(in_url, "noleap", out_nlp_url)
     ds_std = repository.read(out_std_url)
-    ds_nlp = repository.read(out_std_nlp)
+    ds_nlp = repository.read(out_nlp_url)
 
-    # @TODO check that for the nlp, the missing 5 days have been added (length 365)
-    # check that for the std, the missing 5 days have been added in a no leap year (length 365)
-    # check that for the std, the missing 5 days have been added on top of the leap year day, so six days (length 366)
+    assert len(ds_std.sel(time="1950").time) ==  365 # gregorian in a non-leap year
+    assert len(ds_std.sel(time="1952").time) == 366 # gregorian in a leap year
+    assert len(ds_nlp.sel(time="1950").time) == 365 # noleap
+
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):
