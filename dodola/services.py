@@ -9,6 +9,7 @@ from dodola.core import (
     xesmf_regrid,
     standardize_gcm,
     xclim_remove_leapdays,
+    xclim_convert_360day_calendar,
     apply_downscaling,
     apply_wet_day_frequency_correction,
     train_quantiledeltamapping,
