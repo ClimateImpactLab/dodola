@@ -666,12 +666,6 @@ def _test_timesteps(ds, data_type, time_period):
                         data_type, len(ds.time)
                     )
                 )
-            if len(ds.time) < 31390:
-                warnings.warn(
-                    "projection {} file goes through 2099 instead of 2100, has {}".format(
-                        data_type, len(ds.time)
-                    )
-                )
 
     elif time_period == "historical":
         # bias corrected/downscaled data should have 1950 - 2014
