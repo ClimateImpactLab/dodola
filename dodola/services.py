@@ -736,7 +736,7 @@ def correct_wet_day_frequency(x, out, process):
 
 
 @log_service
-def correct_small_dtr(x, out):
+def correct_small_dtr(x, out, threshold=1.0):
     """Corrects small diurnal temperature range (DTR) values in a dataset
 
     Parameters
@@ -745,10 +745,11 @@ def correct_small_dtr(x, out):
         Storage URL to input xr.Dataset that will be corrected.
     out : str
         Storage URL to write corrected output to.
-
+    threshold : int or float, optional
+        All DTR values lower than this value are corrected to the threshold value.
     """
     ds = storage.read(x)
-    ds_corrected = apply_small_dtr_correction(ds)
+    ds_corrected = apply_small_dtr_correction(ds, threshold)
     storage.write(out, ds_corrected)
 
 

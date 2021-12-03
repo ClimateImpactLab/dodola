@@ -570,7 +570,7 @@ def apply_wet_day_frequency_correction(ds, process):
     return ds_corrected
 
 
-def apply_small_dtr_correction(ds):
+def apply_small_dtr_correction(ds, threshold):
     """
     Converts all diurnal temperature range (DTR) values below a threshold
     to the threshold value.
@@ -578,13 +578,13 @@ def apply_small_dtr_correction(ds):
     Parameters
     ----------
     ds : xr.Dataset
+    threshold : int or float
 
     Returns
     -------
     xr.Dataset
 
     """
-    threshold = 1.0  # Kelvin
 
     ds_corrected = ds.where(ds >= threshold, threshold)
     return ds_corrected

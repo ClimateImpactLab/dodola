@@ -655,9 +655,12 @@ def correct_wetday_frequency(x, out, process):
 )
 @click.argument("x", required=True)
 @click.option("--out", "-o", required=True)
-def correct_dtr(x, out):
+@click.option(
+    "--threshold", "-t", help="Threshold for correcting small DTR values up to"
+)
+def correct_dtr(x, out, threshold=1.0):
     """Correct small values of diurnal temperature range (DTR) in a dataset"""
-    services.correct_small_dtr(str(x), out=str(out))
+    services.correct_small_dtr(str(x), out=str(out), threshold=float(threshold))
 
 
 @dodola_cli.command(help="Validate a CMIP6, bias corrected or downscaled dataset")
