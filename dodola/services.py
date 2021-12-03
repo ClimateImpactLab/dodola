@@ -9,7 +9,6 @@ from dodola.core import (
     xesmf_regrid,
     standardize_gcm,
     xclim_remove_leapdays,
-    xclim_convert_360day_calendar,
     apply_downscaling,
     apply_wet_day_frequency_correction,
     train_quantiledeltamapping,
@@ -713,24 +712,6 @@ def remove_leapdays(x, out):
     ds = storage.read(x)
     noleap_ds = xclim_remove_leapdays(ds)
     storage.write(out, noleap_ds)
-
-
-@log_service
-def convert_360day_calendar(x, target, out):
-    """converts a 360 day calendar to target and updates calendar attribute
-
-    Parameters
-    ----------
-    x : str
-        Storage URL to input xr.Dataset.
-    target : str
-        target calendar name
-    out : str
-        Storage URL to write output to.
-    """
-    ds = storage.read(x)
-    converted_target = xclim_convert_360day_calendar(ds, target)
-    storage.write(out, converted_target)
 
 
 @log_service
