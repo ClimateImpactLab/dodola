@@ -512,16 +512,16 @@ def standardize_gcm(ds, leapday_removal=True):
 
     cal = get_calendar(ds)
 
-    if cal == "360_day" or leapday_removal:  # conversion necessary
+    if cal == "360_day" or leapday_removal:  # calendar conversion is necessary in either case
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
         if cal == "360_day":
-            if leapday_removal:
-                ds_converted = xclim_convert_360day_calendar(ds, target="noleap")
-            else:
-                ds_converted = xclim_convert_360day_calendar(ds, target="standard")
-        else:
+            if leapday_removal: # 360 day -> noleap
+                ds_converted = xclim_convert_360day_calendar_interpolate(ds, target="noleap", align_on="random", interpolation="linear")
+            else: # 360 day -> standard
+                ds_converted = xclim_convert_360day_calendar_interpolate(ds, target="standard", align_on="random", interpolation="linear")
+        else: # any -> noleap
             # remove leap days and update calendar
             ds_converted = xclim_remove_leapdays(ds_cleaned)
 
@@ -551,19 +551,38 @@ def xclim_remove_leapdays(ds):
     return ds_noleap
 
 
-def xclim_convert_360day_calendar(ds, target="noleap"):
+def xclim_convert_360day_calendar_interpolate(ds, target="noleap", align_on="random", interpolation=None, return_indices=False):
     """
     Parameters
     ----------
     ds : xr.Dataset
+    target : str
+        see xclim.core.calendar.convert_calendar
+    align_on : str
+        see xclim.core.calendar.convert_calendar
+    interpolation : None or str
+        passed to xr.Dataset.interpolate_na if not None
+    return_indices : bool
+        on top of the converted dataset, return a list of the array indices identifying values that were inserted.
+        This assumes there were no NaNs before conversion.
     Returns
     -------
-    xr.Dataset
+    tuple(xr.Dataset, xr.Dataset) if return_indices is True, xr.Dataset otherwise.
     """
+
     if get_calendar(ds) != "360_day":
         raise ValueError("tried to use 360 day calendar conversion for a non-360-day calendar dataset")
-    ds_converted = convert_calendar(ds, target=target, align_on="random")
-    return ds_converted
+    ds_converted = convert_calendar(ds, target=target, align_on=align_on, missing=np.NaN)
+
+    if interpolation:
+        ds_out = ds_converted.interpolate_na('time', interpolation)
+    else:
+        ds_out = ds_converted
+
+    if return_indices:
+        return (ds_out, xr.ufuncs.isnan(ds_converted))
+    else:
+        return ds_out
 
 
 def apply_wet_day_frequency_correction(ds, process):
