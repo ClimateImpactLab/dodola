@@ -5,7 +5,7 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-* 
+* Add diurnal temperature range (DTR) correction for small DTR values below 1 (converts them to 1) (PR #145, @dgergel)
 
 
 0.11.0 (2021-11-30)
