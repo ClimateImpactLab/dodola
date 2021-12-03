@@ -5,7 +5,7 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-* 
+* Decrease allowed timesteps for bias corrected/downscaled files in validation to account for models that only go through 2099 (PR #146, @dgergel) 
 
 
 0.11.0 (2021-11-30)
