@@ -15,7 +15,6 @@ from dodola.services import (
     rechunk,
     regrid,
     remove_leapdays,
-    convert_360day_calendar,
     clean_cmip6,
     downscale,
     correct_wet_day_frequency,
@@ -92,7 +91,7 @@ def _modeloutputfactory(
 
 
 def _gcmfactory(
-    x, gcm_variable="fakevariable", start_time="1950-01-01", calendar="standard"
+    x, gcm_variable="fakevariable", start_time="1950-01-01"
 ):
     """Populate xr.Dataset with synthetic GCM data for testing
     that includes extra dimensions and leap days to be removed.
@@ -102,7 +101,7 @@ def _gcmfactory(
         raise ValueError("'x' needs dim of one")
 
     time = xr.cftime_range(
-        start=start_time, freq="D", periods=len(x), calendar=calendar
+        start=start_time, freq="D", periods=len(x), calendar="standard"
     )
 
     out = xr.Dataset(
@@ -863,30 +862,6 @@ def test_remove_leapdays():
 
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
-
-
-def test_convert_360day_calendar():
-
-    """Test that 360 day calendar conversion works, to noleap and standard"""
-    # Setup input data
-    # @TODO put that in a fixture and use it in leap days removal test as well
-    n = 1500  # need over four years of daily data
-    ts = np.sin(np.linspace(-10 * np.pi, 10 * np.pi, n)) * 0.5
-    ds_fake_360 = _gcmfactory(ts, start_time="1950-01-01", calendar="360_day")
-
-    in_url = "memory://test_convert_360day_calendar/an/input/path.zarr"
-    out_std_url = "memory://test_convert_360day_calendar_std/an/output/path.zarr"
-    out_nlp_url = "memory://test_convert_360day_calendar_nlp/an/output/path.zarr"
-    repository.write(in_url, ds_fake_360)
-    convert_360day_calendar(in_url, "standard", out_std_url)
-    convert_360day_calendar(in_url, "noleap", out_nlp_url)
-    ds_std = repository.read(out_std_url)
-    ds_nlp = repository.read(out_nlp_url)
-
-    assert len(ds_std.sel(time="1950").time) == 365  # gregorian in a non-leap year
-    assert len(ds_std.sel(time="1952").time) == 366  # gregorian in a leap year
-    assert len(ds_nlp.sel(time="1950").time) == 365  # noleap
-
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):
