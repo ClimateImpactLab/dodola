@@ -90,9 +90,7 @@ def _modeloutputfactory(
     return out
 
 
-def _gcmfactory(
-    x, gcm_variable="fakevariable", start_time="1950-01-01"
-):
+def _gcmfactory(x, gcm_variable="fakevariable", start_time="1950-01-01"):
     """Populate xr.Dataset with synthetic GCM data for testing
     that includes extra dimensions and leap days to be removed.
     """
@@ -862,6 +860,7 @@ def test_remove_leapdays():
 
     # check to be sure that leap days have been removed
     assert len(ds_leapyear.time) == 365
+
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):

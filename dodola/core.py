@@ -512,16 +512,22 @@ def standardize_gcm(ds, leapday_removal=True):
 
     cal = get_calendar(ds)
 
-    if cal == "360_day" or leapday_removal:  # calendar conversion is necessary in either case
+    if (
+        cal == "360_day" or leapday_removal
+    ):  # calendar conversion is necessary in either case
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
         if cal == "360_day":
-            if leapday_removal: # 360 day -> noleap
-                ds_converted = xclim_convert_360day_calendar_interpolate(ds, target="noleap", align_on="random", interpolation="linear")
-            else: # 360 day -> standard
-                ds_converted = xclim_convert_360day_calendar_interpolate(ds, target="standard", align_on="random", interpolation="linear")
-        else: # any -> noleap
+            if leapday_removal:  # 360 day -> noleap
+                ds_converted = xclim_convert_360day_calendar_interpolate(
+                    ds, target="noleap", align_on="random", interpolation="linear"
+                )
+            else:  # 360 day -> standard
+                ds_converted = xclim_convert_360day_calendar_interpolate(
+                    ds, target="standard", align_on="random", interpolation="linear"
+                )
+        else:  # any -> noleap
             # remove leap days and update calendar
             ds_converted = xclim_remove_leapdays(ds_cleaned)
 
@@ -551,7 +557,9 @@ def xclim_remove_leapdays(ds):
     return ds_noleap
 
 
-def xclim_convert_360day_calendar_interpolate(ds, target="noleap", align_on="random", interpolation=None, return_indices=False):
+def xclim_convert_360day_calendar_interpolate(
+    ds, target="noleap", align_on="random", interpolation=None, return_indices=False
+):
     """
     Parameters
     ----------
@@ -571,11 +579,15 @@ def xclim_convert_360day_calendar_interpolate(ds, target="noleap", align_on="ran
     """
 
     if get_calendar(ds) != "360_day":
-        raise ValueError("tried to use 360 day calendar conversion for a non-360-day calendar dataset")
-    ds_converted = convert_calendar(ds, target=target, align_on=align_on, missing=np.NaN)
+        raise ValueError(
+            "tried to use 360 day calendar conversion for a non-360-day calendar dataset"
+        )
+    ds_converted = convert_calendar(
+        ds, target=target, align_on=align_on, missing=np.NaN
+    )
 
     if interpolation:
-        ds_out = ds_converted.interpolate_na('time', interpolation)
+        ds_out = ds_converted.interpolate_na("time", interpolation)
     else:
         ds_out = ds_converted
 
