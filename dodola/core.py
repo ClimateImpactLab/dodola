@@ -570,6 +570,26 @@ def apply_wet_day_frequency_correction(ds, process):
     return ds_corrected
 
 
+def apply_small_dtr_correction(ds):
+    """
+    Converts all diurnal temperature range (DTR) values below a threshold
+    to the threshold value.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+
+    Returns
+    -------
+    xr.Dataset
+
+    """
+    threshold = 1.0  # Kelvin
+
+    ds_corrected = ds.where(ds >= threshold, threshold)
+    return ds_corrected
+
+
 def validate_dataset(ds, var, data_type, time_period="future"):
     """
     Validate a Dataset. Valid for CMIP6, bias corrected and downscaled.

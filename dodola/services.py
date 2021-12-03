@@ -16,6 +16,7 @@ from dodola.core import (
     train_analogdownscaling,
     adjust_analogdownscaling,
     validate_dataset,
+    apply_small_dtr_correction,
 )
 import dodola.repository as storage
 
@@ -731,6 +732,23 @@ def correct_wet_day_frequency(x, out, process):
     """
     ds = storage.read(x)
     ds_corrected = apply_wet_day_frequency_correction(ds, process=process)
+    storage.write(out, ds_corrected)
+
+
+@log_service
+def correct_small_dtr(x, out):
+    """Corrects small diurnal temperature range (DTR) values in a dataset
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be corrected.
+    out : str
+        Storage URL to write corrected output to.
+
+    """
+    ds = storage.read(x)
+    ds_corrected = apply_small_dtr_correction(ds)
     storage.write(out, ds_corrected)
 
 
