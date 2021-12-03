@@ -918,9 +918,9 @@ def test_correct_small_dtr():
 
     # all values below threshold should have been set to the threshold value
     assert (
-        ds_dtr_corrected["fakevariable"].where(
-            ds_dtr["fakevariable"] < threshold, drop=True
-        ).all()
+        ds_dtr_corrected["fakevariable"]
+        .where(ds_dtr["fakevariable"] < threshold, drop=True)
+        .all()
         >= threshold
     )
 
