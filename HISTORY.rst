@@ -6,7 +6,7 @@ History
 0.xx.x (xxxx-xx-xx)
 -------------------
 * Add diurnal temperature range (DTR) correction for small DTR values below 1 (converts them to 1) (PR #145, @dgergel)
-
+* Exclude poles from diurnal temperature range (DTR) nan automated validation (PR #147 @emileten)
 
 0.11.1 (2021-12-03)
 -------------------
