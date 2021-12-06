@@ -13,6 +13,7 @@ import xarray as xr
 from xclim import sdba, set_options
 from xclim.sdba.utils import equally_spaced_nodes
 from xclim.core.calendar import convert_calendar
+from xclim.core import units as xclim_units
 import xesmf as xe
 
 logger = logging.getLogger(__name__)
@@ -523,6 +524,37 @@ def standardize_gcm(ds, leapday_removal=True):
         ds_out = ds_cleaned
 
     return ds_out
+
+
+def xclim_units_any2pint(ds, var):
+    """
+    Parameters
+    ----------
+    ds : xr.Dataset
+    var : str
+
+    Returns
+    -------
+    xr.Dataset with `var` units str attribute converted to xclim's pint registry format
+    """
+    ds[var].attrs["units"] = str(xclim_units.units2pint(ds[var].attrs["units"]))
+    return ds
+
+
+
+def xclim_units_pint2cf(ds, var):
+    """
+    Parameters
+    ----------
+    ds : xr.Dataset
+    var : str
+
+    Returns
+    -------
+    xr.Dataset with `var` units str attribute converted to CF format
+    """
+    ds[var].attrs["units"] = xclim.core.units.pint2cfunits(xclim.core.units.units2pint(ds[var].attrs["units"]))
+    return ds
 
 
 def xclim_remove_leapdays(ds):
