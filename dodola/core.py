@@ -620,7 +620,10 @@ def validate_dataset(ds, var, data_type, time_period="future"):
     def memory_intensive_tests(ds, v, t):
         d = ds.sel(time=str(t))
 
-        _test_for_nans(d, v)
+        if v == "dtr":
+            _test_for_nans_dtr(d)
+        else:
+            _test_for_nans(d, v)
 
         if v == "tasmin":
             _test_temp_range(d, v)
@@ -653,6 +656,11 @@ def _test_for_nans(ds, var):
     """
     assert ds[var].isnull().sum() == 0, "there are nans!"
 
+def _test_for_nans_dtr(ds):
+    """
+    Tests for presence of NaNs excluding poles
+    """
+    assert ds.where((ds.lat != 89.5) & (ds.lat != -89.5), drop=True)["dtr"].isnull().sum() == 0, "there are nans!"
 
 def _test_timesteps(ds, data_type, time_period):
     """
