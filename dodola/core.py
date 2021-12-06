@@ -656,11 +656,16 @@ def _test_for_nans(ds, var):
     """
     assert ds[var].isnull().sum() == 0, "there are nans!"
 
+
 def _test_for_nans_dtr(ds):
     """
     Tests for presence of NaNs excluding poles
     """
-    assert ds.where((ds.lat != 89.5) & (ds.lat != -89.5), drop=True)["dtr"].isnull().sum() == 0, "there are nans!"
+    assert (
+        ds.where((ds.lat != 89.5) & (ds.lat != -89.5), drop=True)["dtr"].isnull().sum()
+        == 0
+    ), "there are nans!"
+
 
 def _test_timesteps(ds, data_type, time_period):
     """
