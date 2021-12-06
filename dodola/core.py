@@ -570,6 +570,26 @@ def apply_wet_day_frequency_correction(ds, process):
     return ds_corrected
 
 
+def apply_small_dtr_correction(ds, threshold):
+    """
+    Converts all diurnal temperature range (DTR) values below a threshold
+    to the threshold value.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    threshold : int or float
+
+    Returns
+    -------
+    xr.Dataset
+
+    """
+
+    ds_corrected = ds.where(ds >= threshold, threshold)
+    return ds_corrected
+
+
 def validate_dataset(ds, var, data_type, time_period="future"):
     """
     Validate a Dataset. Valid for CMIP6, bias corrected and downscaled.
@@ -640,7 +660,7 @@ def _test_timesteps(ds, data_type, time_period):
     for the data_type/time_period combination.
     """
     if time_period == "future":
-        # bias corrected/downscaled data should have 2015 - 2100
+        # bias corrected/downscaled data has 2015 - 2099 or 2100 depending on the model
         # CMIP6 future data has an additional ten years from the historical model run
         if data_type == "cmip6":
             assert (
@@ -656,16 +676,17 @@ def _test_timesteps(ds, data_type, time_period):
                 )
         else:
             assert (
-                len(ds.time) >= 31390
+                len(ds.time) >= 31025  # 2015 - 2099
             ), "projection {} file is missing timesteps, has {}".format(
                 data_type, len(ds.time)
             )
-            if len(ds.time) > 31390:
+            if len(ds.time) > 31390:  # 2015 - 2100
                 warnings.warn(
                     "projection {} file has excess timesteps, has {}".format(
                         data_type, len(ds.time)
                     )
                 )
+
     elif time_period == "historical":
         # bias corrected/downscaled data should have 1950 - 2014
         # CMIP6 historical data has an additional ten years from SSP 370 (or 245 if 370 not available)

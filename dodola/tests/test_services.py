@@ -24,6 +24,7 @@ from dodola.services import (
     apply_qplad,
     validate,
     get_attrs,
+    correct_small_dtr,
 )
 import dodola.repository as repository
 
@@ -899,6 +900,29 @@ def test_correct_wet_day_frequency(process):
             .all()
             == 0.0
         )
+
+
+def test_correct_small_dtr():
+    """Test that diurnal temperature range (DTR) correction corrects small values of DTR"""
+    # Make some fake dtr data
+    n = 700
+    threshold = 1.0
+    ts = np.linspace(0.0, 10, num=n)
+    ds_dtr = _datafactory(ts, start_time="1950-01-01")
+    in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
+    out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
+    repository.write(in_url, ds_dtr)
+
+    correct_small_dtr(in_url, out=out_url)
+    ds_dtr_corrected = repository.read(out_url)
+
+    # all values below threshold should have been set to the threshold value
+    assert (
+        ds_dtr_corrected["fakevariable"]
+        .where(ds_dtr["fakevariable"] < threshold, drop=True)
+        .all()
+        >= threshold
+    )
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
