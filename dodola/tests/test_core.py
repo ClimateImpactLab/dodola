@@ -407,3 +407,15 @@ def test_xclim_convert_360day_calendar_interpolate():
         )
         == 6
     )
+
+    # checking interpolation fails with pre existing nans
+    ts[0] = np.NaN
+    ds_fake_360_with_nan = _timeseriesfactory(
+        ts, start_dt="1951-01-01", calendar="360_day"
+    )  # starting at 1951 to use 1952 leap year
+
+    with pytest.raises(AssertionError):
+        xclim_convert_360day_calendar_interpolate(
+            ds_fake_360_with_nan, "standard", "random", "linear", True
+        )  # should fail if pushed to interpolate with pre existing NaN
+
