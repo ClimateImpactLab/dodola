@@ -583,15 +583,16 @@ def xclim_convert_360day_calendar_interpolate(
             "tried to use 360 day calendar conversion for a non-360-day calendar dataset"
         )
 
+    for var in ds:
+        assert (
+            ds[var].isnull().sum() == 0
+        ), "360 days calendar conversion with interpolation : there are nans !"
+
     ds_converted = convert_calendar(
         ds, target=target, align_on=align_on, missing=np.NaN
     )
 
     if interpolation:
-        for var in ds:
-            assert (
-                ds[var].isnull().sum() == 0
-            ), "360 days calendar conversion with interpolation : there are nans !"
         ds_out = ds_converted.interpolate_na("time", interpolation)
     else:
         ds_out = ds_converted
