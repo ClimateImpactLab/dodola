@@ -418,4 +418,3 @@ def test_xclim_convert_360day_calendar_interpolate():
         xclim_convert_360day_calendar_interpolate(
             ds_fake_360_with_nan, "standard", "random", "linear", True
         )  # should fail if pushed to interpolate with pre existing NaN
-
