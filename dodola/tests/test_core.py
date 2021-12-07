@@ -370,7 +370,7 @@ def test_xclim_convert_360day_calendar_interpolate():
 
     # conversions
     to_standard_no_interp = xclim_convert_360day_calendar_interpolate(
-        ds_fake_360, "standard", "random"
+        ds_fake_360, "standard", "random", None, False
     )  # -> gregorian without interpolation inserts NaNs
     to_standard = xclim_convert_360day_calendar_interpolate(
         ds_fake_360, "standard", "random", "linear", True

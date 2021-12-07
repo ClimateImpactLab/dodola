@@ -558,7 +558,7 @@ def xclim_remove_leapdays(ds):
 
 
 def xclim_convert_360day_calendar_interpolate(
-    ds, target="noleap", align_on="random", interpolation=None, return_indices=False
+    ds, target="noleap", align_on="random", interpolation="linear", return_indices=False
 ):
     """
     Parameters
@@ -567,7 +567,8 @@ def xclim_convert_360day_calendar_interpolate(
     target : str
         see xclim.core.calendar.convert_calendar
     align_on : str
-        see xclim.core.calendar.convert_calendar
+        this determines which days in the calendar will have missing values or will be the product of interpolation, if there is.
+        It could be every year the same calendar days, or the days could randomly change. see xclim.core.calendar.convert_calendar
     interpolation : None or str
         passed to xr.Dataset.interpolate_na if not None
     return_indices : bool
@@ -576,6 +577,15 @@ def xclim_convert_360day_calendar_interpolate(
     Returns
     -------
     tuple(xr.Dataset, xr.Dataset) if return_indices is True, xr.Dataset otherwise.
+
+    Notes
+    -----
+    The default values of `target`, `align_on` and `interpolation` mean that our default approach is equivalent to that of the LOCA
+    calendar conversion [1] for conversion from 360 days calendars to noleap calendars. In that approach, 5 calendar days are added (noleap
+    calendars always have 365 days) to each year. But those calendar days are not necessarily those that will have their value be the product
+    of interpolation. The days for which we interpolate are selected randomly every block of 72 days, so that they change every year.
+
+    [1] http://loca.ucsd.edu/loca-calendar/
     """
 
     if get_calendar(ds) != "360_day":
