@@ -558,7 +558,12 @@ def xclim_remove_leapdays(ds):
 
 
 def xclim_convert_360day_calendar_interpolate(
-    ds, target="noleap", align_on="random", interpolation="linear", return_indices=False, ignore_nans=True
+    ds,
+    target="noleap",
+    align_on="random",
+    interpolation="linear",
+    return_indices=False,
+    ignore_nans=True,
 ):
     """
     Parameters
