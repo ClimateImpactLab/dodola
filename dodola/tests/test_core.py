@@ -17,7 +17,6 @@ from dodola.core import (
 
 def _timeseriesfactory(
     x, start_dt="1995-01-01", variable_name="fakevariable", calendar="noleap", units="K"
-
 ):
     """Populate xr.Dataset with synthetic data for testing, only has time coords"""
     start_time = str(start_dt)
@@ -359,7 +358,6 @@ def test_qplad_integration_af_quantiles():
     assert (downscaled[variable].values[:, lat_pt]).sum() == 564
 
 
-
 def test_xclim_units_conversion():
 
     initial_unit = "mm d-1"
@@ -373,6 +371,7 @@ def test_xclim_units_conversion():
     assert xclim_pint_style["fake_variable"].attrs["units"] == "millimeter / day"
     back_to_cf_style = xclim_units_pint2cf(xclim_pint_style, "fake_variable")
     assert back_to_cf_style["fake_variable"].attrs["units"] == initial_unit
+
 
 def test_xclim_convert_360day_calendar_interpolate():
 
@@ -436,4 +435,3 @@ def test_xclim_convert_360day_calendar_interpolate():
         xclim_convert_360day_calendar_interpolate(
             ds_fake_360_with_nan, "standard", "random", "linear", True, False
         )  # should fail if pushed to interpolate with pre existing NaN
-
