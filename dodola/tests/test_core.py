@@ -11,11 +11,13 @@ from dodola.core import (
     _add_cyclic,
     xclim_units_any2pint,
     xclim_units_pint2cf,
+    xclim_convert_360day_calendar_interpolate,
 )
 
 
 def _timeseriesfactory(
-    x, start_dt="1995-01-01", variable_name="fakevariable", units="K"
+    x, start_dt="1995-01-01", variable_name="fakevariable", calendar="noleap", units="K"
+
 ):
     """Populate xr.Dataset with synthetic data for testing, only has time coords"""
     start_time = str(start_dt)
@@ -23,7 +25,7 @@ def _timeseriesfactory(
         raise ValueError("'x' needs dim of one")
 
     time = xr.cftime_range(
-        start=start_time, freq="D", periods=len(x), calendar="noleap"
+        start=start_time, freq="D", periods=len(x), calendar=calendar
     )
 
     out = xr.Dataset({variable_name: (["time"], x)}, coords={"time": time})
@@ -357,6 +359,7 @@ def test_qplad_integration_af_quantiles():
     assert (downscaled[variable].values[:, lat_pt]).sum() == 564
 
 
+
 def test_xclim_units_conversion():
 
     initial_unit = "mm d-1"
@@ -370,3 +373,67 @@ def test_xclim_units_conversion():
     assert xclim_pint_style["fake_variable"].attrs["units"] == "millimeter / day"
     back_to_cf_style = xclim_units_pint2cf(xclim_pint_style, "fake_variable")
     assert back_to_cf_style["fake_variable"].attrs["units"] == initial_unit
+
+def test_xclim_convert_360day_calendar_interpolate():
+
+    """Test that conversions of a 360-day-calendar time indexed dataset work"""
+
+    # fake data
+    ts = (
+        np.sin(np.linspace(-10 * np.pi, 10 * np.pi, 720)) * 0.5
+    )  # two 360-days years of data
+    ds_fake_360 = _timeseriesfactory(
+        ts, start_dt="1951-01-01", calendar="360_day"
+    )  # starting at 1951 to use 1952 leap year
+
+    # conversions
+    to_standard_no_interp = xclim_convert_360day_calendar_interpolate(
+        ds_fake_360, "standard", "random", None, False
+    )  # -> gregorian without interpolation inserts NaNs
+    to_standard = xclim_convert_360day_calendar_interpolate(
+        ds_fake_360, "standard", "random", "linear", True
+    )  # -> gregorian with linear interpolation (new = (previous + next / 2))
+    to_noleap = xclim_convert_360day_calendar_interpolate(
+        ds_fake_360, "noleap", "random", "linear", True
+    )  # -> noleap with linear interpolation
+
+    # check lengths of TS
+    assert (
+        len(to_standard_no_interp.sel(time="1951").time) == 365
+    )  # gregorian in a non-leap year without interp
+    assert (
+        len(to_standard[0].sel(time="1951").time) == 365
+    )  # gregorian in a non-leap year
+    assert len(to_standard[0].sel(time="1952").time) == 366  # gregorian in a leap year
+    assert len(to_noleap[0].sel(time="1952").time) == 365  # noleap in a leap year
+
+    # check values of TS with interpolation in 360 -> no leap case.
+    interpolated = np.argwhere(to_noleap[1]["fakevariable"].values)[1][0]
+    assert (
+        to_noleap[0].isel({"time": interpolated - 1})
+        + to_noleap[0].isel({"time": interpolated + 1})
+    ) / 2 == to_noleap[0].isel({"time": interpolated})
+
+    # check 360 -> standard case without interpolation inserts 6 NaN in a leap year.
+    assert (
+        len(
+            np.argwhere(
+                xr.ufuncs.isnan(to_standard_no_interp.sel(time="1952"))[
+                    "fakevariable"
+                ].values
+            )
+        )
+        == 6
+    )
+
+    # checking interpolation fails with pre existing nans
+    ts[0] = np.NaN
+    ds_fake_360_with_nan = _timeseriesfactory(
+        ts, start_dt="1951-01-01", calendar="360_day"
+    )  # starting at 1951 to use 1952 leap year
+
+    with pytest.raises(AssertionError):
+        xclim_convert_360day_calendar_interpolate(
+            ds_fake_360_with_nan, "standard", "random", "linear", True, False
+        )  # should fail if pushed to interpolate with pre existing NaN
+

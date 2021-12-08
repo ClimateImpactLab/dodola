@@ -12,8 +12,8 @@ from skdownscale.spatial_models import SpatialDisaggregator
 import xarray as xr
 from xclim import sdba, set_options
 from xclim.sdba.utils import equally_spaced_nodes
-from xclim.core.calendar import convert_calendar
 from xclim.core import units as xclim_units
+from xclim.core.calendar import convert_calendar, get_calendar
 import xesmf as xe
 
 logger = logging.getLogger(__name__)
@@ -511,15 +511,32 @@ def standardize_gcm(ds, leapday_removal=True):
             # we want this to fail, as pr units are something we don't expect
             raise ValueError("check units: pr units attribute is not kg m-2 s-1")
 
-    if leapday_removal:
+    cal = get_calendar(ds)
+
+    if (
+        cal == "360_day" or leapday_removal
+    ):  # calendar conversion is necessary in either case
         # if calendar is just integers, xclim cannot understand it
         if ds.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
-        # remove leap days and update calendar
-        ds_noleap = xclim_remove_leapdays(ds_cleaned)
+        if cal == "360_day":
+            if leapday_removal:  # 360 day -> noleap
+                ds_converted = xclim_convert_360day_calendar_interpolate(
+                    ds=ds, target="noleap", align_on="random", interpolation="linear"
+                )
+            else:  # 360 day -> standard
+                ds_converted = xclim_convert_360day_calendar_interpolate(
+                    ds=ds, target="standard", align_on="random", interpolation="linear"
+                )
+        else:  # any -> noleap
+            # remove leap days and update calendar
+            ds_converted = xclim_remove_leapdays(ds_cleaned)
 
         # rechunk, otherwise chunks are different sizes
-        ds_out = ds_noleap.chunk({"time": 730, "lat": len(ds.lat), "lon": len(ds.lon)})
+        ds_out = ds_converted.chunk(
+            {"time": 730, "lat": len(ds.lat), "lon": len(ds.lon)}
+        )
+
     else:
         ds_out = ds_cleaned
 
@@ -571,6 +588,70 @@ def xclim_remove_leapdays(ds):
     """
     ds_noleap = convert_calendar(ds, target="noleap")
     return ds_noleap
+
+
+def xclim_convert_360day_calendar_interpolate(
+    ds,
+    target="noleap",
+    align_on="random",
+    interpolation="linear",
+    return_indices=False,
+    ignore_nans=True,
+):
+    """
+    Parameters
+    ----------
+    ds : xr.Dataset
+    target : str
+        see xclim.core.calendar.convert_calendar
+    align_on : str
+        this determines which days in the calendar will have missing values or will be the product of interpolation, if there is.
+        It could be every year the same calendar days, or the days could randomly change. see xclim.core.calendar.convert_calendar
+    interpolation : None or str
+        passed to xr.Dataset.interpolate_na if not None
+    return_indices : bool
+        on top of the converted dataset, return a list of the array indices identifying values that were inserted.
+        This assumes there were no NaNs before conversion.
+    ignore_nans : bool
+        if False and there are any NaNs in `ds` variables, an assertion error will be raised. NaNs are ignored otherwise.
+    Returns
+    -------
+    tuple(xr.Dataset, xr.Dataset) if return_indices is True, xr.Dataset otherwise.
+
+    Notes
+    -----
+    The default values of `target`, `align_on` and `interpolation` mean that our default approach is equivalent to that of the LOCA
+    calendar conversion [1] for conversion from 360 days calendars to noleap calendars. In that approach, 5 calendar days are added (noleap
+    calendars always have 365 days) to each year. But those calendar days are not necessarily those that will have their value be the product
+    of interpolation. The days for which we interpolate are selected randomly every block of 72 days, so that they change every year.
+
+    [1] http://loca.ucsd.edu/loca-calendar/
+    """
+
+    if get_calendar(ds) != "360_day":
+        raise ValueError(
+            "tried to use 360 day calendar conversion for a non-360-day calendar dataset"
+        )
+
+    if not ignore_nans:
+        for var in ds:
+            assert (
+                ds[var].isnull().sum() == 0
+            ), "360 days calendar conversion with interpolation : there are nans !"
+
+    ds_converted = convert_calendar(
+        ds, target=target, align_on=align_on, missing=np.NaN
+    )
+
+    if interpolation:
+        ds_out = ds_converted.interpolate_na("time", interpolation)
+    else:
+        ds_out = ds_converted
+
+    if return_indices:
+        return (ds_out, xr.ufuncs.isnan(ds_converted))
+    else:
+        return ds_out
 
 
 def apply_wet_day_frequency_correction(ds, process):
