@@ -5,13 +5,13 @@ History
 
 0.xx.x (xxxx-xx-xx)
 -------------------
+* Add an option to temporarily replace the target variable units in dodola services and use in CLI dodola for precip (PR #143, @emileten)
 * Add diurnal temperature range (DTR) correction for small DTR values below 1 (converts them to 1) (PR #145, @dgergel)
 
 
 0.11.1 (2021-12-03)
 -------------------
 * Decrease allowed timesteps for bias corrected/downscaled files in validation to allow models that only go through 2099 (PR #146, @dgergel) 
-
 
 0.11.0 (2021-11-30)
 -------------------
