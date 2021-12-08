@@ -361,6 +361,6 @@ def test_xclim_units_conversion():
         np.ones(1), start_dt="2015-01-01", variable_name="fake_variable", units=initial_unit
     )
     xclim_pint_style = xclim_units_any2pint(cf_style, "fake_variable")
-    assert xclim_pint_style["fake_variable"].attrs["units"]=="millimeter / day"
+    assert xclim_pint_style["fake_variable"].attrs["units"] == "millimeter / day"
     back_to_cf_style = xclim_units_pint2cf(xclim_pint_style, "fake_variable")
-    assert back_to_cf_style["fake_variable"].attrs["units"]==initial_unit
+    assert back_to_cf_style["fake_variable"].attrs["units"] == initial_unit
