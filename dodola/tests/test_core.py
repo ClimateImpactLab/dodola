@@ -416,5 +416,5 @@ def test_xclim_convert_360day_calendar_interpolate():
 
     with pytest.raises(AssertionError):
         xclim_convert_360day_calendar_interpolate(
-            ds_fake_360_with_nan, "standard", "random", "linear", True
+            ds_fake_360_with_nan, "standard", "random", "linear", True, False
         )  # should fail if pushed to interpolate with pre existing NaN

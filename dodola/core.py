@@ -521,11 +521,11 @@ def standardize_gcm(ds, leapday_removal=True):
         if cal == "360_day":
             if leapday_removal:  # 360 day -> noleap
                 ds_converted = xclim_convert_360day_calendar_interpolate(
-                    ds, target="noleap", align_on="random", interpolation="linear"
+                    ds=ds, target="noleap", align_on="random", interpolation="linear"
                 )
             else:  # 360 day -> standard
                 ds_converted = xclim_convert_360day_calendar_interpolate(
-                    ds, target="standard", align_on="random", interpolation="linear"
+                    ds=ds, target="standard", align_on="random", interpolation="linear"
                 )
         else:  # any -> noleap
             # remove leap days and update calendar
@@ -558,7 +558,7 @@ def xclim_remove_leapdays(ds):
 
 
 def xclim_convert_360day_calendar_interpolate(
-    ds, target="noleap", align_on="random", interpolation="linear", return_indices=False
+    ds, target="noleap", align_on="random", interpolation="linear", return_indices=False, ignore_nans=True
 ):
     """
     Parameters
@@ -574,6 +574,8 @@ def xclim_convert_360day_calendar_interpolate(
     return_indices : bool
         on top of the converted dataset, return a list of the array indices identifying values that were inserted.
         This assumes there were no NaNs before conversion.
+    ignore_nans : bool
+        if False and there are any NaNs in `ds` variables, an assertion error will be raised. NaNs are ignored otherwise.
     Returns
     -------
     tuple(xr.Dataset, xr.Dataset) if return_indices is True, xr.Dataset otherwise.
@@ -593,10 +595,11 @@ def xclim_convert_360day_calendar_interpolate(
             "tried to use 360 day calendar conversion for a non-360-day calendar dataset"
         )
 
-    for var in ds:
-        assert (
-            ds[var].isnull().sum() == 0
-        ), "360 days calendar conversion with interpolation : there are nans !"
+    if not ignore_nans:
+        for var in ds:
+            assert (
+                ds[var].isnull().sum() == 0
+            ), "360 days calendar conversion with interpolation : there are nans !"
 
     ds_converted = convert_calendar(
         ds, target=target, align_on=align_on, missing=np.NaN
