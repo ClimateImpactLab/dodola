@@ -14,7 +14,9 @@ from dodola.core import (
 )
 
 
-def _timeseriesfactory(x, start_dt="1995-01-01", variable_name="fakevariable", units="K"):
+def _timeseriesfactory(
+    x, start_dt="1995-01-01", variable_name="fakevariable", units="K"
+):
     """Populate xr.Dataset with synthetic data for testing, only has time coords"""
     start_time = str(start_dt)
     if x.ndim != 1:
@@ -354,11 +356,15 @@ def test_qplad_integration_af_quantiles():
     # check that the adjustment factor did not get applied to any other days of the year
     assert (downscaled[variable].values[:, lat_pt]).sum() == 564
 
+
 def test_xclim_units_conversion():
 
     initial_unit = "mm d-1"
     cf_style = _timeseriesfactory(
-        np.ones(1), start_dt="2015-01-01", variable_name="fake_variable", units=initial_unit
+        np.ones(1),
+        start_dt="2015-01-01",
+        variable_name="fake_variable",
+        units=initial_unit,
     )
     xclim_pint_style = xclim_units_any2pint(cf_style, "fake_variable")
     assert xclim_pint_style["fake_variable"].attrs["units"] == "millimeter / day"
