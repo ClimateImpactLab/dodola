@@ -17,6 +17,8 @@ from dodola.core import (
     adjust_analogdownscaling,
     validate_dataset,
     apply_small_dtr_correction,
+    xclim_units_any2pint,
+    xclim_units_pint2cf,
 )
 import dodola.repository as storage
 
@@ -239,6 +241,10 @@ def train_qdm(
         hist = hist.isel(isel_slice)
         ref = ref.isel(isel_slice)
 
+    logger.info(f"Converting {variable} units to xclim pint compatible units")
+    ref = xclim_units_any2pint(ref, variable)
+    hist = xclim_units_any2pint(hist, variable)
+
     qdm = train_quantiledeltamapping(
         reference=ref, historical=hist, variable=variable, kind=k
     )
@@ -315,6 +321,9 @@ def apply_qdm(
     qdm_ds.load()
     sim_ds.load()
 
+    logger.info(f"Converting {variable} units to xclim pint compatible units")
+    sim_ds = xclim_units_any2pint(sim_ds, variable)
+
     adjusted_ds = adjust_quantiledeltamapping(
         simulation=sim_ds,
         variable=variable,
@@ -323,6 +332,9 @@ def apply_qdm(
         astype=sim_ds[variable].dtype,
         include_quantiles=True,
     )
+
+    logger.info(f"Converting {variable} units back to CF compatible units")
+    adjusted_ds = xclim_units_pint2cf(adjusted_ds, variable)
 
     if new_attrs:
         adjusted_ds.attrs |= new_attrs
@@ -385,6 +397,10 @@ def train_qplad(
     # needs to not be chunked
     ref_coarse.load()
     ref_fine.load()
+
+    logger.info(f"Converting {variable} units to xclim pint compatible units")
+    ref_coarse = xclim_units_any2pint(ref_coarse, variable)
+    ref_fine = xclim_units_any2pint(ref_fine, variable)
 
     qplad = train_analogdownscaling(
         coarse_reference=ref_coarse,
@@ -469,9 +485,16 @@ def apply_qplad(
 
     variable = str(variable)
 
+    logger.info(f"Converting {variable} units to xclim pint compatible units")
+    sim_ds = xclim_units_any2pint(sim_ds, variable)
+    for var in qplad_ds:
+        qplad_ds = xclim_units_any2pint(qplad_ds, var)
+
     adjusted_ds = adjust_analogdownscaling(
         simulation=sim_ds, qplad=qplad_ds, variable=variable
     )
+
+    # no need to revert units change. adjust_analogdownscaling does it
 
     if wet_day_post_correction:
         adjusted_ds = apply_wet_day_frequency_correction(adjusted_ds, "post")
