@@ -621,7 +621,8 @@ def validate_dataset(ds, var, data_type, time_period="future"):
         d = ds.sel(time=str(t))
 
         if v == "dtr":
-            _test_for_nans_dtr(d)
+            logger.info("Checking for NaNs in DTR outside of poles...")
+            _test_for_nans(d.where((d["lat"] < 89.5) & (d["lat"] > -89.5), drop=True), v)
         else:
             _test_for_nans(d, v)
 
@@ -655,16 +656,6 @@ def _test_for_nans(ds, var):
     Tests for presence of NaNs
     """
     assert ds[var].isnull().sum() == 0, "there are nans!"
-
-
-def _test_for_nans_dtr(ds):
-    """
-    Tests for presence of NaNs excluding poles
-    """
-    assert (
-        ds.where((ds.lat != 89.5) & (ds.lat != -89.5), drop=True)["dtr"].isnull().sum()
-        == 0
-    ), "there are nans!"
 
 
 def _test_timesteps(ds, data_type, time_period):
