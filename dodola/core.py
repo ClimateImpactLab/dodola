@@ -622,7 +622,9 @@ def validate_dataset(ds, var, data_type, time_period="future"):
 
         if v == "dtr":
             logger.info("Checking for NaNs in DTR outside of poles...")
-            _test_for_nans(d.where((d["lat"] < 89.5) & (d["lat"] > -89.5), drop=True), v)
+            _test_for_nans(
+                d.where((d["lat"] < 89.5) & (d["lat"] > -89.5), drop=True), v
+            )
         else:
             _test_for_nans(d, v)
 
