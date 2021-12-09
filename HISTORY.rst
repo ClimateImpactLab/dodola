@@ -5,12 +5,12 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-* 
+* Fix rechunk error when converting 360 days calendars. (#149, PR #151, @brews)
 
 
 0.12.0 (2021-12-09)
 -------------------
-* Add 360 days calendar support. (PR #144, PR #151, @emileten, @brews)
+* Add 360 days calendar support (PR #144, @emileten)
 * Add an option to temporarily replace the target variable units in dodola services and use in CLI dodola for precip (PR #143, @emileten)
 * Add diurnal temperature range (DTR) correction for small DTR values below 1 (converts them to 1) (PR #145, @dgergel)
 
