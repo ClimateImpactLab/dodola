@@ -472,6 +472,9 @@ def xesmf_regrid(
 def standardize_gcm(ds, leapday_removal=True):
     """
 
+    360 calendar conversion requires that there are no chunks in
+    the 'time' dimension of `ds`.
+
     Parameters
     ----------
     ds : xr.Dataset
