@@ -3,7 +3,7 @@ History
 =======
 
 
-0.xx.x (xxxx-xx-xx)
+0.12.0 (2021-12-09)
 -------------------
 * Add 360 days calendar support (PR #144, @emileten)
 * Add an option to temporarily replace the target variable units in dodola services and use in CLI dodola for precip (PR #143, @emileten)
@@ -13,6 +13,7 @@ History
 0.11.1 (2021-12-03)
 -------------------
 * Decrease allowed timesteps for bias corrected/downscaled files in validation to allow models that only go through 2099 (PR #146, @dgergel) 
+
 
 0.11.0 (2021-11-30)
 -------------------
