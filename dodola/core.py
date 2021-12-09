@@ -601,14 +601,16 @@ def xclim_convert_360day_calendar_interpolate(
     """
     Parameters
     ----------
-    ds : xr.Dataset
+    ds : xr.Dataset with 'time', 'lat' and 'lon' dimensions.
     target : str
         see xclim.core.calendar.convert_calendar
     align_on : str
         this determines which days in the calendar will have missing values or will be the product of interpolation, if there is.
         It could be every year the same calendar days, or the days could randomly change. see xclim.core.calendar.convert_calendar
     interpolation : None or str
-        passed to xr.Dataset.interpolate_na if not None
+        if not None, `ds` is assumed to be a dask-chunked xr.Dataset and is rechunked into a single dask array
+        along the time dimension, and then, the interpolation across time is performed. The returned dataset
+        has only one chunk along the time dimension in this case.
     return_indices : bool
         on top of the converted dataset, return a list of the array indices identifying values that were inserted.
         This assumes there were no NaNs before conversion.
@@ -616,7 +618,8 @@ def xclim_convert_360day_calendar_interpolate(
         if False and there are any NaNs in `ds` variables, an assertion error will be raised. NaNs are ignored otherwise.
     Returns
     -------
-    tuple(xr.Dataset, xr.Dataset) if return_indices is True, xr.Dataset otherwise.
+    tuple(xr.Dataset, xr.Dataset) if return_indices is True, xr.Dataset otherwise, and if `interpolation` is not None,
+    the dataset is rechunked to have a single chunk along the time dimension.
 
     Notes
     -----
@@ -644,7 +647,8 @@ def xclim_convert_360day_calendar_interpolate(
     )
 
     if interpolation:
-        ds_out = ds_converted.interpolate_na("time", interpolation)
+        ds_converted_rechunked = ds_converted.chunk(chunks={'time': -1})
+        ds_out = ds_converted_rechunked.interpolate_na("time", interpolation)
     else:
         ds_out = ds_converted
 
