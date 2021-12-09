@@ -708,6 +708,9 @@ def regrid(
 def clean_cmip6(x, out, leapday_removal):
     """Cleans and standardizes CMIP6 GCM
 
+    This loads the entire `x` Dataset into memory for speed
+    and to avoid chunking errors.
+
     Parameters
     ----------
     x : str
@@ -718,6 +721,11 @@ def clean_cmip6(x, out, leapday_removal):
         Whether or not to remove leap days.
     """
     ds = storage.read(x)
+
+    # Cannot have chunks in time dimension for 360 day calendar conversion so loading
+    # data into memory.
+    ds.load()
+
     cleaned_ds = standardize_gcm(ds, leapday_removal)
     storage.write(out, cleaned_ds)
 

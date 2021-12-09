@@ -5,7 +5,7 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-* 
+* Fix rechunk error when converting 360 days calendars. (#149, PR #151, @brews)
 
 
 0.12.0 (2021-12-09)
