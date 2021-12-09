@@ -647,7 +647,7 @@ def xclim_convert_360day_calendar_interpolate(
     )
 
     if interpolation:
-        ds_converted_rechunked = ds_converted.chunk(chunks={'time': -1})
+        ds_converted_rechunked = ds_converted.chunk(chunks={"time": -1})
         ds_out = ds_converted_rechunked.interpolate_na("time", interpolation)
     else:
         ds_out = ds_converted
