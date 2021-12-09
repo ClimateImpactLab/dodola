@@ -5,6 +5,7 @@ History
 
 0.xx.x (xxxx-xx-xx)
 -------------------
+* Rechunk before 360 days calendar conversion (PR #150, @emileten)
 * Add 360 days calendar support (PR #144, @emileten)
 * Add an option to temporarily replace the target variable units in dodola services and use in CLI dodola for precip (PR #143, @emileten)
 * Add diurnal temperature range (DTR) correction for small DTR values below 1 (converts them to 1) (PR #145, @dgergel)
