@@ -725,7 +725,7 @@ def clean_cmip6(x, out, leapday_removal):
     # Cannot have chunks in time dimension for 360 day calendar conversion so loading
     # data into memory.
     ds.load()
-    
+
     cleaned_ds = standardize_gcm(ds, leapday_removal)
     storage.write(out, cleaned_ds)
 
