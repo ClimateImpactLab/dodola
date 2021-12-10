@@ -6,6 +6,7 @@ History
 0.XX.X (XXXX-XX-XX)
 -------------------
 * Fix rechunk error when converting 360 days calendars. (#149, PR #151, @brews)
+* Remove cruft code. Removes ``dodola`` commands ``biascorrect``, ``downscale``, ``buildweights`` along with corresponding functions in ``dodola.services`` and ``dodola.core``.  (PR #152, @brews)
 
 
 0.12.0 (2021-12-09)
