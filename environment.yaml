@@ -23,5 +23,4 @@ dependencies:
 - bottleneck=1.3.2
 - zarr=2.8.3
 - pip:
-  - git+https://github.com/dgergel/xsd@458f292dab6e8a6584659e97a66c37e028da2b7a
   - git+https://github.com/ClimateImpactLab/xclim@63023d27f89a457c752568ffcec2e9ce9ad7a81a
