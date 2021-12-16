@@ -718,12 +718,21 @@ def _test_dtr_range(ds, var):
     ), "diurnal temperature range values are not greater than zero"
 
     # test polar DTR values
-    assert (
-        ds[var].where(ds.lat < -60).max() < 100
-    ), "diurnal temperature range values for polar southern latitudes are greater than 100"
-    assert (
-        ds[var].where(ds.lat > 60).max() < 100
-    ), "diurnal temperature range values for polar northern latitudes are greater than 100"
+    southern_polar_max = ds[var].where(ds.lat < -60).max()
+    if (southern_polar_max is not None) and (southern_polar_max >= 100):
+        assert (
+            southern_polar_max < 100
+        ), "diurnal temperature range max is {} for polar southern latitudes".format(
+            southern_polar_max
+        )
+
+    northern_polar_max = ds[var].where(ds.lat > 60).max()
+    if (northern_polar_max is not None) and (northern_polar_max >= 100):
+        assert (
+            northern_polar_max < 100
+        ), "diurnal temperature range max is {} for polar northern latitudes".format(
+            northern_polar_max
+        )
 
     # test all but polar regions
     assert (
