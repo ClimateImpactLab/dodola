@@ -8,8 +8,6 @@ import dodola.services
     "subcmd",
     [
         None,
-        "biascorrect",
-        "buildweights",
         "rechunk",
         "regrid",
         "train-qdm",
@@ -24,8 +22,6 @@ import dodola.services
     ],
     ids=(
         "--help",
-        "biascorrect --help",
-        "buildweights --help",
         "rechunk --help",
         "regrid --help",
         "train-qdm --help",
