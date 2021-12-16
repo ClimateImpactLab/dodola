@@ -710,10 +710,34 @@ def _test_temp_range(ds, var):
 def _test_dtr_range(ds, var):
     """
     Ensure DTR values are in a valid range
+    Test polar values separately since some polar values can be much higher post-bias correction.
     """
-    assert (ds[var].min() > 0) and (
-        ds[var].max() < 70
-    ), "diurnal temperature range values are invalid"
+    # test that DTR values are greater than 0
+    assert (
+        ds[var].min() > 0
+    ), "diurnal temperature range values are not greater than zero"
+
+    # test polar DTR values
+    southern_polar_max = ds[var].where(ds.lat < -60).max()
+    if (southern_polar_max is not None) and (southern_polar_max >= 100):
+        assert (
+            southern_polar_max < 100
+        ), "diurnal temperature range max is {} for polar southern latitudes".format(
+            southern_polar_max
+        )
+
+    northern_polar_max = ds[var].where(ds.lat > 60).max()
+    if (northern_polar_max is not None) and (northern_polar_max >= 100):
+        assert (
+            northern_polar_max < 100
+        ), "diurnal temperature range max is {} for polar northern latitudes".format(
+            northern_polar_max
+        )
+
+    # test all but polar regions
+    assert (
+        ds[var].where((ds.lat > -60) & (ds.lat < 60)).max() < 70
+    ), "diurnal temperature range values for non-polar regions are greater than 70"
 
 
 def _test_negative_values(ds, var):
