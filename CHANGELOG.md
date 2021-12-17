@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Update package setup, README, HISTORY/CHANGELOG to new system. (PR #154, @brews)
 - Update diurnal temperature range (DTR) validation to differentiate polar and non-polar regions. (PR #153, @dgergel)
 
 ### Removed
