@@ -19,8 +19,7 @@ jobs:
         pip install flake8 black
     - name: Test code quality
       run: |
-        flake8 --count --show-source --statistics
-        black -v --check dodola/*
+        make format-check
 
   container-tests:
     runs-on: ubuntu-latest
