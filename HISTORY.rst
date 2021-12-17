@@ -5,7 +5,8 @@ History
 
 0.XX.X (XXXX-XX-XX)
 -------------------
-* Update diurnal temperature range (DTR) validation to differentiate polar and non-polar regions. (PR #153, @dgergel)
+* Update diurnal temperature range (DTR) validation to differentiate min DTR accepted value for CMIP6 vs bias corrected and downscaled data inputs (PR #155, @dgergel)
+* Update diurnal temperature range (DTR) validation to differentiate polar and non-polar regions (PR #153, @dgergel)
 * Fix rechunk error when converting 360 days calendars. (#149, PR #151, @brews)
 * Remove cruft code. Removes ``dodola`` commands ``biascorrect``, ``downscale``, ``buildweights`` along with corresponding functions in ``dodola.services`` and ``dodola.core``.  (PR #152, @brews)
 
