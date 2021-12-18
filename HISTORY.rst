@@ -3,6 +3,11 @@ History
 =======
 
 
+0.XX.X (XXXX-XX-XX)
+-------------------
+*
+
+
 0.13.0 (2021-12-17)
 -------------------
 * Update diurnal temperature range (DTR) validation to differentiate min DTR accepted value for CMIP6 vs bias corrected and downscaled data inputs (PR #155, @dgergel)
