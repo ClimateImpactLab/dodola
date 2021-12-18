@@ -535,9 +535,13 @@ def apply_wet_day_frequency_correction(ds, process):
         28, Issue 7, pp. 6938-6959.
     """
     threshold = 0.05  # mm/day
-    low = 1e-16
+    # adjusted "low" value from the original epsilon in Cannon et al 2015 to 
+    # avoid having some values get extremely large 
+    low = threshold * pow(10, -2)
+    
     if process == "pre":
-        ds_corrected = ds.where(ds != 0.0, np.random.uniform(low=low, high=threshold))
+        # includes very small values that are negative in CMIP6 output
+        ds_corrected = ds.where(ds > 0.0, np.random.uniform(low=low, high=threshold))
     elif process == "post":
         ds_corrected = ds.where(ds >= threshold, 0.0)
     else:
