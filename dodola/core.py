@@ -602,7 +602,7 @@ def validate_dataset(ds, var, data_type, time_period="future"):
         elif v == "tasmax":
             _test_temp_range(d, v)
         elif v == "dtr":
-            _test_dtr_range(d, v)
+            _test_dtr_range(d, v, data_type)
             _test_negative_values(d, v)
         elif v == "pr":
             _test_negative_values(d, v)
@@ -707,15 +707,30 @@ def _test_temp_range(ds, var):
     ), "{} values are invalid".format(var)
 
 
-def _test_dtr_range(ds, var):
+def _test_dtr_range(ds, var, data_type):
     """
     Ensure DTR values are in a valid range
     Test polar values separately since some polar values can be much higher post-bias correction.
     """
-    # test that DTR values are greater than 0
-    assert (
-        ds[var].min() > 0
-    ), "diurnal temperature range values are not greater than zero"
+    # test that DTR values are greater than 0 or equal to 0 depending on the data type
+    # note that some CMIP6 DTR will equal 0 at polar latitudes, this will be adjusted
+    # before bias correction with the DTR small values correction
+
+    dtr_min = ds[var].min()
+    if data_type == "cmip6":
+        # may be equal to zero in polar regions and if tasmax < tasmin (only occurs for GFDL models)
+        assert (
+            dtr_min >= 0
+        ), "diurnal temperature range minimum is {} and thus not greater than or equal to 0 for CMIP6".format(
+            dtr_min
+        )
+    else:
+        # this must be greater than 0 for bias corrected and downscaled
+        assert (
+            dtr_min > 0
+        ), "diurnal temperature range minimum is {} and must be greater than zero".format(
+            dtr_min
+        )
 
     # test polar DTR values
     southern_polar_max = ds[var].where(ds.lat < -60).max()
@@ -735,9 +750,10 @@ def _test_dtr_range(ds, var):
         )
 
     # test all but polar regions
+    non_polar_max = ds[var].where((ds.lat > -60) & (ds.lat < 60)).max()
     assert (
-        ds[var].where((ds.lat > -60) & (ds.lat < 60)).max() < 70
-    ), "diurnal temperature range values for non-polar regions are greater than 70"
+        non_polar_max < 70
+    ), "diurnal temperature range max is {} for non-polar regions".format(non_polar_max)
 
 
 def _test_negative_values(ds, var):

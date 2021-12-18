@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Update package setup, README, HISTORY/CHANGELOG to new system. (PR #154, @brews)
+
+## [0.13.0] - 2021-12-17
+### Changed
 - Update diurnal temperature range (DTR) validation to differentiate polar and non-polar regions. (PR #153, @dgergel)
+- Update diurnal temperature range (DTR) validation to differentiate min DTR accepted value for CMIP6 vs bias corrected and downscaled data inputs (PR #155, @dgergel)
 
 ### Removed
-- Remove cruft code. Removes `dodola` commands `biascorrect`, `downscale`, `buildweights` along with corresponding functions in `dodola.services` and `dodola.core`.  (PR #152, @brews)
+- Remove cruft code. Remove `dodola` commands `biascorrect`, `downscale`, `buildweights` along with corresponding functions in `dodola.services` and `dodola.core`.  (PR #152, @brews)
 
 ### Fixed
 - Fix rechunk error when converting 360 days calendars. (#149, PR #151, @brews)
