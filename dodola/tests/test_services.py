@@ -749,10 +749,10 @@ def test_correct_wet_day_frequency(process):
     if process == "pre":
         # all 0s and very small negative values should have been set to a random uniform value below 0.05
         corrected_values = ds_precip_corrected["fakevariable"].where(
-                ds_precip["fakevariable"] <= 0, drop=True
-            )
-        assert (corrected_values > 0.0)
-        assert (corrected_values < threshold)
+            ds_precip["fakevariable"] <= 0, drop=True
+        )
+        assert corrected_values > 0.0
+        assert corrected_values < threshold
     elif process == "post":
         # all values below 0.05 should be reset to 0
         assert (
