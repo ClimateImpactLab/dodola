@@ -535,9 +535,13 @@ def apply_wet_day_frequency_correction(ds, process):
         28, Issue 7, pp. 6938-6959.
     """
     threshold = 0.05  # mm/day
-    low = 1e-16
+    # adjusted "low" value from the original epsilon in Cannon et al 2015 to
+    # avoid having some values get extremely large
+    low = threshold * pow(10, -2)
+
     if process == "pre":
-        ds_corrected = ds.where(ds != 0.0, np.random.uniform(low=low, high=threshold))
+        # includes very small values that are negative in CMIP6 output
+        ds_corrected = ds.where(ds > 0.0, np.random.uniform(low=low, high=threshold))
     elif process == "post":
         ds_corrected = ds.where(ds >= threshold, 0.0)
     else:
@@ -761,7 +765,8 @@ def _test_negative_values(ds, var):
     Tests for presence of negative values
     """
     # this is not set to 0 to deal with floating point error
-    assert ds[var].where(ds[var] < -0.001).count() == 0, "there are negative values!"
+    neg_values = ds[var].where(ds[var] < -0.001).count()
+    assert neg_values == 0, "there are {} negative values!".format(neg_values)
 
 
 def _test_maximum_precip(ds, var):
@@ -769,6 +774,10 @@ def _test_maximum_precip(ds, var):
     Tests that max precip is reasonable
     """
     threshold = 2000  # in mm, max observed is 1.825m --> maximum occurs between 0.5-0.8
+    max_precip = ds[var].max()
+    num_precip_values_over_threshold = ds[var].where(ds[var] > threshold).count()
     assert (
-        ds[var].where(ds[var] > threshold).count() == 0
-    ), "maximum precip exceeds 2000mm"
+        num_precip_values_over_threshold == 0
+    ), "maximum precip is {} mm and there are {} values over 2000mm".format(
+        max_precip, num_precip_values_over_threshold
+    )

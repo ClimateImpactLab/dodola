@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Update wet day frequency correction to include small negative values in correction and to limit the correction range to the threshold * 10 ^ -2. (PR #158, @dgergel)
 - Update package setup, README, HISTORY/CHANGELOG to new system. (PR #154, @brews)
 
 ## [0.13.0] - 2021-12-17
