@@ -537,7 +537,7 @@ def apply_wet_day_frequency_correction(ds, process):
     threshold = 0.05  # mm/day
     # adjusted "low" value from the original epsilon in Cannon et al 2015 to
     # avoid having some values get extremely large
-    low = threshold * pow(10, -2)
+    low = threshold / 10.0
 
     if process == "pre":
         # includes very small values that are negative in CMIP6 output
