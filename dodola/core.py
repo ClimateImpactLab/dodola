@@ -529,19 +529,23 @@ def apply_wet_day_frequency_correction(ds, process):
 
     Notes
     -------
-    [1] A.J. Cannon, S.R. Sobie, & T.Q. Murdock, "Bias correction of GCM
+    [1] A.J. Cannon, S.R. Sobie, and T.Q. Murdock (2015), "Bias correction of GCM
         precipitation by quantile mapping: How well do methods preserve
         changes in quantiles and extremes?", Journal of Climate, vol.
         28, Issue 7, pp. 6938-6959.
+    [2] S. Hempel, K. Frieler, L. Warszawski, J. Schewe, and F. Piotek (2013), "A trend-preserving bias correction - The ISI-MIP approach", Earth Syst. Dynam. vol. 4, pp. 219-236.
     """
-    threshold = 0.05  # mm/day
+    # threshold from Hempel et al 2013
+    threshold = 1.0  # mm/day
     # adjusted "low" value from the original epsilon in Cannon et al 2015 to
-    # avoid having some values get extremely large
-    low = threshold / 10.0
+    # avoid having some values get extremely large 
+    low = threshold / 2.0
 
     if process == "pre":
         # includes very small values that are negative in CMIP6 output
-        ds_corrected = ds.where(ds > 0.0, np.random.uniform(low=low, high=threshold))
+        ds_corrected = ds.where(
+            ds > threshold, np.random.uniform(low=low, high=threshold)
+        )
     elif process == "post":
         ds_corrected = ds.where(ds >= threshold, 0.0)
     else:
