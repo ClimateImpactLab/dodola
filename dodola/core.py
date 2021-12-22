@@ -538,7 +538,7 @@ def apply_wet_day_frequency_correction(ds, process):
     # threshold from Hempel et al 2013
     threshold = 1.0  # mm/day
     # adjusted "low" value from the original epsilon in Cannon et al 2015 to
-    # avoid having some values get extremely large 
+    # avoid having some values get extremely large
     low = threshold / 2.0
 
     if process == "pre":
