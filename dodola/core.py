@@ -720,7 +720,7 @@ def _test_dtr_range(ds, var, data_type):
     # note that some CMIP6 DTR will equal 0 at polar latitudes, this will be adjusted
     # before bias correction with the DTR small values correction
 
-    dtr_min = ds[var].min()
+    dtr_min = ds[var].min().compute().item()
     if data_type == "cmip6":
         # may be equal to zero in polar regions and if tasmax < tasmin (only occurs for GFDL models)
         assert (
@@ -737,7 +737,7 @@ def _test_dtr_range(ds, var, data_type):
         )
 
     # test polar DTR values
-    southern_polar_max = ds[var].where(ds.lat <= -59.5).max()
+    southern_polar_max = ds[var].where(ds.lat <= -59.5).max().compute().item()
     if (southern_polar_max is not None) and (southern_polar_max >= 100):
         assert (
             southern_polar_max < 100
@@ -745,7 +745,7 @@ def _test_dtr_range(ds, var, data_type):
             southern_polar_max
         )
 
-    northern_polar_max = ds[var].where(ds.lat > 60).max()
+    northern_polar_max = ds[var].where(ds.lat > 60).max().compute().item()
     if (northern_polar_max is not None) and (northern_polar_max >= 100):
         assert (
             northern_polar_max < 100
@@ -754,7 +754,7 @@ def _test_dtr_range(ds, var, data_type):
         )
 
     # test all but polar regions
-    non_polar_max = ds[var].where((ds.lat > -59.5) & (ds.lat < 60)).max()
+    non_polar_max = ds[var].where((ds.lat > -59.5) & (ds.lat < 60)).max().compute().item()
     assert (
         non_polar_max < 70
     ), "diurnal temperature range max is {} for non-polar regions".format(non_polar_max)
