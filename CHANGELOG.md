@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Update wet day frequency correction again to raise the "low" value used to the threshold value / 10 (PR #159, @dgergel)
+- Update wet day frequency correction to incorporate method additions from Hempel et al 2013. (PRs #162 and #159, @dgergel)
 
 ## [0.14.0] - 2021-12-21
 ### Changed
