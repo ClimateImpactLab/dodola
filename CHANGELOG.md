@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Update wet day frequency correction again to raise the "low" value used to the threshold value / 10 (PR #159, @dgergel)
+- Update polar and non-polar regions definitions in diurnal temperature range (DTR) validation (PR #160, @emileten)
 
 ## [0.14.0] - 2021-12-21
 ### Changed
