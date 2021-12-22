@@ -736,7 +736,7 @@ def test_correct_wet_day_frequency(process):
     """Test that wet day frequency correction corrects the frequency of wet days"""
     # Make some fake precip data
     n = 700
-    threshold = 0.05
+    threshold = 1.0  # mm/day
     ts = np.linspace(0.0, 10, num=n)
     ds_precip = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_correct_wet_day_frequency/an/input/path.zarr"
@@ -746,18 +746,19 @@ def test_correct_wet_day_frequency(process):
     correct_wet_day_frequency(in_url, out=out_url, process=process)
     ds_precip_corrected = repository.read(out_url)
 
+    low = threshold / 2.0
     if process == "pre":
-        # all 0s and very small negative values should have been set to a random uniform value below 0.05
+        # all 0s and very small negative values should have been set to a random uniform value below threshold and above threshold / 2.0
         corrected_values = ds_precip_corrected["fakevariable"].where(
-            ds_precip["fakevariable"] <= 0, drop=True
+            ds_precip["fakevariable"] < threshold, drop=True
         )
-        assert corrected_values > 0.0
-        assert corrected_values < threshold
+        assert corrected_values.all() >= low
+        assert corrected_values.all() <= threshold
     elif process == "post":
-        # all values below 0.05 should be reset to 0
+        # all values below threshold should be reset to 0
         assert (
             ds_precip_corrected["fakevariable"]
-            .where(ds_precip["fakevariable"] < 0.05, drop=True)
+            .where(ds_precip["fakevariable"] < threshold, drop=True)
             .all()
             == 0.0
         )
