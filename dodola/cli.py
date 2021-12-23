@@ -573,7 +573,7 @@ def correct_wetday_frequency(x, out, process):
 @click.option(
     "--threshold", "-t", help="Threshold for correcting small DTR values up to"
 )
-def correct_dtr(x, out, floor=1., ceiling=70.):
+def correct_dtr(x, out, floor=1.0, ceiling=70.0):
     """Correct small values of diurnal temperature range (DTR) in a dataset"""
     services.correct_dtr(
         str(x), out=str(out), floor=float(floor), ceiling=float(ceiling)

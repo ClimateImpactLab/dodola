@@ -26,7 +26,9 @@ from dodola.services import (
 import dodola.repository as repository
 
 
-def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable", lon=1., lat=1.):
+def _datafactory(
+    x, start_time="1950-01-01", variable_name="fakevariable", lon=1.0, lat=1.0
+):
     """Populate xr.Dataset with synthetic data for testing"""
     start_time = str(start_time)
     if x.ndim != 1:
@@ -794,14 +796,14 @@ def test_correct_dtr():
         )
     )
 
+
 def test_correct_dtr_not_applying_ceiling():
     """Test that diurnal temperature range (DTR) correction applies floor and/or ceiling specified"""
     # Make some fake dtr data
     n = 700
-    floor = 1.0
     ceiling = 70.0
     ts = np.linspace(0.0, 100, num=n)
-    ds_dtr = _datafactory(ts, start_time="1950-01-01", lat=-61.)
+    ds_dtr = _datafactory(ts, start_time="1950-01-01", lat=-61.0)
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
     repository.write(in_url, ds_dtr)
@@ -810,7 +812,6 @@ def test_correct_dtr_not_applying_ceiling():
     ds_dtr_corrected = repository.read(out_url)
 
     assert ds_dtr_corrected == ds_dtr
-
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
