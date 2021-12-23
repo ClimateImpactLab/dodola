@@ -797,7 +797,7 @@ def test_adjust_maximum_precipitation():
     ds_precip = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_adjust_maximum_precipitation/an/input/path.zarr"
     out_url = "memory://test_adjust_maximum_precipitation/an/output/path.zarr"
-    repository.write(in_url, ds_dtr)
+    repository.write(in_url, ds_precip)
 
     adjust_maximum_precipitation(in_url, out=out_url, threshold=threshold)
     ds_precip_corrected = repository.read(out_url)
