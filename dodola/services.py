@@ -14,6 +14,7 @@ from dodola.core import (
     adjust_analogdownscaling,
     validate_dataset,
     apply_small_dtr_correction,
+    apply_precip_ceiling,
     xclim_units_any2pint,
     xclim_units_pint2cf,
 )
@@ -655,6 +656,25 @@ def correct_small_dtr(x, out, threshold=1.0):
     """
     ds = storage.read(x)
     ds_corrected = apply_small_dtr_correction(ds, threshold)
+    storage.write(out, ds_corrected)
+
+
+@log_service
+def adjust_maximum_precipitation(x, out, threshold=3000.0):
+    """Adjusts maximum precipitation in a dataset
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be corrected.
+    out : str
+        Storage URL to write corrected output to.
+    threshold : int or float, optional
+        All precipitation values lower than this value are corrected to the threshold value.
+    """
+
+    ds = storage.read(x)
+    ds_corrected = apply_precip_ceiling(ds, threshold)
     storage.write(out, ds_corrected)
 
 
