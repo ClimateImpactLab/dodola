@@ -777,11 +777,11 @@ def _test_maximum_precip(ds, var):
     """
     Tests that max precip is reasonable
     """
-    threshold = 2000  # in mm, max observed is 1.825m --> maximum occurs between 0.5-0.8
-    max_precip = ds[var].max().values
-    num_precip_values_over_threshold = ds[var].where(ds[var] > threshold).count().values
+    threshold = 3000  # in mm, max observed is 1.825m --> maximum occurs between 0.5-0.8
+    max_precip = ds[var].max().load().values
+    num_precip_values_over_threshold = ds[var].where(ds[var] > threshold).count().load().values
     assert (
         num_precip_values_over_threshold == 0
-    ), "maximum precip is {} mm and there are {} values over 2000mm".format(
+    ), "maximum precip is {} mm and there are {} values over 3000mm".format(
         max_precip, num_precip_values_over_threshold
     )
