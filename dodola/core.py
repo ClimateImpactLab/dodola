@@ -573,6 +573,24 @@ def apply_small_dtr_correction(ds, threshold):
     return ds_corrected
 
 
+def apply_precip_ceiling(ds, ceiling):
+    """
+    Converts all precip values above a threshold to the threshold value, uniformly across space and time.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    ceiling : int or float
+
+    Returns
+    -------
+    xr.Dataset
+
+    """
+    ds_corrected = ds.where(ds <= ceiling, ceiling)
+    return ds_corrected
+
+
 def validate_dataset(ds, var, data_type, time_period="future"):
     """
     Validate a Dataset. Valid for CMIP6, bias corrected and downscaled.
@@ -779,7 +797,9 @@ def _test_maximum_precip(ds, var):
     """
     threshold = 3000  # in mm, max observed is 1.825m --> maximum occurs between 0.5-0.8
     max_precip = ds[var].max().load().values
-    num_precip_values_over_threshold = ds[var].where(ds[var] > threshold).count().load().values
+    num_precip_values_over_threshold = (
+        ds[var].where(ds[var] > threshold).count().load().values
+    )
     assert (
         num_precip_values_over_threshold == 0
     ), "maximum precip is {} mm and there are {} values over 3000mm".format(
