@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Update wet day frequency correction to incorporate method additions from Hempel et al 2013. (PRs #162 and #159, @dgergel)
+- floor and ceiling for DTR (PR #163 @emileten)
 
 ## [0.14.0] - 2021-12-21
 ### Changed
