@@ -15,6 +15,7 @@ from dodola.core import (
     validate_dataset,
     dtr_floor,
     non_polar_dtr_ceiling,
+    apply_precip_ceiling,
     xclim_units_any2pint,
     xclim_units_pint2cf,
 )
@@ -681,6 +682,25 @@ def apply_non_polar_dtr_ceiling(x, out, ceiling=70.0):
     ds = storage.read(x)
     ds = non_polar_dtr_ceiling(ds, ceiling)
     storage.write(out, ds)
+
+
+@log_service
+def adjust_maximum_precipitation(x, out, threshold=3000.0):
+    """Adjusts maximum precipitation in a dataset
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be corrected.
+    out : str
+        Storage URL to write corrected output to.
+    threshold : int or float, optional
+        All precipitation values lower than this value are corrected to the threshold value.
+    """
+
+    ds = storage.read(x)
+    ds_corrected = apply_precip_ceiling(ds, threshold)
+    storage.write(out, ds_corrected)
 
 
 @log_service

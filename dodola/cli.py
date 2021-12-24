@@ -565,6 +565,19 @@ def correct_wetday_frequency(x, out, process):
     services.correct_wet_day_frequency(str(x), out=str(out), process=str(process))
 
 
+@dodola_cli.command(help="Adjust maximum precipitation in a dataset")
+@click.argument("x", required=True)
+@click.option("--out", "-o", required=True)
+@click.option(
+    "--threshold", "-t", help="Threshold for correcting maximum precipitation"
+)
+def adjust_maximum_precipitation(x, out, threshold=3000.0):
+    """Apply maximum precipitation threshold to a dataset"""
+    services.adjust_maximum_precipitation(
+        str(x), out=str(out), threshold=float(threshold)
+    )
+
+
 @dodola_cli.command(
     help="Apply a floor to diurnal temperature range (DTR) in a dataset"
 )

@@ -15,6 +15,7 @@ from dodola.services import (
     remove_leapdays,
     clean_cmip6,
     correct_wet_day_frequency,
+    adjust_maximum_precipitation,
     train_qdm,
     apply_qdm,
     train_qplad,
@@ -827,6 +828,29 @@ def test_apply_non_polar_dtr_ceiling():
     ds_dtr_corrected = repository.read(out_url)
 
     assert ds_dtr_corrected == ds_dtr
+
+
+def test_adjust_maximum_precipitation():
+    """Test that maximum precipitation adjustment corrects precipitation values above a set threshold"""
+    # make some fake precip data
+    n = 700
+    ts = np.linspace(0.0, 4000, num=n)
+    threshold = 3000  # mm/day
+    ds_precip = _datafactory(ts, start_time="1950-01-01")
+    in_url = "memory://test_adjust_maximum_precipitation/an/input/path.zarr"
+    out_url = "memory://test_adjust_maximum_precipitation/an/output/path.zarr"
+    repository.write(in_url, ds_precip)
+
+    adjust_maximum_precipitation(in_url, out=out_url, threshold=threshold)
+    ds_precip_corrected = repository.read(out_url)
+
+    # all values above threshold should have been set to the threshold value
+    assert (
+        ds_precip_corrected["fakevariable"]
+        .where(ds_precip["fakevariable"] > threshold, drop=True)
+        .all()
+        <= threshold
+    )
 
 
 @pytest.mark.parametrize("kind", ["multiplicative", "additive"])
