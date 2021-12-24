@@ -584,7 +584,7 @@ def apply_dtr_floor(x, out, floor=1.0):
 @click.option("--ceiling", "-c", help="ceiling to apply to DTR values")
 def apply_non_polar_dtr_ceiling(x, out, ceiling=70.0):
     """Apply a ceiling to diurnal temperature range (DTR) in a dataset"""
-    services.correct_dtr(str(x), out=str(out), ceiling=float(ceiling))
+    services.apply_non_polar_dtr_ceiling(str(x), out=str(out), ceiling=float(ceiling))
 
 
 @dodola_cli.command(help="Validate a CMIP6, bias corrected or downscaled dataset")

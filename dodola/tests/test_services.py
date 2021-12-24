@@ -770,9 +770,9 @@ def test_correct_wet_day_frequency(process):
 def test_apply_dtr_floor():
     """Test diurnal temperature range (DTR) floor constraint"""
     # Make some fake dtr data
-    n = 700
-    floor = 1.0
-    ts = np.linspace(0.0, 100, num=n)
+    n = 10
+    floor = 5.0
+    ts = np.linspace(0.0, 10, num=n)
     ds_dtr = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
@@ -795,9 +795,9 @@ def test_apply_non_polar_dtr_ceiling():
 
     # case 1 : non polar regions, should be applied
     # Make some fake dtr data
-    n = 700
-    ceiling = 70.0
-    ts = np.linspace(0.0, 100, num=n)
+    n = 10
+    ceiling = 5.0
+    ts = np.linspace(0.0, 10, num=n)
     ds_dtr = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
@@ -815,9 +815,9 @@ def test_apply_non_polar_dtr_ceiling():
 
     # case 2 : polar regions, shouldn't be applied
     # Make some fake dtr data
-    n = 700
+    n = 10
     ceiling = 70.0
-    ts = np.linspace(0.0, 100, num=n)
+    ts = np.linspace(65.0, 75.0, num=n)
     ds_dtr = _datafactory(ts, start_time="1950-01-01", lat=-61.0)
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
