@@ -793,7 +793,6 @@ def test_apply_dtr_floor():
 def test_apply_non_polar_dtr_ceiling():
     """Test diurnal temperature range (DTR) non polar dtr ceiling"""
 
-
     # case 1 : non polar regions, should be applied
     # Make some fake dtr data
     n = 700

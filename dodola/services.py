@@ -642,8 +642,11 @@ def correct_wet_day_frequency(x, out, process):
 
 
 @log_service
-def apply_dtr_floor(x, out, floor=1.):
-    """Corrects diurnal temperature range (DTR) values in a dataset
+def apply_dtr_floor(x, out, floor=1.0):
+    """Applies a floor to diurnal temperature range (DTR) values
+
+    This constrains the values in a DTR dataset by applying a floor. The floor is assigned to the value of the
+    data points which have their value strictly below the floor.
 
     Parameters
     ----------
@@ -658,9 +661,13 @@ def apply_dtr_floor(x, out, floor=1.):
     ds = dtr_floor(ds, floor)
     storage.write(out, ds)
 
+
 @log_service
-def apply_non_polar_dtr_ceiling(x, out, ceiling=70.):
-    """Corrects diurnal temperature range (DTR) values in a dataset
+def apply_non_polar_dtr_ceiling(x, out, ceiling=70.0):
+    """Applies a ceiling to diurnal temperature range (DTR) values
+
+    This constrains the values in a DTR dataset by applying a ceiling. The ceiling is assigned to the value of the
+    data points which have their value strictly above the ceiling.
 
     Parameters
     ----------
