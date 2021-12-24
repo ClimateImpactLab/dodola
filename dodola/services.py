@@ -13,8 +13,8 @@ from dodola.core import (
     train_analogdownscaling,
     adjust_analogdownscaling,
     validate_dataset,
-    apply_dtr_floor,
-    apply_non_polar_dtr_ceiling,
+    dtr_floor,
+    non_polar_dtr_ceiling,
     xclim_units_any2pint,
     xclim_units_pint2cf,
 )
@@ -642,7 +642,7 @@ def correct_wet_day_frequency(x, out, process):
 
 
 @log_service
-def correct_dtr(x, out, floor=1.0, ceiling=70.0):
+def apply_dtr_floor(x, out, floor=1.):
     """Corrects diurnal temperature range (DTR) values in a dataset
 
     Parameters
@@ -653,12 +653,26 @@ def correct_dtr(x, out, floor=1.0, ceiling=70.0):
         Storage URL to write corrected output to.
     floor : int or float, optional
         All DTR values lower than this value are corrected to that value.
+    """
+    ds = storage.read(x)
+    ds = dtr_floor(ds, floor)
+    storage.write(out, ds)
+
+@log_service
+def apply_non_polar_dtr_ceiling(x, out, ceiling=70.):
+    """Corrects diurnal temperature range (DTR) values in a dataset
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be corrected.
+    out : str
+        Storage URL to write corrected output to.
     ceiling : int or float, optional
         All DTR values above this value are corrected to that value.
     """
     ds = storage.read(x)
-    ds = apply_dtr_floor(ds, floor)
-    ds = apply_non_polar_dtr_ceiling(ds, ceiling)
+    ds = non_polar_dtr_ceiling(ds, ceiling)
     storage.write(out, ds)
 
 

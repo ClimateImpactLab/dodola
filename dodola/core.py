@@ -553,7 +553,7 @@ def apply_wet_day_frequency_correction(ds, process):
     return ds_corrected
 
 
-def apply_dtr_floor(ds, floor):
+def dtr_floor(ds, floor):
     """
     Converts all diurnal temperature range (DTR) values below a threshold
     to the threshold value.
@@ -573,7 +573,7 @@ def apply_dtr_floor(ds, floor):
     return ds_corrected
 
 
-def apply_non_polar_dtr_ceiling(ds, ceiling):
+def non_polar_dtr_ceiling(ds, ceiling):
     """
     Converts all diurnal temperature range (DTR) values above a threshold
     to the threshold value, for regions between the 60th south and north parallel.

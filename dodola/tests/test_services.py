@@ -21,7 +21,8 @@ from dodola.services import (
     apply_qplad,
     validate,
     get_attrs,
-    correct_dtr,
+    apply_dtr_floor,
+    apply_non_polar_dtr_ceiling,
 )
 import dodola.repository as repository
 
@@ -766,19 +767,18 @@ def test_correct_wet_day_frequency(process):
         )
 
 
-def test_correct_dtr():
-    """Test that diurnal temperature range (DTR) correction applies floor and/or ceiling specified"""
+def test_apply_dtr_floor():
+    """Test diurnal temperature range (DTR) floor constraint"""
     # Make some fake dtr data
     n = 700
     floor = 1.0
-    ceiling = 70.0
     ts = np.linspace(0.0, 100, num=n)
     ds_dtr = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
     repository.write(in_url, ds_dtr)
 
-    correct_dtr(in_url, out=out_url, floor=floor, ceiling=ceiling)
+    apply_dtr_floor(in_url, out=out_url, floor=floor)
     ds_dtr_corrected = repository.read(out_url)
 
     # all values below floor should have been set to the floor value
@@ -789,6 +789,24 @@ def test_correct_dtr():
         )
     )
 
+
+def test_apply_non_polar_dtr_ceiling():
+    """Test diurnal temperature range (DTR) non polar dtr ceiling"""
+
+
+    # case 1 : non polar regions, should be applied
+    # Make some fake dtr data
+    n = 700
+    ceiling = 70.0
+    ts = np.linspace(0.0, 100, num=n)
+    ds_dtr = _datafactory(ts, start_time="1950-01-01")
+    in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
+    out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
+    repository.write(in_url, ds_dtr)
+
+    apply_non_polar_dtr_ceiling(in_url, out=out_url, ceiling=ceiling)
+    ds_dtr_corrected = repository.read(out_url)
+
     assert all(
         x == ceiling
         for x in ds_dtr_corrected["fakevariable"].where(
@@ -796,9 +814,7 @@ def test_correct_dtr():
         )
     )
 
-
-def test_correct_dtr_not_applying_ceiling():
-    """Test that diurnal temperature range (DTR) correction applies floor and/or ceiling specified"""
+    # case 2 : polar regions, shouldn't be applied
     # Make some fake dtr data
     n = 700
     ceiling = 70.0
@@ -808,7 +824,7 @@ def test_correct_dtr_not_applying_ceiling():
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
     repository.write(in_url, ds_dtr)
 
-    correct_dtr(in_url, out=out_url, floor=-1, ceiling=ceiling)
+    apply_non_polar_dtr_ceiling(in_url, out=out_url, ceiling=ceiling)
     ds_dtr_corrected = repository.read(out_url)
 
     assert ds_dtr_corrected == ds_dtr

@@ -566,17 +566,31 @@ def correct_wetday_frequency(x, out, process):
 
 
 @dodola_cli.command(
-    help="Correct small values of diurnal temperature range (DTR) in a dataset"
+    help="Apply a floor to diurnal temperature range (DTR) in a dataset"
 )
 @click.argument("x", required=True)
 @click.option("--out", "-o", required=True)
 @click.option(
-    "--threshold", "-t", help="Threshold for correcting small DTR values up to"
+    "--floor", "-f", help="floor to apply to DTR values"
 )
-def correct_dtr(x, out, floor=1.0, ceiling=70.0):
-    """Correct small values of diurnal temperature range (DTR) in a dataset"""
+def apply_dtr_floor(x, out, floor=1.0):
+    """Apply a floor to diurnal temperature range (DTR) in a dataset"""
+    services.apply_dtr_floor(
+        str(x), out=str(out), floor=float(floor)
+    )
+
+@dodola_cli.command(
+    help="Apply a ceiling to diurnal temperature range (DTR) in a dataset"
+)
+@click.argument("x", required=True)
+@click.option("--out", "-o", required=True)
+@click.option(
+    "--ceiling", "-c", help="ceiling to apply to DTR values"
+)
+def apply_non_polar_dtr_ceiling(x, out, ceiling=70.0):
+    """Apply a ceiling to diurnal temperature range (DTR) in a dataset"""
     services.correct_dtr(
-        str(x), out=str(out), floor=float(floor), ceiling=float(ceiling)
+        str(x), out=str(out), ceiling=float(ceiling)
     )
 
 
