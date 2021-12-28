@@ -13,7 +13,8 @@ from dodola.core import (
     train_analogdownscaling,
     adjust_analogdownscaling,
     validate_dataset,
-    apply_small_dtr_correction,
+    dtr_floor,
+    non_polar_dtr_ceiling,
     apply_precip_ceiling,
     xclim_units_any2pint,
     xclim_units_pint2cf,
@@ -642,8 +643,11 @@ def correct_wet_day_frequency(x, out, process):
 
 
 @log_service
-def correct_small_dtr(x, out, threshold=1.0):
-    """Corrects small diurnal temperature range (DTR) values in a dataset
+def apply_dtr_floor(x, out, floor=1.0):
+    """Applies a floor to diurnal temperature range (DTR) values
+
+    This constrains the values in a DTR dataset by applying a floor. The floor is assigned to the value of the
+    data points which have their value strictly below the floor.
 
     Parameters
     ----------
@@ -651,12 +655,33 @@ def correct_small_dtr(x, out, threshold=1.0):
         Storage URL to input xr.Dataset that will be corrected.
     out : str
         Storage URL to write corrected output to.
-    threshold : int or float, optional
-        All DTR values lower than this value are corrected to the threshold value.
+    floor : int or float, optional
+        All DTR values lower than this value are corrected to that value.
     """
     ds = storage.read(x)
-    ds_corrected = apply_small_dtr_correction(ds, threshold)
-    storage.write(out, ds_corrected)
+    ds = dtr_floor(ds, floor)
+    storage.write(out, ds)
+
+
+@log_service
+def apply_non_polar_dtr_ceiling(x, out, ceiling=70.0):
+    """Applies a ceiling to diurnal temperature range (DTR) values
+
+    This constrains the values in a DTR dataset by applying a ceiling. The ceiling is assigned to the value of the
+    data points which have their value strictly above the ceiling.
+
+    Parameters
+    ----------
+    x : str
+        Storage URL to input xr.Dataset that will be corrected.
+    out : str
+        Storage URL to write corrected output to.
+    ceiling : int or float, optional
+        All DTR values above this value are corrected to that value.
+    """
+    ds = storage.read(x)
+    ds = non_polar_dtr_ceiling(ds, ceiling)
+    storage.write(out, ds)
 
 
 @log_service

@@ -553,15 +553,15 @@ def apply_wet_day_frequency_correction(ds, process):
     return ds_corrected
 
 
-def apply_small_dtr_correction(ds, threshold):
+def dtr_floor(ds, floor):
     """
-    Converts all diurnal temperature range (DTR) values below a threshold
-    to the threshold value.
+    Converts all diurnal temperature range (DTR) values strictly below a floor
+    to that floor.
 
     Parameters
     ----------
     ds : xr.Dataset
-    threshold : int or float
+    floor : int or float
 
     Returns
     -------
@@ -569,7 +569,27 @@ def apply_small_dtr_correction(ds, threshold):
 
     """
 
-    ds_corrected = ds.where(ds >= threshold, threshold)
+    ds_corrected = ds.where(ds >= floor, floor)
+    return ds_corrected
+
+
+def non_polar_dtr_ceiling(ds, ceiling):
+    """
+    Converts all non-polar (regions between the 60th south and north parallel) diurnal temperature range (DTR) values strictly above a ceiling
+    to that ceiling.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+    ceiling : int or float
+
+    Returns
+    -------
+    xr.Dataset
+
+    """
+
+    ds_corrected = ds.where((ds <= ceiling) & (ds.lat > -60) & (ds.lat < 60), ceiling)
     return ds_corrected
 
 
@@ -778,7 +798,7 @@ def _test_dtr_range(ds, var, data_type):
     # test all but polar regions
     non_polar_max = ds[var].where((ds.lat > -60) & (ds.lat < 60)).max()
     assert (
-        non_polar_max < 70
+        non_polar_max <= 70
     ), "diurnal temperature range max is {} for non-polar regions".format(non_polar_max)
 
 

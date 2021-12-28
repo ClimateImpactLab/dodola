@@ -579,16 +579,25 @@ def adjust_maximum_precipitation(x, out, threshold=3000.0):
 
 
 @dodola_cli.command(
-    help="Correct small values of diurnal temperature range (DTR) in a dataset"
+    help="Apply a floor to diurnal temperature range (DTR) in a dataset"
 )
 @click.argument("x", required=True)
 @click.option("--out", "-o", required=True)
-@click.option(
-    "--threshold", "-t", help="Threshold for correcting small DTR values up to"
+@click.option("--floor", "-f", help="floor to apply to DTR values")
+def apply_dtr_floor(x, out, floor=1.0):
+    """Apply a floor to diurnal temperature range (DTR) in a dataset"""
+    services.apply_dtr_floor(str(x), out=str(out), floor=float(floor))
+
+
+@dodola_cli.command(
+    help="Apply a ceiling to diurnal temperature range (DTR) in a dataset"
 )
-def correct_dtr(x, out, threshold=1.0):
-    """Correct small values of diurnal temperature range (DTR) in a dataset"""
-    services.correct_small_dtr(str(x), out=str(out), threshold=float(threshold))
+@click.argument("x", required=True)
+@click.option("--out", "-o", required=True)
+@click.option("--ceiling", "-c", help="ceiling to apply to DTR values")
+def apply_non_polar_dtr_ceiling(x, out, ceiling=70.0):
+    """Apply a ceiling to diurnal temperature range (DTR) in a dataset"""
+    services.apply_non_polar_dtr_ceiling(str(x), out=str(out), ceiling=float(ceiling))
 
 
 @dodola_cli.command(help="Validate a CMIP6, bias corrected or downscaled dataset")

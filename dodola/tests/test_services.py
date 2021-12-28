@@ -22,12 +22,15 @@ from dodola.services import (
     apply_qplad,
     validate,
     get_attrs,
-    correct_small_dtr,
+    apply_dtr_floor,
+    apply_non_polar_dtr_ceiling,
 )
 import dodola.repository as repository
 
 
-def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
+def _datafactory(
+    x, start_time="1950-01-01", variable_name="fakevariable", lon=1.0, lat=1.0
+):
     """Populate xr.Dataset with synthetic data for testing"""
     start_time = str(start_time)
     if x.ndim != 1:
@@ -42,8 +45,8 @@ def _datafactory(x, start_time="1950-01-01", variable_name="fakevariable"):
         coords={
             "index": time,
             "time": time,
-            "lon": (["lon"], [1.0]),
-            "lat": (["lat"], [1.0]),
+            "lon": (["lon"], [lon]),
+            "lat": (["lat"], [lat]),
         },
     )
     # need to set variable units to pass xclim 0.29 check on units
@@ -765,27 +768,66 @@ def test_correct_wet_day_frequency(process):
         )
 
 
-def test_correct_small_dtr():
-    """Test that diurnal temperature range (DTR) correction corrects small values of DTR"""
+def test_apply_dtr_floor():
+    """Test diurnal temperature range (DTR) floor constraint"""
     # Make some fake dtr data
-    n = 700
-    threshold = 1.0
+    n = 10
+    floor = 5.0
     ts = np.linspace(0.0, 10, num=n)
     ds_dtr = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
     repository.write(in_url, ds_dtr)
 
-    correct_small_dtr(in_url, out=out_url)
+    apply_dtr_floor(in_url, out=out_url, floor=floor)
     ds_dtr_corrected = repository.read(out_url)
 
-    # all values below threshold should have been set to the threshold value
-    assert (
-        ds_dtr_corrected["fakevariable"]
-        .where(ds_dtr["fakevariable"] < threshold, drop=True)
-        .all()
-        >= threshold
+    # all values below floor should have been set to the floor value
+    assert all(
+        x == floor
+        for x in ds_dtr_corrected["fakevariable"].where(
+            ds_dtr["fakevariable"] < floor, drop=True
+        )
     )
+
+
+def test_apply_non_polar_dtr_ceiling():
+    """Test diurnal temperature range (DTR) non polar dtr ceiling"""
+
+    # case 1 : non polar regions, should be applied
+    # Make some fake dtr data
+    n = 10
+    ceiling = 5.0
+    ts = np.linspace(0.0, 10, num=n)
+    ds_dtr = _datafactory(ts, start_time="1950-01-01")
+    in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
+    out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
+    repository.write(in_url, ds_dtr)
+
+    apply_non_polar_dtr_ceiling(in_url, out=out_url, ceiling=ceiling)
+    ds_dtr_corrected = repository.read(out_url)
+
+    assert all(
+        x == ceiling
+        for x in ds_dtr_corrected["fakevariable"].where(
+            ds_dtr["fakevariable"] > ceiling, drop=True
+        )
+    )
+
+    # case 2 : polar regions, shouldn't be applied
+    # Make some fake dtr data
+    n = 10
+    ceiling = 70.0
+    ts = np.linspace(65.0, 75.0, num=n)
+    ds_dtr = _datafactory(ts, start_time="1950-01-01", lat=-61.0)
+    in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
+    out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
+    repository.write(in_url, ds_dtr)
+
+    apply_non_polar_dtr_ceiling(in_url, out=out_url, ceiling=ceiling)
+    ds_dtr_corrected = repository.read(out_url)
+
+    assert ds_dtr_corrected == ds_dtr
 
 
 def test_adjust_maximum_precipitation():
