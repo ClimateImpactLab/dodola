@@ -5,12 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-## Added
+### Added
 - Add maximum precipitation adjustment service that applies a "ceiling" or "cap" to precipitation values above a user-defined threshold. (PR #164, @dgergel)
-## Changed
+
+### Changed
 - Increase max precipitation allowed by validation to 3000 mm. (PR #164, @dgergel)
 - Update wet day frequency correction to incorporate method additions from Hempel et al 2013. (PRs #162 and #159, @dgergel)
-- floor and ceiling for DTR (PR #163 @emileten)
+- Floor and ceiling for DTR. (PR #163 @emileten)
 
 ## [0.14.0] - 2021-12-21
 ### Changed
