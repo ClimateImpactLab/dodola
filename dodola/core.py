@@ -589,7 +589,10 @@ def non_polar_dtr_ceiling(ds, ceiling):
 
     """
 
-    ds_corrected = ds.where((ds <= ceiling) & (ds.lat > -60) & (ds.lat < 60), ceiling)
+    ds_corrected = ds.where(
+        (ds <= ceiling) | (ds["lat"] <= -60 or ds["lat"] >= 60), ceiling
+    )
+
     return ds_corrected
 
 
