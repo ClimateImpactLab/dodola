@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
-- Fix boolean condition error in DTR ceiling application (PR #165, @emileten)
+- Fix boolean condition error in DTR ceiling application (PR #165, PR #166, @emileten)
 
 ## [0.15.0] - 2021-12-27
 ### Added
