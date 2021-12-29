@@ -816,10 +816,11 @@ def test_apply_non_polar_dtr_ceiling():
     )
 
     # check values that should not be capped
-    left = ds_dtr_corrected["fakevariable"].where(ds_dtr["fakevariable"] <= ceiling, drop=True)
+    left = ds_dtr_corrected["fakevariable"].where(
+        ds_dtr["fakevariable"] <= ceiling, drop=True
+    )
     right = ds_dtr["fakevariable"].where(ds_dtr["fakevariable"] <= ceiling, drop=True)
     xr.testing.assert_equal(left, right)
-
 
     # case 2 : polar regions, shouldn't be applied
     # Make some fake dtr data
@@ -834,7 +835,9 @@ def test_apply_non_polar_dtr_ceiling():
     apply_non_polar_dtr_ceiling(in_url, out=out_url, ceiling=ceiling)
     ds_dtr_corrected = repository.read(out_url)
 
-    np.testing.assert_equal(ds_dtr['fakevariable'].values, ds_dtr_corrected['fakevariable'].values)
+    np.testing.assert_equal(
+        ds_dtr["fakevariable"].values, ds_dtr_corrected["fakevariable"].values
+    )
 
 
 def test_adjust_maximum_precipitation():
