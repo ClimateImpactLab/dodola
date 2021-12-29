@@ -7,6 +7,7 @@ import xarray as xr
 from xesmf.data import wave_smooth
 from xesmf.util import grid_global
 from xclim.sdba.adjustment import QuantileDeltaMapping
+
 from dodola.services import (
     prime_qplad_output_zarrstore,
     prime_qdm_output_zarrstore,
@@ -796,10 +797,14 @@ def test_apply_non_polar_dtr_ceiling():
 
     # case 1 : non polar regions, should be applied
     # Make some fake dtr data
-    n = 10
-    ceiling = 5.0
-    ts = np.linspace(0.0, 10, num=n)
-    ds_dtr = _datafactory(ts, start_time="1950-01-01")
+    ceiling = 0.5
+    x = np.random.rand(2, 361)
+    lon = np.arange(-0.5, 0.5, 0.5)
+    lat = np.arange(-90, 90.5, 0.5)
+    ds_dtr = xr.Dataset(
+        {"fakevariable": xr.DataArray(x, {"lon": lon, "lat": lat}, ["lon", "lat"])}
+    )
+
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
     repository.write(in_url, ds_dtr)
@@ -807,27 +812,36 @@ def test_apply_non_polar_dtr_ceiling():
     apply_non_polar_dtr_ceiling(in_url, out=out_url, ceiling=ceiling)
     ds_dtr_corrected = repository.read(out_url)
 
-    # check values that should be capped
-    assert all(
-        x == ceiling
-        for x in ds_dtr_corrected["fakevariable"].where(
-            ds_dtr["fakevariable"] > ceiling, drop=True
-        )
+    are_not_capped = xr.ufuncs.logical_or(
+        ds_dtr <= ceiling,
+        xr.ufuncs.logical_or(ds_dtr["lat"] <= -60, ds_dtr["lat"] >= 60),
     )
+
+    are_capped = xr.ufuncs.logical_not(are_not_capped)
+
+    # check values that should be capped
+    assert (
+        ds_dtr_corrected["fakevariable"].values[are_capped["fakevariable"].values]
+        == ceiling
+    ).all()
 
     # check values that should not be capped
-    left = ds_dtr_corrected["fakevariable"].where(
-        ds_dtr["fakevariable"] <= ceiling, drop=True
-    )
-    right = ds_dtr["fakevariable"].where(ds_dtr["fakevariable"] <= ceiling, drop=True)
-    xr.testing.assert_equal(left, right)
+    corrected = ds_dtr_corrected["fakevariable"].values[
+        are_not_capped["fakevariable"].values
+    ]
+    not_corrected = ds_dtr["fakevariable"].values[are_not_capped["fakevariable"].values]
+    np.testing.assert_equal(corrected, not_corrected)
 
-    # case 2 : polar regions, shouldn't be applied
+    # case 2 : all polar regions, shouldn't be applied
     # Make some fake dtr data
-    n = 10
-    ceiling = 70.0
-    ts = np.linspace(65.0, 75.0, num=n)
-    ds_dtr = _datafactory(ts, start_time="1950-01-01", lat=-61.0)
+    ceiling = 0.5
+    x = np.random.rand(2, 58)
+    lon = np.arange(-0.5, 0.5, 0.5)
+    lat = np.arange(-90, -61, 0.5)
+    ds_dtr = xr.Dataset(
+        {"fakevariable": xr.DataArray(x, {"lon": lon, "lat": lat}, ["lon", "lat"])}
+    )
+
     in_url = "memory://test_correct_small_dtr/an/input/path.zarr"
     out_url = "memory://test_correct_small_dtr/an/output/path.zarr"
     repository.write(in_url, ds_dtr)
