@@ -786,7 +786,7 @@ def _test_dtr_range(ds, var, data_type):
 
     # test polar DTR values
     southern_polar_max = float(ds[var].where(ds.lat < -60).max())
-    if (southern_polar_max >= 110):
+    if southern_polar_max >= 110:
         assert (
             southern_polar_max < 110
         ), "diurnal temperature range max is {} for polar southern latitudes".format(
@@ -794,7 +794,7 @@ def _test_dtr_range(ds, var, data_type):
         )
 
     northern_polar_max = float(ds[var].where(ds.lat > 60).max())
-    if (northern_polar_max >= 110):
+    if northern_polar_max >= 110:
         assert (
             northern_polar_max < 110
         ), "diurnal temperature range max is {} for polar northern latitudes".format(
