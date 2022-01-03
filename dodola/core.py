@@ -768,7 +768,7 @@ def _test_dtr_range(ds, var, data_type):
     # note that some CMIP6 DTR will equal 0 at polar latitudes, this will be adjusted
     # before bias correction with the DTR small values correction
 
-    dtr_min = ds[var].min()
+    dtr_min = float(ds[var].min())
     if data_type == "cmip6":
         # may be equal to zero in polar regions and if tasmax < tasmin (only occurs for GFDL models)
         assert (
@@ -785,24 +785,24 @@ def _test_dtr_range(ds, var, data_type):
         )
 
     # test polar DTR values
-    southern_polar_max = ds[var].where(ds.lat < -60).max()
-    if (southern_polar_max is not None) and (southern_polar_max >= 100):
+    southern_polar_max = float(ds[var].where(ds.lat < -60).max())
+    if (southern_polar_max >= 110):
         assert (
-            southern_polar_max < 100
+            southern_polar_max < 110
         ), "diurnal temperature range max is {} for polar southern latitudes".format(
             southern_polar_max
         )
 
-    northern_polar_max = ds[var].where(ds.lat > 60).max()
-    if (northern_polar_max is not None) and (northern_polar_max >= 100):
+    northern_polar_max = float(ds[var].where(ds.lat > 60).max())
+    if (northern_polar_max >= 110):
         assert (
-            northern_polar_max < 100
+            northern_polar_max < 110
         ), "diurnal temperature range max is {} for polar northern latitudes".format(
             northern_polar_max
         )
 
     # test all but polar regions
-    non_polar_max = ds[var].where((ds.lat > -60) & (ds.lat < 60)).max()
+    non_polar_max = float(ds[var].where((ds.lat > -60) & (ds.lat < 60)).max())
     assert (
         non_polar_max <= 70
     ), "diurnal temperature range max is {} for non-polar regions".format(non_polar_max)
@@ -813,7 +813,7 @@ def _test_negative_values(ds, var):
     Tests for presence of negative values
     """
     # this is not set to 0 to deal with floating point error
-    neg_values = ds[var].where(ds[var] < -0.001).count()
+    neg_values = int(ds[var].where(ds[var] < -0.001).count())
     assert neg_values == 0, "there are {} negative values!".format(neg_values)
 
 
@@ -822,10 +822,8 @@ def _test_maximum_precip(ds, var):
     Tests that max precip is reasonable
     """
     threshold = 3000  # in mm, max observed is 1.825m --> maximum occurs between 0.5-0.8
-    max_precip = ds[var].max().load().values
-    num_precip_values_over_threshold = (
-        ds[var].where(ds[var] > threshold).count().load().values
-    )
+    max_precip = float(ds[var].max())
+    num_precip_values_over_threshold = int(ds[var].where(ds[var] > threshold).count())
     assert (
         num_precip_values_over_threshold == 0
     ), "maximum precip is {} mm and there are {} values over 3000mm".format(
