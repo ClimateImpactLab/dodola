@@ -240,7 +240,6 @@ def train_qdm(
         hist = hist.isel(isel_slice)
         ref = ref.isel(isel_slice)
 
-    logger.info(f"Converting {variable} units to xclim pint compatible units")
     ref = xclim_units_any2pint(ref, variable)
     hist = xclim_units_any2pint(hist, variable)
 
@@ -320,7 +319,6 @@ def apply_qdm(
     qdm_ds.load()
     sim_ds.load()
 
-    logger.info(f"Converting {variable} units to xclim pint compatible units")
     sim_ds = xclim_units_any2pint(sim_ds, variable)
 
     adjusted_ds = adjust_quantiledeltamapping(
@@ -332,7 +330,6 @@ def apply_qdm(
         include_quantiles=True,
     )
 
-    logger.info(f"Converting {variable} units back to CF compatible units")
     adjusted_ds = xclim_units_pint2cf(adjusted_ds, variable)
 
     if new_attrs:
@@ -397,7 +394,6 @@ def train_qplad(
     ref_coarse.load()
     ref_fine.load()
 
-    logger.info(f"Converting {variable} units to xclim pint compatible units")
     ref_coarse = xclim_units_any2pint(ref_coarse, variable)
     ref_fine = xclim_units_any2pint(ref_fine, variable)
 
@@ -484,7 +480,6 @@ def apply_qplad(
 
     variable = str(variable)
 
-    logger.info(f"Converting {variable} units to xclim pint compatible units")
     sim_ds = xclim_units_any2pint(sim_ds, variable)
     for var in qplad_ds:
         qplad_ds = xclim_units_any2pint(qplad_ds, var)
