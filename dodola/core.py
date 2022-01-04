@@ -415,6 +415,8 @@ def xclim_units_any2pint(ds, var):
     -------
     xr.Dataset with `var` units str attribute converted to xclim's pint registry format
     """
+
+    logger.info(f"Reformatting {variable} unit string representation")
     ds[var].attrs["units"] = str(xclim_units.units2pint(ds[var].attrs["units"]))
     return ds
 
@@ -430,6 +432,7 @@ def xclim_units_pint2cf(ds, var):
     -------
     xr.Dataset with `var` units str attribute converted to CF format
     """
+    logger.info(f"Reformatting {variable} unit string representation")
     ds[var].attrs["units"] = xclim_units.pint2cfunits(
         xclim_units.units2pint(ds[var].attrs["units"])
     )
