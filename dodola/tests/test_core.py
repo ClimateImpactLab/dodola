@@ -102,7 +102,7 @@ def simple_dtr_factory():
                 coords=[
                     np.arange(-82.5, 90, 15),
                     np.arange(-172.5, 180, 15),
-                    pd.date_range("2015-01-01", periods=10, freq="D"),
+                    xr.cftime_range("2015-01-01", periods=10, freq="D"),
                 ],
             )
         }
