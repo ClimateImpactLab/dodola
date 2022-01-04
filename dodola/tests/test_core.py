@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 import xarray as xr
 import cftime
@@ -12,6 +13,7 @@ from dodola.core import (
     xclim_units_any2pint,
     xclim_units_pint2cf,
     xclim_convert_360day_calendar_interpolate,
+    _test_dtr_range,
 )
 
 
@@ -89,6 +91,52 @@ def test_train_quantiledeltamapping_quantiles_excludeendpoints(variable_kind):
     # Check that 0, 1 are literally excluded:
     assert 1.0 not in qdm.ds.hist_q
     assert 0.0 not in qdm.ds.hist_q
+
+
+def simple_dtr_factory():
+    return xr.Dataset(
+        {
+            "dtr": xr.DataArray(
+                (np.random.random_sample(size=(12, 24, 10)) + 1e-6) * 50,
+                dims=["lat", "lon", "time"],
+                coords=[
+                    np.arange(-82.5, 90, 15),
+                    np.arange(-172.5, 180, 15),
+                    pd.date_range("2015-01-01", periods=10, freq="D"),
+                ],
+            )
+        }
+    )
+
+
+@pytest.mark.parametrize(
+    "ds",
+    [
+        pytest.param(simple_dtr_factory(), id="in-memory"),
+        pytest.param(simple_dtr_factory().chunk(), id="chunked"),
+    ],
+)
+def test_dtr_checker(ds):
+    _test_dtr_range(ds, "dtr", "cmip6")
+
+    ds.dtr.loc[{"lat": ds.lat[(ds.lat > 60)]}] = 105
+    _test_dtr_range(ds, "dtr", "cmip6")
+
+    ds.dtr.loc[{"lat": ds.lat[(ds.lat > 60)]}] = 115
+    with pytest.raises(
+        AssertionError,
+        match="max is 115.0 for polar northern latitudes",
+    ):
+        _test_dtr_range(ds, "dtr", "cmip6")
+
+    ds.dtr.loc[{"lat": ds.lat[(ds.lat > 60)]}] = 10
+
+    ds.dtr.loc[{"lat": ds.lat[(ds.lat < -60)]}] = 115
+    with pytest.raises(
+        AssertionError,
+        match="max is 115.0 for polar southern latitudes",
+    ):
+        _test_dtr_range(ds, "dtr", "cmip6")
 
 
 @pytest.mark.parametrize(
