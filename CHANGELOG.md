@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Improve README.md. (@brews)
+- Improve README.md. (PR #169, @brews)
 ### Changed
 - Remove duplicated service-level logging info lines of code introduced by PR #148 (PR #168, @emileten)
 
