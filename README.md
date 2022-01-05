@@ -8,7 +8,7 @@ This is under heavy development.
 
 Commands can be run through the command line with `dodola <command>`.
 
-```shell
+```
 Commands:
     adjust-maximum-precipitation  Adjust maximum precipitation in a dataset
     apply-dtr-floor               Apply a floor to diurnal temperature...
