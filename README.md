@@ -6,7 +6,7 @@ This is under heavy development.
 
 ## Features
 
-Commands are usually run through the command line with `dodola <command>`.
+Commands can be run through the command line with `dodola <command>`.
 
 ```shell
 Commands:
