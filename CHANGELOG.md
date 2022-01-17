@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve README.md. (PR #169, @brews)
 ### Changed
 - Remove duplicated service-level logging info lines of code introduced by PR #148 (PR #168, @emileten)
+- Decrease validation temperature range min to 130 (PR #170, @emileten)
 
 ## [0.15.1] - 2021-12-29
 ### Fixed
