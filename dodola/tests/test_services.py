@@ -749,26 +749,37 @@ def test_correct_wet_day_frequency(process):
 
     seed = 1
     np.random.seed(seed)
-    correct_wet_day_frequency(in_url, out=out_url, process=process, var='fakevariable')
+    correct_wet_day_frequency(in_url, out=out_url, process=process, var="fakevariable")
     ds_precip_corrected = repository.read(out_url)
 
     if process == "pre":
         np.random.seed(seed)
         expected = np.random.uniform(0.5, 1, 4)
-        assert ds_precip_corrected.isel(time=0)['fakevariable'].values.item() == expected[0]
-        assert ds_precip_corrected.isel(time=3)['fakevariable'].values.item() == expected[3]
-        expected = ds_precip.isel(time=slice(1,3))['fakevariable'].values
-        np.testing.assert_almost_equal(ds_precip_corrected.isel(time=slice(1,3))['fakevariable'].values,
-                                       expected)
+        assert (
+            ds_precip_corrected.isel(time=0)["fakevariable"].values.item()
+            == expected[0]
+        )
+        assert (
+            ds_precip_corrected.isel(time=3)["fakevariable"].values.item()
+            == expected[3]
+        )
+        expected = ds_precip.isel(time=slice(1, 3))["fakevariable"].values
+        np.testing.assert_almost_equal(
+            ds_precip_corrected.isel(time=slice(1, 3))["fakevariable"].values, expected
+        )
 
     elif process == "post":
-        expected = 0.
-        assert ds_precip_corrected.isel(time=0)['fakevariable'].values.item() == expected
-        assert ds_precip_corrected.isel(time=3)['fakevariable'].values.item() == expected
-        expected = ds_precip.isel(time=slice(1,3))['fakevariable'].values
-        np.testing.assert_almost_equal(ds_precip_corrected.isel(time=slice(1,3))['fakevariable'].values,
-                                       expected)
-
+        expected = 0.0
+        assert (
+            ds_precip_corrected.isel(time=0)["fakevariable"].values.item() == expected
+        )
+        assert (
+            ds_precip_corrected.isel(time=3)["fakevariable"].values.item() == expected
+        )
+        expected = ds_precip.isel(time=slice(1, 3))["fakevariable"].values
+        np.testing.assert_almost_equal(
+            ds_precip_corrected.isel(time=slice(1, 3))["fakevariable"].values, expected
+        )
 
 
 def test_apply_dtr_floor():

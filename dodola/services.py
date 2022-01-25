@@ -618,7 +618,7 @@ def remove_leapdays(x, out):
 
 
 @log_service
-def correct_wet_day_frequency(x, out, process, var='pr'):
+def correct_wet_day_frequency(x, out, process, var="pr"):
     """Corrects wet day frequency in a dataset
 
     Parameters

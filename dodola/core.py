@@ -518,7 +518,7 @@ def xclim_convert_360day_calendar_interpolate(
         return ds_out
 
 
-def apply_wet_day_frequency_correction(ds, process, var='pr'):
+def apply_wet_day_frequency_correction(ds, process, var="pr"):
     """
 
     Parameters
@@ -548,7 +548,8 @@ def apply_wet_day_frequency_correction(ds, process, var='pr'):
     if process == "pre":
         # includes very small values that are negative in CMIP6 output
         ds[var] = ds[var].where(
-            ds[var] >= threshold, np.random.uniform(low=low, high=threshold, size=ds[var].shape)
+            ds[var] >= threshold,
+            np.random.uniform(low=low, high=threshold, size=ds[var].shape),
         )
     elif process == "post":
         ds[var] = ds[var].where(ds[var] >= threshold, 0.0)
