@@ -738,35 +738,37 @@ def test_remove_leapdays():
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):
+
     """Test that wet day frequency correction corrects the frequency of wet days"""
     # Make some fake precip data
-    n = 700
-    threshold = 1.0  # mm/day
-    ts = np.linspace(0.0, 10, num=n)
+    ts = np.array([0.5, 1, 1.5, 0.1])
     ds_precip = _datafactory(ts, start_time="1950-01-01")
     in_url = "memory://test_correct_wet_day_frequency/an/input/path.zarr"
     out_url = "memory://test_correct_wet_day_frequency/an/output/path.zarr"
     repository.write(in_url, ds_precip)
 
-    correct_wet_day_frequency(in_url, out=out_url, process=process)
+    seed = 1
+    np.random.seed(seed)
+    correct_wet_day_frequency(in_url, out=out_url, process=process, var='fakevariable')
     ds_precip_corrected = repository.read(out_url)
 
-    low = threshold / 2.0
     if process == "pre":
-        # all 0s and very small negative values should have been set to a random uniform value below threshold and above threshold / 2.0
-        corrected_values = ds_precip_corrected["fakevariable"].where(
-            ds_precip["fakevariable"] < threshold, drop=True
-        )
-        assert corrected_values.all() >= low
-        assert corrected_values.all() <= threshold
+        np.random.seed(seed)
+        expected = np.random.uniform(0.5, 1, 4)
+        assert ds_precip_corrected.isel(time=0)['fakevariable'].values.item() == expected[0]
+        assert ds_precip_corrected.isel(time=3)['fakevariable'].values.item() == expected[3]
+        expected = ds_precip.isel(time=slice(1,3))['fakevariable'].values
+        np.testing.assert_almost_equal(ds_precip_corrected.isel(time=slice(1,3))['fakevariable'].values,
+                                       expected)
+
     elif process == "post":
-        # all values below threshold should be reset to 0
-        assert (
-            ds_precip_corrected["fakevariable"]
-            .where(ds_precip["fakevariable"] < threshold, drop=True)
-            .all()
-            == 0.0
-        )
+        expected = 0.
+        assert ds_precip_corrected.isel(time=0)['fakevariable'].values.item() == expected
+        assert ds_precip_corrected.isel(time=3)['fakevariable'].values.item() == expected
+        expected = ds_precip.isel(time=slice(1,3))['fakevariable'].values
+        np.testing.assert_almost_equal(ds_precip_corrected.isel(time=slice(1,3))['fakevariable'].values,
+                                       expected)
+
 
 
 def test_apply_dtr_floor():
