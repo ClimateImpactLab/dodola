@@ -618,7 +618,7 @@ def remove_leapdays(x, out):
 
 
 @log_service
-def correct_wet_day_frequency(x, out, process):
+def correct_wet_day_frequency(x, out, process, variable="pr"):
     """Corrects wet day frequency in a dataset
 
     Parameters
@@ -631,9 +631,12 @@ def correct_wet_day_frequency(x, out, process):
         Step in pipeline, used in determining how to correct.
         "Pre" replaces all zero values with a uniform random value below a threshold (before bias correction).
         "Post" replaces all values below a threshold with zeroes (after bias correction).
+    variable: str
     """
     ds = storage.read(x)
-    ds_corrected = apply_wet_day_frequency_correction(ds, process=process)
+    ds_corrected = apply_wet_day_frequency_correction(
+        ds, process=process, variable=variable
+    )
     storage.write(out, ds_corrected)
 
 
