@@ -518,13 +518,14 @@ def xclim_convert_360day_calendar_interpolate(
         return ds_out
 
 
-def apply_wet_day_frequency_correction(ds, process):
+def apply_wet_day_frequency_correction(ds, process, var='pr'):
     """
 
     Parameters
     ----------
     ds : xr.Dataset
     process : {"pre", "post"}
+    var: str
 
     Returns
     -------
@@ -546,14 +547,14 @@ def apply_wet_day_frequency_correction(ds, process):
 
     if process == "pre":
         # includes very small values that are negative in CMIP6 output
-        ds_corrected = ds.where(
-            ds > threshold, np.random.uniform(low=low, high=threshold)
+        ds[var] = ds[var].where(
+            ds[var] >= threshold, np.random.uniform(low=low, high=threshold, size=ds[var].shape)
         )
     elif process == "post":
-        ds_corrected = ds.where(ds >= threshold, 0.0)
+        ds[var] = ds[var].where(ds[var] >= threshold, 0.0)
     else:
         raise ValueError("this processing option is not implemented")
-    return ds_corrected
+    return ds
 
 
 def dtr_floor(ds, floor):
