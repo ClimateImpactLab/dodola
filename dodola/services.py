@@ -634,7 +634,9 @@ def correct_wet_day_frequency(x, out, process, variable="pr"):
     variable: str
     """
     ds = storage.read(x)
-    ds_corrected = apply_wet_day_frequency_correction(ds, process=process, variable=variable)
+    ds_corrected = apply_wet_day_frequency_correction(
+        ds, process=process, variable=variable
+    )
     storage.write(out, ds_corrected)
 
 
