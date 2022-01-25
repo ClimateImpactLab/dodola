@@ -749,7 +749,7 @@ def test_correct_wet_day_frequency(process):
 
     seed = 1
     np.random.seed(seed)
-    correct_wet_day_frequency(in_url, out=out_url, process=process, var="fakevariable")
+    correct_wet_day_frequency(in_url, out=out_url, process=process, variable="fakevariable")
     ds_precip_corrected = repository.read(out_url)
 
     if process == "pre":
