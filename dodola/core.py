@@ -549,7 +549,12 @@ def apply_wet_day_frequency_correction(ds, process, variable="pr"):
         # includes very small values that are negative in CMIP6 output
         ds[variable] = ds[variable].where(
             ds[variable] >= threshold,
-            np.random.uniform(low=low, high=threshold, size=ds[variable].shape, dtype=ds[variable].data.dtype),
+            np.random.uniform(
+                low=low,
+                high=threshold,
+                size=ds[variable].shape,
+                dtype=ds[variable].data.dtype,
+            ),
         )
     elif process == "post":
         ds[variable] = ds[variable].where(ds[variable] >= threshold, 0.0)
