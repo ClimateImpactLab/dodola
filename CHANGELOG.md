@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Fix the wetday frequency correction so that different replacement values are used, rather than a single one (PR #174, @emileten)
+### Fixed
+- Fix the wetday frequency correction so that different replacement values are used, rather than a single one (PR #174, PR #176, @emileten, @delgadom).
 
 ## [0.16.0] - 2022-01-19
 ### Added
