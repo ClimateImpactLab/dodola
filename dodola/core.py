@@ -553,8 +553,7 @@ def apply_wet_day_frequency_correction(ds, process, variable="pr"):
                 low=low,
                 high=threshold,
                 size=ds[variable].shape,
-                dtype=ds[variable].data.dtype,
-            ),
+            ).astype(ds[variable].data.dtype),
         )
     elif process == "post":
         ds[variable] = ds[variable].where(ds[variable] >= threshold, 0.0)
