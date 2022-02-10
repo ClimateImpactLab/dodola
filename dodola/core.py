@@ -358,8 +358,10 @@ def standardize_gcm(ds, leapday_removal=True):
     )
 
     # Some models have coordinates values (e.g. [1.0, 2.0]) for the spatial bounds dimension. We don't need this.
-    if 'bnds' in ds_cleaned.variables:
-        ds_cleaned = ds_cleaned.drop(['bnds']) # this preserves the dimension in itself but drops the coordinates values.
+    if "bnds" in ds_cleaned.variables:
+        ds_cleaned = ds_cleaned.drop(
+            ["bnds"]
+        )  # this preserves the dimension in itself but drops the coordinates values.
 
     # Cleanup time.
 

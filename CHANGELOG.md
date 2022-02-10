@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Drop coordinate values associated with the spatial bounds dimension in CMIP6 cleaning (PR #177, @emileten).
 
 ## [0.16.1] - 2022-01-27
 ### Fixed
