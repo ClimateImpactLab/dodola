@@ -372,22 +372,22 @@ def standardize_gcm(ds, leapday_removal=True):
             # we want this to fail, as pr units are something we don't expect
             raise ValueError("check units: pr units attribute is not kg m-2 s-1")
 
-    cal = get_calendar(ds)
+    cal = get_calendar(ds_cleaned)
 
     if (
         cal == "360_day" or leapday_removal
     ):  # calendar conversion is necessary in either case
         # if calendar is just integers, xclim cannot understand it
-        if ds.time.dtype == "int64":
+        if ds_cleaned.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
         if cal == "360_day":
             if leapday_removal:  # 360 day -> noleap
                 ds_converted = xclim_convert_360day_calendar_interpolate(
-                    ds=ds, target="noleap", align_on="random", interpolation="linear"
+                    ds=ds_cleaned, target="noleap", align_on="random", interpolation="linear"
                 )
             else:  # 360 day -> standard
                 ds_converted = xclim_convert_360day_calendar_interpolate(
-                    ds=ds, target="standard", align_on="random", interpolation="linear"
+                    ds=ds_cleaned, target="standard", align_on="random", interpolation="linear"
                 )
         else:  # any -> noleap
             # remove leap days and update calendar
@@ -395,7 +395,7 @@ def standardize_gcm(ds, leapday_removal=True):
 
         # rechunk, otherwise chunks are different sizes
         ds_out = ds_converted.chunk(
-            {"time": 730, "lat": len(ds.lat), "lon": len(ds.lon)}
+            {"time": 730, "lat": len(ds_cleaned.lat), "lon": len(ds_cleaned.lon)}
         )
 
     else:
