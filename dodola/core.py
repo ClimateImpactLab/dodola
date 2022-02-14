@@ -383,11 +383,17 @@ def standardize_gcm(ds, leapday_removal=True):
         if cal == "360_day":
             if leapday_removal:  # 360 day -> noleap
                 ds_converted = xclim_convert_360day_calendar_interpolate(
-                    ds=ds_cleaned, target="noleap", align_on="random", interpolation="linear"
+                    ds=ds_cleaned,
+                    target="noleap",
+                    align_on="random",
+                    interpolation="linear",
                 )
             else:  # 360 day -> standard
                 ds_converted = xclim_convert_360day_calendar_interpolate(
-                    ds=ds_cleaned, target="standard", align_on="random", interpolation="linear"
+                    ds=ds_cleaned,
+                    target="standard",
+                    align_on="random",
+                    interpolation="linear",
                 )
         else:  # any -> noleap
             # remove leap days and update calendar
