@@ -384,7 +384,7 @@ def standardize_gcm(ds, leapday_removal=True):
 
             # Cannot have chunks in time dimension for 360 day calendar conversion so loading
             # data into memory.
-            ds.load()
+            ds_cleaned.load()
 
             if leapday_removal:  # 360 day -> noleap
                 ds_converted = xclim_convert_360day_calendar_interpolate(
