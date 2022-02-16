@@ -381,6 +381,11 @@ def standardize_gcm(ds, leapday_removal=True):
         if ds_cleaned.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
         if cal == "360_day":
+
+            # Cannot have chunks in time dimension for 360 day calendar conversion so loading
+            # data into memory.
+            ds.load()
+
             if leapday_removal:  # 360 day -> noleap
                 ds_converted = xclim_convert_360day_calendar_interpolate(
                     ds=ds_cleaned,
