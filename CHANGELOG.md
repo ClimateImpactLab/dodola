@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Move in-memory data loading where it is needed for 360-days calendar conversion in clean-cmip6 (PR #179, @emileten)
 ### Changed
-- Increase max allowed tasmin, tasmax in services.validate to 377 K for UKESM1-0-LL. (@brews)
+- Increase max allowed tasmin, tasmax in services.validate to 377 K for UKESM1-0-LL. (PR #180, @brews)
 
 ## [0.16.2] - 2022-02-15
 ### Fixed
