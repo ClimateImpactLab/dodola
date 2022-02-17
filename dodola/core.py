@@ -774,8 +774,10 @@ def _test_temp_range(ds, var):
     """
     Ensure temperature values are in a valid range
     """
+    # This high 377 K temperature range is to allow UKESM1-0-LL runs, which
+    # apparently run very hot.
     assert (ds[var].min() > 130) and (
-        ds[var].max() < 360
+        ds[var].max() < 377
     ), "{} values are invalid".format(var)
 
 
