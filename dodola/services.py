@@ -4,7 +4,6 @@ from functools import wraps
 import json
 import logging
 import dask
-import numpy as np
 from dodola.core import (
     xesmf_regrid,
     standardize_gcm,
@@ -763,7 +762,7 @@ def validate(x, var, data_type, time_period):
         return True
 
     tasks = []
-    for t in np.unique(ds["time"].dt.year.data):
+    for t in set(ds["time"].dt.year.data):
         logger.debug(f"Validating year {t}")
         tasks.append(memory_intensive_tests(x, var, t))
     tasks = dask.compute(*tasks)
