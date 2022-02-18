@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
-- Fix dodola validate-dataset OOM on small workers without dask-distributed. (@brews)
+- Fix dodola validate-dataset OOM on small workers without dask-distributed. (PR #181, @brews)
 
 ## [0.17.0] - 2022-02-17
 ### Changed
