@@ -1,3 +1,5 @@
+[![Test](https://github.com/ClimateImpactLab/dodola/actions/workflows/test.yaml/badge.svg)](https://github.com/ClimateImpactLab/dodola/actions/workflows/test.yaml)
+
 # dodola
 
 Containerized application for running the steps in a larger, orchestrated CMIP6 bias-correction and downscaling workflow.
