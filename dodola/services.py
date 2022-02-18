@@ -3,6 +3,8 @@
 from functools import wraps
 import json
 import logging
+import dask
+import numpy as np
 from dodola.core import (
     xesmf_regrid,
     standardize_gcm,
@@ -12,12 +14,18 @@ from dodola.core import (
     adjust_quantiledeltamapping,
     train_analogdownscaling,
     adjust_analogdownscaling,
-    validate_dataset,
     dtr_floor,
     non_polar_dtr_ceiling,
     apply_precip_ceiling,
     xclim_units_any2pint,
     xclim_units_pint2cf,
+    test_for_nans,
+    test_variable_names,
+    test_timesteps,
+    test_temp_range,
+    test_dtr_range,
+    test_negative_values,
+    test_maximum_precip,
 )
 import dodola.repository as storage
 
@@ -701,6 +709,12 @@ def adjust_maximum_precipitation(x, out, threshold=3000.0):
 def validate(x, var, data_type, time_period):
     """Performs validation on an input dataset
 
+    Valid for CMIP6, bias corrected and downscaled. Raises AssertionError when
+    validation fails.
+
+    This function performs more memory-intensive tests by reading input data
+    and subsetting to each year in the "time" dimension.
+
     Parameters
     ----------
     x : str
@@ -714,6 +728,43 @@ def validate(x, var, data_type, time_period):
         Time period that input data should cover, used in validating the number of timesteps
         in conjunction with the data type.
     """
-
+    # This is pretty rough but works to communicate the idea.
+    # Consider having failed tests raise something like ValidationError rather
+    # than AssertionErrors.
     ds = storage.read(x)
-    validate_dataset(ds, var, data_type, time_period)
+
+    # These only read in Zarr Store metadata -- not memory intensive.
+    test_variable_names(ds, var)
+    test_timesteps(ds, data_type, time_period)
+
+    # Other test are done on annual selections with dask.delayed to
+    # avoid large memory errors.
+    # Doing all this here because this involves storage and I/O logic.
+    @dask.delayed
+    def memory_intensive_tests(f, v, t):
+        d = storage.read(f).sel(time=str(t))
+
+        test_for_nans(d, v)
+
+        if v == "tasmin":
+            test_temp_range(d, v)
+        elif v == "tasmax":
+            test_temp_range(d, v)
+        elif v == "dtr":
+            test_dtr_range(d, v, data_type)
+            test_negative_values(d, v)
+        elif v == "pr":
+            test_negative_values(d, v)
+            test_maximum_precip(d, v)
+        else:
+            raise ValueError(f"Argument {v=} not recognized")
+
+        # Assumes error thrown if had problem before this.
+        return True
+
+    tasks = []
+    for t in np.unique(ds["time"].dt.year.data):
+        logger.debug(f"Validating year {t}")
+        tasks.append(memory_intensive_tests(x, var, t))
+    tasks = dask.compute(*tasks)
+    assert all(tasks)  # Likely don't need this
