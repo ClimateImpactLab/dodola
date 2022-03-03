@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/314387532.svg)](https://zenodo.org/badge/latestdoi/314387532)
 [![Test](https://github.com/ClimateImpactLab/dodola/actions/workflows/test.yaml/badge.svg)](https://github.com/ClimateImpactLab/dodola/actions/workflows/test.yaml)
 [![Build](https://github.com/ClimateImpactLab/dodola/actions/workflows/buildpush.yaml/badge.svg)](https://github.com/ClimateImpactLab/dodola/actions/workflows/buildpush.yaml)
 
