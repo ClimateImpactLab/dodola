@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Large update to package environment pins. (PR #183, @brews) 
 - Add badge for current release DOI to README. (@brews)
 
 ## [0.18.0] - 2022-03-03
