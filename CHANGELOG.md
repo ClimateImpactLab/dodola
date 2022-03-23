@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Large update to package environment pins. (PR #183, @brews) 
+- Add badge for current release DOI to README. (@brews)
+
+## [0.18.0] - 2022-03-03
+### Added
 - Add basic CI/CD test and build status badges to README. (PR #182, @brews)
+### Fixed
+- Fix dodola validate-dataset OOM on small workers without dask-distributed. (PR #181, @brews)
 
 ## [0.17.0] - 2022-02-17
 ### Changed
