@@ -30,7 +30,11 @@ jobs:
         docker build . -t dodola:dev
     - name: Test package
       run: |
-        docker run dodola:dev pytest -v --pyargs dodola
+        docker run -w /opt/dodola --name testcontainer dodola:dev \
+          pytest -v --pyargs dodola --cov dodola --cov-report term-missing --cov-report xml
+        docker cp testcontainer:/opt/dodola/coverage.xml ./coverage.xml
     - name: Test CLI
       run: |
         docker run dodola:dev dodola --help
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
