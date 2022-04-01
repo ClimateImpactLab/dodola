@@ -61,7 +61,7 @@ dodola.services.validate(
 
 ## Installation
 
-`dodola` is generally run from within a container. `dodola` containers are currently hosted at ghcr.io/climateimpactlab/dodola.
+`dodola` is generally run from within a container. `dodola` container images are currently hosted at [ghcr.io/climateimpactlab/dodola](https://ghcr.io/climateimpactlab/dodola).
 
 Alternatively, you can install a bleeding-edge version of the application and access the command-line interface or Python API with `pip`:
 
