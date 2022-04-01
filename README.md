@@ -37,26 +37,39 @@ See `dodola --help` or `dodola <command> --help` for more information.
 
 ## Example
 
-From the command line, you replicate one of the downscaling workflow's validation steps with: 
+From the command line, run one of the downscaling workflow's validation steps with: 
 
 ```shell
-dodola validate-dataset <InsertZarrStoreURLhere> \
+dodola validate-dataset "gs://your/climate/data.zarr" \
   --variable "tasmax" \
   --data-type "downscaled" \
-  -t historical
+  -t "historical"
 ```
 
-Alternatively, the service used by this command can be called directly from Python in `dodola.services`.
+The service used by this command can be called directly from a Python session or script
+
+```python
+import dodola.services
+
+dodola.services.validate(
+    "gs://your/climate/data.zarr", 
+    "tasmax",
+    data_type="downscaled",
+    time_period="historical",
+)
+```
 
 ## Installation
 
-`dodola` is generally run from within a container. But, you can install the application and access the command-line interface or Python API with `pip`:
+`dodola` is generally run from within a container. `dodola` containers are currently hosted at ghcr.io/climateimpactlab/dodola.
+
+Alternatively, you can install a bleeding-edge version of the application and access the command-line interface or Python API with `pip`:
 
 ```shell
 pip install git+https://github.com/ClimateImpactLab/dodola
 ```
 
-the dependencies used in the container are in `./environment.yaml`.
+Because there are many compiled dependencies we recommend installing `dodola` and its dependencies within a `conda` virtual environment. Dependencies used in the container to create its `conda` environment are in `./environment.yaml`.
 
 ## Support
 
