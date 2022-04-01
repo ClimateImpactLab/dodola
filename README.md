@@ -5,7 +5,7 @@
 
 # dodola
 
-Containerized application for running the steps in a larger, orchestrated CMIP6 bias-correction and downscaling workflow.
+Containerized application for running individual tasks in a larger, orchestrated CMIP6 bias-correction and downscaling workflow.
 
 This is under heavy development.
 
