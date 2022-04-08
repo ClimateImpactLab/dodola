@@ -6,47 +6,6 @@ on:
     - "main"
 
 jobs:
-  buildpush-azure:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Docker login
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
-        username: ${{ secrets.ACR_USERNAME }}
-        password: ${{ secrets.ACR_PASSWORD }}
-    - name: Build container
-      run: |
-        docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev
-    - name: Push to registry
-      run: |
-        docker push ${{ secrets.ACR_LOGIN_SERVER }}/dodola:dev
-
-  buildpush-gcp:
-    runs-on: ubuntu-latest
-    env:
-      HASH: $(git rev-parse --short "$GITHUB_SHA")
-      BRANCH: ${GITHUB_REF##*/}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      IMAGE_NAME: "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/private/dodola:dev"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Docker login
-        uses: 'google-github-actions/setup-gcloud@v0'
-        with:
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          export_default_credentials: true
-      - run: |
-          gcloud auth configure-docker -q us-central1-docker.pkg.dev
-      - name: Build container
-        run: |
-          docker build . -t $IMAGE_NAME
-      - name: Push to registry
-        run: |
-          docker push $IMAGE_NAME
-
   buildpush-ghcr:
     runs-on: ubuntu-latest
     env:
