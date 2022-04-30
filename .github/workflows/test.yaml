@@ -44,9 +44,9 @@ jobs:
 
     - name: Test package
       run: |
-        docker run --name testcontainer "${{ env.image_name }}" \
+        docker run -w /opt/dodola --name testcontainer "${{ env.image_name }}" \
           pytest -v --pyargs dodola --cov dodola --cov-report term-missing --cov-report xml
-        docker cp testcontainer:coverage.xml ./coverage.xml
+        docker cp testcontainer:/opt/dodola/coverage.xml ./coverage.xml
 
     - name: Test CLI
       run: |

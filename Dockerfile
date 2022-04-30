@@ -9,7 +9,7 @@ RUN micromamba install -y -f /tmp/env.yaml && \
     micromamba clean --all --yes
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-COPY --chown=$MAMBA_USER:$MAMBA_USER . /tmp/dodola
-RUN python -m pip install --no-deps /tmp/dodola
+COPY --chown=$MAMBA_USER:$MAMBA_USER . /opt/dodola
+RUN python -m pip install --no-deps -e /opt/dodola
 
 CMD ["dodola"]
