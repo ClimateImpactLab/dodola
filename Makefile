@@ -3,5 +3,5 @@ test:
 format:
 	black dodola
 format-check:
-	flake8 --count --show-source --statistics
+	flake8 --count --show-source --statistics dodola
 	black -v --check dodola

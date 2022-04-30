@@ -6,11 +6,12 @@ dependencies:
 - dask=2022.2.0
 - click=8.0.3
 - cftime=1.5.2
-- intake=0.6.5  # Not direct dependency. Used in docker environment.
-- intake-esm=2021.8.17  # Not direct dependency. Used in docker environment.
+- intake=0.6.5  # Not direct dependency. Used in container environment.
+- intake-esm=2021.8.17  # Not direct dependency. Used in container environment.
 - gcsfs=2022.1.0
+- git  # Needed to pull pip requirement below in container build.
 - numpy=1.22.2
-- papermill=2.3.4  # Not direct dependency. Used in docker environment.
+- papermill=2.3.4  # Not direct dependency. Used in container environment.
 - pip=22.0.3
 - pytest=7.0.1
 - pytest-cov
