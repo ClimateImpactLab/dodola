@@ -21,8 +21,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set image release tag
-        env:
-          FULL_RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           echo "docker_tag=dev" >> $GITHUB_ENV
 

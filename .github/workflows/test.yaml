@@ -28,14 +28,12 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Set image release tag
-      env:
-        FULL_RELEASE_TAG: ${{ github.event.release.tag_name }}
       run: |
         echo "docker_tag=dev" >> $GITHUB_ENV
 
     - name: Set image name
       run: |
-        echo "image_name=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ env.docker_tag }}" >> $GITHUB_ENV
+        echo "image_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ env.docker_tag }}" >> $GITHUB_ENV
 
     - name: Build container
       run: |
