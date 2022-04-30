@@ -1,19 +1,15 @@
-FROM continuumio/miniconda3:4.10.3
+FROM mambaorg/micromamba:0.23.0
 
-ENV PATH /opt/conda/bin:$PATH
-ENV PYTHONUNBUFFERED TRUE
-RUN conda install mamba=0.14.0 tini=0.19.0 -c conda-forge && conda clean --all
+LABEL org.opencontainers.image.title="dodola"
+LABEL org.opencontainers.image.url="https://github.com/ClimateImpactLab/dodola"
+LABEL org.opencontainers.image.source="https://github.com/ClimateImpactLab/dodola"
 
-# Copy only app requirements to cache dependencies
-RUN mkdir /opt/dodola
-COPY environment.yaml /opt/dodola/environment.yaml
-RUN mamba env update -n base -f /opt/dodola/environment.yaml \
-    && mamba clean --all
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yaml /tmp/env.yaml
+RUN micromamba install -y -f /tmp/env.yaml && \
+    micromamba clean --all --yes
 
-COPY . /opt/dodola
-RUN bash -c "pip install -e /opt/dodola"
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER . /tmp/dodola
+RUN python -m pip install --no-deps /tmp/dodola
 
 CMD ["dodola"]
-
-# For graceful children and death.
-ENTRYPOINT ["tini", "-g", "--"]

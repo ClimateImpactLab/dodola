@@ -19,12 +19,24 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image release tag
+        env:
+          FULL_RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          echo "docker_tag=dev" >> $GITHUB_ENV
+
       - name: Set image name
         run: |
-          echo "image_name=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):dev" >> $GITHUB_ENV
+          echo "image_name=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ env.docker_tag }}" >> $GITHUB_ENV
+
       - name: Build container
         run: |
-          docker build . -t "${{ env.image_name }}"
+          docker build . -t "${{ env.image_name }}" \
+            --label "org.opencontainers.image.created=$(date --rfc-3339=ns)" \
+            --label "org.opencontainers.image.version=${{ env.docker_tag }}" \
+            --label "org.opencontainers.image.revision=${{ env.GITHUB_SHA }}"
+
       - name: Push to registry
         run: |
           docker push "${{ env.image_name }}"

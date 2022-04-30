@@ -26,16 +26,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
+    - name: Set image release tag
+      env:
+        FULL_RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: |
+        echo "docker_tag=dev" >> $GITHUB_ENV
+
+    - name: Set image name
+      run: |
+        echo "image_name=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ env.docker_tag }}" >> $GITHUB_ENV
+
     - name: Build container
       run: |
-        docker build . -t dodola:dev
+        docker build . -t "${{ env.image_name }}" \
+          --label "org.opencontainers.image.created=$(date --rfc-3339=ns)" \
+          --label "org.opencontainers.image.version=${{ env.docker_tag }}" \
+          --label "org.opencontainers.image.revision=${{ env.GITHUB_SHA }}"
+
     - name: Test package
       run: |
-        docker run -w /opt/dodola --name testcontainer dodola:dev \
+        docker run -w /opt/dodola --name testcontainer "${{ env.image_name }}" \
           pytest -v --pyargs dodola --cov dodola --cov-report term-missing --cov-report xml
         docker cp testcontainer:/opt/dodola/coverage.xml ./coverage.xml
+
     - name: Test CLI
       run: |
-        docker run dodola:dev dodola --help
+        docker run "${{ env.image_name }}" dodola --help
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
