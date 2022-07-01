@@ -14,13 +14,16 @@ jobs:
   # Build the documentation and upload the static HTML files as an artifact.
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v3
       - name: Setup micromamba
         uses: mamba-org/provision-with-micromamba@v12
         with:
           environment-file: environment.yaml
-          cache-downloads: true
+          environment-name: docsbuild
       - run: pip install -e .[docs]
       - run: make docs
       - run: tar --directory docs/ -hcf artifact.tar .
