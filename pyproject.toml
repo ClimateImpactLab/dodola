@@ -44,6 +44,9 @@ test = [
     "pytest == 7.0.1",
     "pytest-cov"
 ]
+docs = [
+    "pdoc",
+]
 
 
 [project.urls]
