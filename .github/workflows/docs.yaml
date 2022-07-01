@@ -21,9 +21,7 @@ jobs:
         with:
           environment-file: environment.yaml
           cache-downloads: true
-          extra-specs: |
-            pdoc
-      - run: pip install -e .
+      - run: pip install -e .[docs]
       - run: make docs
       - run: tar --directory docs/ -hcf artifact.tar .
       - uses: actions/upload-artifact@v3
