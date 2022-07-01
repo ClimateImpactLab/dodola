@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrate parent container from `miniconda3` to `micromamba`. Note this is a significant change to the container environment which may break scripts run in the container. In addition, the containers entry point has changed, breaking backwards compatibility for Argo Workflows running with Emissary executors. (PR #195, @brews)
 - Migrate Python package metadata and dependencies from `setup.cfg` to `pyproject.toml`. Note the runtime environment used in the container is still `environment.yaml`. (PR #195, @brews)
 - Minor README updates, improvements. (PR #195, @brews)
+- Updates to Python package metadata, specific dependencies, versioning, classifiers, project URLs. (PR #206, @brews)
 
 ## [0.19.0] - 2022-03-25
 ### Added
