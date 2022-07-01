@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add documentation, hosted at https://climateimpactlab.github.io/dodola/. (@brews)
+- Add documentation, hosted at https://climateimpactlab.github.io/dodola/. (PR #205, @brews)
 - Test coverage for container tests in CI. (PR #188, PR #191, @brews)
 - Add `org.opencontainers.image` labels with metadata to container. (PR #195, @brews)
 ### Changed
