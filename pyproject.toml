@@ -10,6 +10,7 @@ build-backend = "setuptools.build_meta"
 name = "dodola"
 description = "GCM bias-correction and downscaling"
 readme = "README.md"
+dynamic = ["version"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
