@@ -24,7 +24,7 @@ jobs:
           extra-specs: |
             pdoc
       - run: pip install -e .
-      - run: pdoc -o docs/ dodola --docformat numpy
+      - run: make docs
       - run: tar --directory docs/ -hcf artifact.tar .
       - uses: actions/upload-artifact@v3
         with:
