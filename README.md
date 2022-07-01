@@ -73,4 +73,6 @@ Because there are many compiled dependencies we recommend installing `dodola` an
 
 ## Support
 
+Additional technical documentation is available online at https://climateimpactlab.github.io/dodola/.
+
 Source code is available online at https://github.com/ClimateImpactLab/dodola. This software is Open Source and available under the Apache License, Version 2.0.
