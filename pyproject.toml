@@ -10,7 +10,7 @@ version = "0.1.0a0"
 description = "GCM bias-correction and downscaling"
 readme = "README.md"
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
@@ -42,7 +42,9 @@ docs = [
 
 
 [project.urls]
-Homepage = "https://github.com/ClimateImpactLab/dodola"
+Homepage = "https://climateimpactlab.github.io/dodola"
+Documentation = "https://climateimpactlab.github.io/dodola"
+Source = "https://github.com/ClimateImpactLab/dodola"
 "Bug Tracker" = "https://github.com/ClimateImpactLab/dodola/issues"
 
 [project.scripts]
