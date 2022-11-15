@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:0.27.0
+FROM mambaorg/micromamba:1.0.0
 
 LABEL org.opencontainers.image.title="dodola"
 LABEL org.opencontainers.image.url="https://github.com/ClimateImpactLab/dodola"
