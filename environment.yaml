@@ -13,7 +13,7 @@ dependencies:
 - numpy=1.22.2
 - papermill=2.3.4  # Not direct dependency. Used in container environment.
 - pip=22.0.3
-- pint<0.20
+- pint<0.20  # Not a direct dependency but required for this old xclim fork: git+https://github.com/ClimateImpactLab/xclim@63023d27f89a457c752568ffcec2e9ce9ad7a81a
 - pytest=7.0.1
 - pytest-cov
 - python=3.9
