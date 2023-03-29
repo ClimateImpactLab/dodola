@@ -6,6 +6,7 @@ dependencies:
 - dask=2022.2.0
 - click=8.0.3
 - cftime=1.5.2
+- esmf=8.3.1  # Required by old release of xesmf.
 - intake=0.6.5  # Not direct dependency. Used in container environment.
 - intake-esm=2021.8.17  # Not direct dependency. Used in container environment.
 - gcsfs=2022.1.0
