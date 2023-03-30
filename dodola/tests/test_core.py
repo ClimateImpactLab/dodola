@@ -359,7 +359,6 @@ def test_qplad_integration_af_quantiles():
 
 
 def test_xclim_units_conversion():
-
     initial_unit = "mm d-1"
     cf_style = _timeseriesfactory(
         np.ones(1),
@@ -374,7 +373,6 @@ def test_xclim_units_conversion():
 
 
 def test_xclim_convert_360day_calendar_interpolate():
-
     """Test that conversions of a 360-day-calendar time indexed dataset work"""
 
     # fake data
