@@ -251,7 +251,7 @@ def test_qplad_integration_af_quantiles():
     ds_bc[variable].attrs["units"] = "K"
 
     # this is an integration test between QDM and QPLAD, so use QDM services
-    # for bias correction
+    # for bias adjustment
     target_year = 2005
     qdm_model = train_quantiledeltamapping(
         reference=ds_ref_coarse, historical=ds_train, variable=variable, kind=kind

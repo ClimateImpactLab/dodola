@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option("--debug/--no-debug", default=False, envvar="DODOLA_DEBUG")
 def dodola_cli(debug):
-    """GCM bias-correction and downscaling
+    """GCM bias adjustment and downscaling
 
     Authenticate with storage by setting the appropriate environment variables
     for your fsspec-compatible URL library.
@@ -200,7 +200,7 @@ def apply_qdm(
     root_attrs_json_file=None,
     new_attrs=None,
 ):
-    """Adjust simulation years with QDM bias correction method, outputting Zarr Store"""
+    """Adjust simulation years with QDM bias-adjustment method, outputting Zarr Store"""
     first_year, last_year = (int(x) for x in years.split(","))
 
     unpacked_attrs = None
@@ -350,7 +350,7 @@ def train_qdm(
     "--wetday-post-correction",
     type=bool,
     default=False,
-    help="Whether to apply wet day frequency correction on downscaled data",
+    help="Whether to apply wet day frequency adjustment on downscaled data",
 )
 def apply_qplad(
     simulation,

@@ -1115,7 +1115,7 @@ def test_qplad_integration(kind):
     repository.write(sim_url, ds_bc)
 
     # this is an integration test between QDM and QPLAD, so use QDM services
-    # for bias correction
+    # for bias adjustment
     target_year = 2005
 
     train_qdm(
