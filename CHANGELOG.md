@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test coverage for container tests in CI. (PR #188, PR #191, @brews)
 - Add `org.opencontainers.image` labels with metadata to container. (PR #195, @brews)
 ### Changed
+- Bleeding-edge development container now uses "edge" tag. (@brews)
 - Minor clarifications to docs and comments. (PR #232, @brews)
 - Migrate parent container from `miniconda3` to `micromamba`. Note this is a significant change to the container environment which may break scripts run in the container. In addition, the containers entry point has changed, breaking backwards compatibility for Argo Workflows running with Emissary executors. (PR #195, @brews)
 - Migrate Python package metadata and dependencies from `setup.cfg` to `pyproject.toml`. Note the runtime environment used in the container is still `environment.yaml`. (PR #195, @brews)
