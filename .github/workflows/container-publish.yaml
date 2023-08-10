@@ -1,0 +1,39 @@
+name: Upload container image
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY_NAME: ghcr.io/climateimpactlab
+  IMAGE_NAME: dodola
+
+jobs:
+  buildpush:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=edge
+            type=semver,pattern={{version}}
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_NAME }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
