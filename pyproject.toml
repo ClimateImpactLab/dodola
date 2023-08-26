@@ -34,12 +34,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+docs = [
+    "mkdocs",
+    "mkdocstrings[python]",
+    "mkdocs-material",
+]
 test = [
     "pytest",
     "pytest-cov"
-]
-docs = [
-    "pdoc",
 ]
 
 

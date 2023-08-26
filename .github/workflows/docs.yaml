@@ -1,48 +1,25 @@
 name: website
-
-# build the documentation whenever there are new commits on main
 on:
   push:
     branches:
+      - master
       - main
-
-# security: restrict permissions for CI jobs.
 permissions:
-  contents: read
-
+  contents: write
 jobs:
-  # Build the documentation and upload the static HTML files as an artifact.
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup micromamba
-        uses: mamba-org/provision-with-micromamba@v16
+      - uses: actions/setup-python@v4
         with:
-          environment-file: environment.yaml
-          environment-name: docsbuild
-      - run: pip install -e .[docs]
-      - run: make docs
-      - run: tar --directory docs/ -hcf artifact.tar .
-      - uses: actions/upload-artifact@v3
+          python-version: 3.x
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - uses: actions/cache@v3
         with:
-          name: github-pages
-          path: ./artifact.tar
-
-  # Deploy the artifact to GitHub pages.
-  # This is a separate job so that only actions/deploy-pages has the necessary permissions.
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v2
+          key: mkdocs-material-${{ env.cache_id }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+      - run: pip install mkdocs-material
+      - run: mkdocs gh-deploy --force
