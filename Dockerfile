@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:1.5.1
+FROM mambaorg/micromamba:1.5.3
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yaml /tmp/env.yaml
 RUN micromamba install -y -f /tmp/env.yaml && \
