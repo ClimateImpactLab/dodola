@@ -1,5 +1,6 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
+
 from functools import wraps
 import json
 import logging

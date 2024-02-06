@@ -3,7 +3,6 @@
 Math stuff and business logic goes here. This is the "business logic".
 """
 
-
 import warnings
 import logging
 import numpy as np
