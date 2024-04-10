@@ -6,12 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Add documentation, hosted at https://climateimpactlab.github.io/dodola/. (PR #235, PR #205, @brews)
 - Test coverage for container tests in CI. (PR #188, PR #191, @brews)
-- Add `org.opencontainers.image` labels with metadata to container. (PR #195, @brews)
+- Add `org.opencontainers.image` labels with metadata to container. (PR #195, PR #233, @brews)
 ### Changed
+- Bleeding-edge development container now uses "edge" tag. "dev" tag no longer updated. (PR #233, @brews)
+- Minor clarifications to docs and comments. (PR #232, @brews)
 - Migrate parent container from `miniconda3` to `micromamba`. Note this is a significant change to the container environment which may break scripts run in the container. In addition, the containers entry point has changed, breaking backwards compatibility for Argo Workflows running with Emissary executors. (PR #195, @brews)
 - Migrate Python package metadata and dependencies from `setup.cfg` to `pyproject.toml`. Note the runtime environment used in the container is still `environment.yaml`. (PR #195, @brews)
 - Minor README updates, improvements. (PR #195, @brews)
+- Updates to Python package metadata, specific dependencies, versioning, classifiers, project URLs. (PR #206, @brews)
+### Fixed
+- Fix broken release links in CHANGELOG. (@brews)
 
 ## [0.19.0] - 2022-03-25
 ### Added
@@ -200,3 +206,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2021-04-15
 - Initial release.
+
+[unreleased]: https://github.com/climateimpactlab/dodola/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/climateimpactlab/dodola/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/climateimpactlab/dodola/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/climateimpactlab/dodola/compare/v0.16.2...v0.17.0
+[0.16.2]: https://github.com/climateimpactlab/dodola/compare/v0.16.1...v0.16.2
+[0.16.1]: https://github.com/climateimpactlab/dodola/compare/v0.16.0...v0.16.1
+[0.16.0]: https://github.com/climateimpactlab/dodola/compare/v0.15.1...v0.16.0
+[0.15.1]: https://github.com/climateimpactlab/dodola/compare/v0.15.0...v0.15.1
+[0.15.0]: https://github.com/climateimpactlab/dodola/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/climateimpactlab/dodola/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/climateimpactlab/dodola/compare/v0.12.0...v0.13.0
+[0.12.0]: https://github.com/climateimpactlab/dodola/compare/v0.11.1...v0.12.0
+[0.11.1]: https://github.com/climateimpactlab/dodola/compare/v0.11.0...v0.11.1
+[0.11.0]: https://github.com/climateimpactlab/dodola/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/climateimpactlab/dodola/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/climateimpactlab/dodola/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/climateimpactlab/dodola/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/climateimpactlab/dodola/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/climateimpactlab/dodola/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/climateimpactlab/dodola/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/climateimpactlab/dodola/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/climateimpactlab/dodola/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/climateimpactlab/dodola/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/climateimpactlab/dodola/releases/tag/v0.1.0

@@ -1,16 +1,18 @@
 [build-system]
 requires = [
     "setuptools>=62.0",
+    "wheel",
+    "setuptools_scm>=7.0",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dodola"
-version = "0.1.0a0"
-description = "GCM bias-correction and downscaling"
+description = "GCM bias adjustment and downscaling"
 readme = "README.md"
+dynamic = ["version"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
@@ -21,33 +23,32 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "dask == 2022.2.0",
-    "click == 8.0.3",
-    "cftime == 1.5.2",
-    "numpy == 1.22.2",
-    "xarray == 0.21.1",
+    "dask >= 2022.0.0",
+    "click >= 8.0.0",
+    "cftime",
+    "numpy >= 1.22.0",
+    "xarray >= 0.21.0",
     "xclim >= 0.30.1",
-    "xesmf == 0.6.2",
-    "zarr == 2.11.0",
+    "xesmf >= 0.6.0",
+    "zarr",
 ]
 
 [project.optional-dependencies]
-complete = [
-    "adlfs == 2022.2.0",
-    "intake == 0.6.5",
-    "intake-esm == 2021.8.17",
-    "gcsfs == 2022.1.0",
-    "papermill == 2.3.4",
-    "s3fs == 2022.1.0",
+docs = [
+    "mkdocs",
+    "mkdocstrings[python]",
+    "mkdocs-material",
 ]
 test = [
-    "pytest == 7.0.1",
+    "pytest",
     "pytest-cov"
 ]
 
 
 [project.urls]
-Homepage = "https://github.com/ClimateImpactLab/dodola"
+Homepage = "https://climateimpactlab.github.io/dodola"
+Documentation = "https://climateimpactlab.github.io/dodola"
+Source = "https://github.com/ClimateImpactLab/dodola"
 "Bug Tracker" = "https://github.com/ClimateImpactLab/dodola/issues"
 
 [project.scripts]
@@ -55,3 +56,7 @@ dodola = "dodola.cli:dodola_cli"
 
 [tool.setuptools]
 packages = ["dodola"]
+
+[tool.setuptools_scm]
+fallback_version = "999"
+write_to = "dodola/_version.py"

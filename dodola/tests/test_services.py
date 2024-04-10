@@ -738,7 +738,6 @@ def test_remove_leapdays():
 
 @pytest.mark.parametrize("process", [pytest.param("pre"), pytest.param("post")])
 def test_correct_wet_day_frequency(process):
-
     """Test that wet day frequency correction corrects the frequency of wet days"""
     # Make some fake precip data
     ts = np.array([0.5, 1, 1.5, 0.1])
@@ -1116,7 +1115,7 @@ def test_qplad_integration(kind):
     repository.write(sim_url, ds_bc)
 
     # this is an integration test between QDM and QPLAD, so use QDM services
-    # for bias correction
+    # for bias adjustment
     target_year = 2005
 
     train_qdm(

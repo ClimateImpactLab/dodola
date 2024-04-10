@@ -1,4 +1,4 @@
-"""Core logic for bias-correction and downscaling
+"""Core logic for bias adjustment and downscaling
 
 Math stuff and business logic goes here. This is the "business logic".
 """
@@ -308,7 +308,7 @@ def adjust_quantiledeltamapping(
     out : xr.Dataset
         QDM-adjusted values from `simulation`. May be a lazy-evaluated future, not
         yet computed. In addition to adjusted original variables, this includes
-        "sim_q" variable giving quantiles from QDM biascorrection.
+        "sim_q" variable giving quantiles from QDM biasadjustment.
     """
     # This loop is a candidate for dask.delayed. Beware, xclim had issues with saturated scheduler.
     qdm_list = []
@@ -595,7 +595,6 @@ def standardize_gcm(ds, leapday_removal=True):
         if ds_cleaned.time.dtype == "int64":
             ds_cleaned["time"] = xr.decode_cf(ds_cleaned).time
         if cal == "360_day":
-
             # Cannot have chunks in time dimension for 360 day calendar conversion so loading
             # data into memory.
             ds_cleaned.load()
@@ -941,11 +940,11 @@ def test_temp_range(ds, var):
 def test_dtr_range(ds, var, data_type):
     """
     Ensure DTR values are in a valid range
-    Test polar values separately since some polar values can be much higher post-bias correction.
+    Test polar values separately since some polar values can be much higher post bias adjustment.
     """
     # test that DTR values are greater than 0 or equal to 0 depending on the data type
     # note that some CMIP6 DTR will equal 0 at polar latitudes, this will be adjusted
-    # before bias correction with the DTR small values correction
+    # before bias adjustment with the DTR small values correction
 
     dtr_min = ds[var].min()
     if data_type == "cmip6":

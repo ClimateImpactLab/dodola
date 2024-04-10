@@ -1,5 +1,6 @@
 """Used by the CLI or any UI to deliver services to our lovely users
 """
+
 from functools import wraps
 import json
 import logging
@@ -436,7 +437,7 @@ def apply_qplad(
     simulation : str
         fsspec-compatible URL containing simulation data to be adjusted.
         Dataset must have `variable` as well as a variable, "sim_q", giving
-        the quantiles from QDM bias-correction.
+        the quantiles from QDM bias adjustment.
     qplad : str
         fsspec-compatible URL pointing to Zarr Store containing canned
         ``xclim.sdba.adjustment.AnalogQuantilePreservingDownscaling`` Dataset.
@@ -632,8 +633,8 @@ def correct_wet_day_frequency(x, out, process, variable="pr"):
         Storage URL to write regridded output to.
     process : {"pre", "post"}
         Step in pipeline, used in determining how to correct.
-        "Pre" replaces all zero values with a uniform random value below a threshold (before bias correction).
-        "Post" replaces all values below a threshold with zeroes (after bias correction).
+        "Pre" replaces all zero values with a uniform random value below a threshold (before bias adjustment).
+        "Post" replaces all values below a threshold with zeroes (after bias adjustment).
     variable: str
     """
     ds = storage.read(x)

@@ -6,6 +6,7 @@ dependencies:
 - dask=2022.2.0
 - click=8.0.3
 - cftime=1.5.2
+- esmf=8.3.1  # Required by old release of xesmf.
 - intake=0.6.5  # Not direct dependency. Used in container environment.
 - intake-esm=2021.8.17  # Not direct dependency. Used in container environment.
 - gcsfs=2022.1.0
@@ -13,6 +14,7 @@ dependencies:
 - numpy=1.22.2
 - papermill=2.3.4  # Not direct dependency. Used in container environment.
 - pip=22.0.3
+- pint<0.20  # Not a direct dependency but required for this old xclim fork: git+https://github.com/ClimateImpactLab/xclim@63023d27f89a457c752568ffcec2e9ce9ad7a81a
 - pytest=7.0.1
 - pytest-cov
 - python=3.9

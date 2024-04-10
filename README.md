@@ -1,11 +1,11 @@
 [![DOI](https://zenodo.org/badge/314387532.svg)](https://zenodo.org/badge/latestdoi/314387532)
 [![Test](https://github.com/ClimateImpactLab/dodola/actions/workflows/test.yaml/badge.svg)](https://github.com/ClimateImpactLab/dodola/actions/workflows/test.yaml)
-[![Build](https://github.com/ClimateImpactLab/dodola/actions/workflows/buildpush.yaml/badge.svg)](https://github.com/ClimateImpactLab/dodola/actions/workflows/buildpush.yaml)
+[![Upload container image](https://github.com/ClimateImpactLab/dodola/actions/workflows/container-publish.yaml/badge.svg)](https://github.com/ClimateImpactLab/dodola/actions/workflows/container-publish.yaml)
 [![codecov](https://codecov.io/gh/ClimateImpactLab/dodola/branch/main/graph/badge.svg?token=WCDUAU8KFT)](https://codecov.io/gh/ClimateImpactLab/dodola)
 
 # dodola
 
-Containerized application for running individual tasks in a larger, orchestrated CMIP6 bias-correction and downscaling workflow.
+Containerized application for running individual tasks in a larger, orchestrated CMIP6 bias-adjustment and downscaling workflow.
 
 This is under heavy development.
 
@@ -72,5 +72,7 @@ pip install git+https://github.com/ClimateImpactLab/dodola
 Because there are many compiled dependencies we recommend installing `dodola` and its dependencies within a `conda` virtual environment. Dependencies used in the container to create its `conda` environment are in `./environment.yaml`.
 
 ## Support
+
+Additional technical documentation is available online at https://climateimpactlab.github.io/dodola/.
 
 Source code is available online at https://github.com/ClimateImpactLab/dodola. This software is Open Source and available under the Apache License, Version 2.0.
