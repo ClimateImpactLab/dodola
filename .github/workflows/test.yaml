@@ -12,7 +12,7 @@ jobs:
   codequality:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -27,7 +27,7 @@ jobs:
   container-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set image release tag
       run: |
