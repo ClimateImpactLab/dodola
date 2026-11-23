@@ -55,7 +55,7 @@ Source = "https://github.com/ClimateImpactLab/dodola"
 dodola = "dodola.cli:dodola_cli"
 
 [tool.black]
-target-version = ["py39"]
+target-version = ["py38"]
 
 [tool.setuptools]
 packages = ["dodola"]
